@@ -1,0 +1,24 @@
+{
+	"name": "guard-ian-guide",
+	"version": "1.0.0",
+	"private": true,
+	"description": "GUARD.IAN XPR Guide: free, read-only remote MCP server for XPR Network / Metallicus knowledge and live chain lookups. Built on Cloudflare's official remote-mcp-authless template.",
+	"scripts": {
+		"deploy": "wrangler deploy",
+		"dev": "wrangler dev",
+		"start": "wrangler dev",
+		"cf-typegen": "wrangler types",
+		"type-check": "tsc --noEmit",
+		"test": "node --experimental-strip-types test/unit.test.ts"
+	},
+	"dependencies": {
+		"@modelcontextprotocol/sdk": "1.30.0",
+		"@modelcontextprotocol/server": "2.0.0",
+		"agents": "^0.20.1",
+		"zod": "^4.4.3"
+	},
+	"devDependencies": {
+		"typescript": "6.0.3",
+		"wrangler": "^4.105.0"
+	}
+}

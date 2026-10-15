@@ -18,6 +18,8 @@ https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
 
 Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
+**Coming next: GUARD.IAN's own server** (code in [`server/`](server/), being deployed). It reads this guide live, so there's no cache delay, and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"** (symbol + contract checked against XPR's developer registry, the chain, Metal X, Alcor and SimpleDEX). Once it's live, its URL will be listed here.
+
 - **Claude** (claude.ai): Customize → Connectors → Add custom connector → paste the URL.
 - **Grok** (grok.com): Connectors → New Connector → Custom → paste the URL.
 - **ChatGPT:** custom connectors depend on your plan and settings. Check OpenAI's help pages for the current steps.

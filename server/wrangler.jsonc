@@ -1,0 +1,30 @@
+/**
+ * GUARD.IAN XPR Guide server. Based on cloudflare/ai demos/remote-mcp-authless
+ * (sha 0e5bc3b, read 2026-10-15). Wrangler config reference:
+ * https://developers.cloudflare.com/workers/wrangler/configuration/
+ */
+{
+	"$schema": "node_modules/wrangler/config-schema.json",
+	"name": "guard-ian-guide",
+	"main": "src/index.ts",
+	"compatibility_date": "2026-07-02",
+	"compatibility_flags": ["nodejs_compat"],
+	"workers_dev": true,
+	"observability": {
+		"enabled": true,
+	},
+	// Rate limiting (CLAUDE.md rule 10: no public surface without a rate limit).
+	// https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/
+	// period must be 10 or 60; limits are per Cloudflare location, per key (here: per client IP).
+	"ratelimits": [
+		{
+			"name": "RATE_LIMITER",
+			"namespace_id": "4488",
+			"simple": { "limit": 60, "period": 60 },
+		},
+	],
+	"vars": {
+		"GUIDE_REPO": "Scubasteve4488/guard-ian-xpr-guide",
+		"GUIDE_BRANCH": "main",
+	},
+}
