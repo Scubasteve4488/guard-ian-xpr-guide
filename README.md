@@ -28,7 +28,7 @@ The GitMCP URL above also works (docs only, cached).
 
 - **Claude** (claude.ai): Customize → Connectors → Add custom connector → paste the URL.
 - **Grok** (grok.com): Connectors → New Connector → Custom → paste the URL.
-- **ChatGPT:** custom connectors depend on your plan and settings. Check OpenAI's help pages for the current steps.
+- **ChatGPT** (web only, not mobile): needs **Pro** (read/fetch use in developer mode, enough for this read-only guide) or **Business / Enterprise / Edu**. Plus and Free are not listed. Settings → Apps → Advanced settings → turn on **Developer mode** → Apps → **Create** → paste the URL → **Scan Tools** → **Create**. Then pick it from the tools menu in a new chat. Source: [OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt), read 2026-10-15; it is a beta and may change.
 - **Cursor / VS Code / other MCP apps:** add the URL as a remote MCP server. GitMCP's README has a block for each app.
 
 Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX launch graduate?"*
