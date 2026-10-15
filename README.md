@@ -18,7 +18,13 @@ https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
 
 Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
-**Coming next: GUARD.IAN's own server** (code in [`server/`](server/), being deployed). It reads this guide live, so there's no cache delay, and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"** (symbol + contract checked against XPR's developer registry, the chain, Metal X, Alcor and SimpleDEX). Once it's live, its URL will be listed here.
+**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide live (no cache delay) and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"**. Code: [`server/`](server/).
+
+```
+https://guard-ian-guide.rangelt88.workers.dev/mcp
+```
+
+The GitMCP URL above also works (docs only, cached).
 
 - **Claude** (claude.ai): Customize → Connectors → Add custom connector → paste the URL.
 - **Grok** (grok.com): Connectors → New Connector → Custom → paste the URL.
