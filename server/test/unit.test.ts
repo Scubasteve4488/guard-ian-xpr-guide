@@ -101,6 +101,17 @@ t('token check never says safe', !JSON.stringify(tc).toLowerCase().includes('saf
 const tc2 = await tokenCheck('XBTC', 'xtokens');
 t('real XBTC is in registry and on Metal X', tc2.facts.some((f) => f.startsWith('In XPR')) && tc2.facts.some((f) => f.startsWith('Metal X lists')));
 
+// private-repo mode: token goes only to api.github.com, never into the answer
+let authHost = '', authHeader = '';
+stub((url, init) => {
+	if (init?.headers?.Authorization) { authHost = new URL(url).host; authHeader = init.headers.Authorization; }
+	return new Response('# hello', { status: 200 });
+});
+const { readGuideFile } = await import('../src/guide.ts');
+const g = await readGuideFile('o/r', 'main', 'RULES.md', undefined, 'tok123');
+t('private mode uses GitHub API with token', authHost === 'api.github.com' && authHeader === 'Bearer tok123');
+t('private mode answer has no token', !JSON.stringify(g).includes('tok123') && g.source === 'https://github.com/o/r/blob/main/RULES.md');
+
 globalThis.fetch = realFetch;
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

@@ -43,6 +43,16 @@ It follows the XPR developer skill's **Endpoint Etiquette** (`rpc-queries.md`, X
 
 Check it: open the URL + `/health` in a browser. It should show `{"ok":true,...}`.
 
+### If the repo is private
+The server reads the guide files through GitHub's API with a read-only token:
+1. On GitHub, go to **Settings → Developer settings → Fine-grained tokens → Generate new token**.
+   - Repository access: **only `guard-ian-xpr-guide`**.
+   - Permissions: **Contents: Read-only**. Nothing else.
+2. In Cloudflare, open the `guard-ian-guide` Worker, then **Settings → Variables and Secrets → Add**.
+   - Type **Secret**, name `GITHUB_TOKEN`, paste the token.
+   - Save, then redeploy.
+3. Never paste the token anywhere else (not in chat, not in a file).
+
 ## Develop and test
 ```
 npm install

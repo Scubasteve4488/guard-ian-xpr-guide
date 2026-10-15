@@ -80,7 +80,7 @@ async function cachePut(key: Request, value: FetchResult, ttlSec: number, ctx?: 
 export async function politeFetch(
 	pool: string[],
 	path: string,
-	init: { method?: 'GET' | 'POST'; body?: string } = {},
+	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
 	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
@@ -103,6 +103,7 @@ export async function politeFetch(
 					'User-Agent': USER_AGENT,
 					...(init.body ? { 'Content-Type': 'application/json' } : {}),
 					Accept: 'application/json, text/plain, text/html;q=0.8, */*;q=0.5',
+					...(init.headers ?? {}),
 				},
 				redirect: 'manual',
 				signal: AbortSignal.timeout(TIMEOUT_MS),

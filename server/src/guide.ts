@@ -12,11 +12,22 @@ export function rawUrl(repo: string, branch: string, file: string) {
 	return `https://raw.githubusercontent.com/${repo}/${branch}/${file}`;
 }
 
-export async function readGuideFile(repo: string, branch: string, file: GuideFile, ctx?: ExecutionContext) {
-	const url = rawUrl(repo, branch, file);
-	const r = await politeFetch([url], '', { method: 'GET' }, { ttlSec: GUIDE_TTL_SEC, ctx, startAt: 0 });
+/**
+ * Read one guide file. Public repo: raw.githubusercontent.com. Private repo: set the Worker secret GITHUB_TOKEN (a
+ * fine-grained, read-only token for this one repo) and the file is read through the GitHub contents API instead.
+ * The token is sent only to api.github.com and never appears in any answer or cache key.
+ */
+export async function readGuideFile(repo: string, branch: string, file: GuideFile, ctx?: ExecutionContext, token?: string) {
+	const shown = `https://github.com/${repo}/blob/${branch}/${file}`;
+	const url = token
+		? `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(file)}?ref=${encodeURIComponent(branch)}`
+		: rawUrl(repo, branch, file);
+	const headers = token
+		? { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github.raw', 'X-GitHub-Api-Version': '2022-11-28' }
+		: undefined;
+	const r = await politeFetch([url], '', { method: 'GET', headers }, { ttlSec: GUIDE_TTL_SEC, ctx, startAt: 0 });
 	if (r.status !== 200) throw new UpstreamError(`could not read ${file} from GitHub (HTTP ${r.status})`);
-	return { text: r.text, source: url, readAt: r.readAt };
+	return { text: r.text, source: token ? shown : url, readAt: r.readAt };
 }
 
 export interface Section {

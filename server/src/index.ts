@@ -14,6 +14,7 @@ import { UpstreamError } from './net.ts';
 interface Env {
 	GUIDE_REPO: string;
 	GUIDE_BRANCH: string;
+	GITHUB_TOKEN?: string; // Worker secret, only if the guide repo is private (read-only, one repo)
 	RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> };
 }
 
@@ -66,7 +67,7 @@ function createServer(env: Env, ctx?: ExecutionContext) {
 		},
 		async ({ query, limit }) => {
 			try {
-				const files = await Promise.all(GUIDE_FILES.map((f) => readGuideFile(repo, branch, f, ctx).then((r) => ({ f, r }))));
+				const files = await Promise.all(GUIDE_FILES.map((f) => readGuideFile(repo, branch, f, ctx, env.GITHUB_TOKEN).then((r) => ({ f, r }))));
 				const sections = files.flatMap(({ f, r }) => splitSections(f, r.text));
 				const hits = searchSections(sections, query, limit ?? 6);
 				if (!hits.length)
@@ -93,7 +94,7 @@ function createServer(env: Env, ctx?: ExecutionContext) {
 		},
 		async ({ file }) => {
 			try {
-				const r = await readGuideFile(repo, branch, file as GuideFile, ctx);
+				const r = await readGuideFile(repo, branch, file as GuideFile, ctx, env.GITHUB_TOKEN);
 				return { content: [{ type: 'text' as const, text: `${r.text}\n\nSource: ${r.source}\nRead at: ${r.readAt}` }] };
 			} catch (e) {
 				return fail(e, 'Try guide_search instead.');
