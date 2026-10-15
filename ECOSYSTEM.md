@@ -2,6 +2,8 @@
 
 Everything we have found and checked, in one place: products, dApps, DeFi, tokens, live data feeds, governance, agents, games, NFTs, tools, communities and the GitHub code. **Read 2026-10-15** unless a row gives another date. The daily update adds new projects as they appear.
 
+**Expanded 2026-10-15 (evening):** the Cypher Gang ecosystem (CYPHR.Market, Cypher Brawls, MarketPulse, Tip Bot, Bid & Win, $CYPHR), the live NFT collection list, and every active block producer read from the chain. More projects are being checked at their own sites and are added as each one is confirmed.
+
 **Status key:**
 - **LIVE**: the site loaded and showed activity, or a dated primary source lists it as live.
 - **UNCLEAR**: it exists, but activity couldn't be confirmed.
@@ -51,6 +53,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | BlastPad ($BLPAD) | Token launches, airdrops, staking pools | https://blastpad.io | homebloksbp [BP] | LIVE |
 | XPredicting | Prediction market | https://xpredicting.com | homebloksbp [BP] | UNCLEAR |
 | Price Battle | Price-prediction game | https://proton.link/battle | Proton NZ [PJ] | LIVE |
+| MarketPulse | On-chain UP/DOWN prediction rounds on XPR/USD, BTC/USD and ETH/USD, staked in XPR, settled by an on-chain price oracle after 24 h. Fee 10% of winnings (3% for Cypher Gang NFT holders) goes to buying back and burning CYPHR. The site says the contract was audited by Bloxprod BP and calls itself experimental | https://cyphergang.com/predictions · X @MarketPulseXPR | Cypher Gang | LIVE (read 10-15) |
 
 DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor about $432K, SimpleDEX about $180K TVL. Source: https://defillama.com/chain/xpr-network. Figures move; cite the page and the time.
 
@@ -82,18 +85,23 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | XPROLL | Daily dice game | https://dice.blocksforge.com | blocksforge BP | LIVE |
 | XPR Slots | Open-source, provably fair slot demo | https://xprslots.com · https://github.com/paulgnz/xpr-slots | Paul Grey | LIVE (demo, low use) |
 | MadTower / MadRaffle | Climbing game; raffle for voters | https://madblocks.tech | madblocks BP | UNCLEAR |
-| Cypher Gang battle game | The community's own battle game | https://cyphergang.com | Cypher Gang | UNCLEAR |
+| Cypher Brawls | Tactical hex-grid campaign and PvP game: your Cypher Gang NFT is your fighter (or a 1,000 XPR "Base Recruit"); shop in CYPHR; earn CYPHR and XPR. Pre-alpha (app v2026.09.16; its wiki says about 11% built: campaign, PvP, shop) | https://app.cypherbrawls.com · guide https://cyphergang.com/wiki | Cypher Gang | LIVE, pre-alpha (was UNCLEAR; confirmed 10-15) |
 
 ## 6. NFTs
 
 | Name | What it is | Link | Status |
 |---|---|---|---|
 | AtomicAssets / AtomicMarket | The NFT standard and sale contracts used on XPR | https://explorer.xprnetwork.org/account/atomicmarket | LIVE |
-| Soon.Market | NFT marketplace (AtomicAssets) | https://soon.market | UNCLEAR |
+| CYPHR.Market | NFT marketplace for every XPR collection (an AtomicMarket front end; fees 1% maker + 1% taker set by the contract, plus each collection's royalty). Shows XPR's full NFT trade history since 2021 (106,018 trades, $4.64M settled, read 10-15), rankings, auctions, a Studio for minting, and music NFTs playable in the browser. Promotion slots are paid in CYPHR and half of each payment is burned to `token.burn` in the same transaction. Launched Aug 2026 | https://cyphr.market · collections https://cyphr.market/collections · fees and burn https://cyphr.market/fees · X @CYPHRMARKET · on-chain account `cyphermarket` (created 2026-08-13) | LIVE |
+| Soon.Market | NFT marketplace (AtomicAssets) | https://soon.market | LIVE (collection pages load, 10-15; was UNCLEAR) |
+| NeftyBlocks XPR market | NeftyBlocks' former XPR marketplace (its producer `guild.nefty` last claimed 2026-04-28) | proton.neftyblocks.com returned "page not found" on 10-15 | ENDED: don't send people there |
 | NFT Packs | Packs that each mint one random NFT | https://nftpacks.io (bloxprod) | LIVE |
 | NFT Claim Hub | Where community NFT rewards are claimed | https://nftclaimhub.io (bloxprod) | LIVE |
 | GLBDEX | Market for 3D-model NFTs, with AR/VR viewing | https://glbdex.com (Proton NZ) | UNCLEAR |
-| Cypher Gang | Long-running NFT community. The collection states 1,777; 927 were minted on chain as of 10-15 | https://cyphergang.com · X @CypherGangNFT · Telegram t.me/CypherGang | LIVE |
+| Cypher Gang | Long-running NFT community and the CYPHR ecosystem: the 1,777-cap collection (7 rarity tiers, Common to Mythic) pays holders CYPHR every month by rarity and "era" (rewards halve each era). Mint count: its own site says 900 (10-15); CYPHR.Market shows 927 on chain. Secondary royalty 15%, half of it buys back and burns CYPHR. Timeline per its site: Cypher Gang 8-bit (2021), Cypher #1 (Feb 2022), Brawls and Bid & Win (2024), CYPHR (Apr 2025), Tip Bot (Dec 2025), CYPHR.Market (Aug 2026) | https://cyphergang.com · start https://cyphergang.com/start · Soon.Market https://soon.market/collection/zvapir55jvu4 · X @CypherGangNFT · Telegram https://t.me/CypherGang · on-chain accounts `cyphergang`, `cypherbrawls` | LIVE |
+| Cypher Gang 8-bit / Synthwave Music NFTs | Cypher Gang's first collection (2021) and its music NFTs | https://cyphr.market/collections | LIVE |
+| Bid & Win | Cypher Gang's auctions: new Cyphers open at 1 XPR, each bid earns a ticket for a 1,000,000 CYPHR prize draw; 50% of proceeds go to the CYPHR/XPR pool on Alcor | https://cyphergang.com/bid-and-win | LIVE (no active auction on 10-15) |
+| All XPR NFT collections (live list) | CYPHR.Market ranks every collection with market activity: 524 on 10-15, 426 of them abandoned (no sale in 180+ days). Badges there mark team collections, e.g. Proton DEX Keys (◆ XPRNetwork Team), Jelli Genesis (◆ ProtonNZ Team), Cypher Gang (◆ CYPHR Team). Other active names on 10-15 include Element Companions, Royal Owls Club, Metal Blockies, Metal Mini Mart, Degen Hoopers, BUILDERS OF THE XPR NETWORK™, KSTO Snippy – Genesis Drop, LOAN Season, Aetherian Farm and The Dingleberries. Anyone can mint a collection with any name: check the creator | https://cyphr.market/collections | LIVE |
 | FunkyFVerse, "Genesis of Funk" | NFT collection `genesisofunk`, "powered by the KSTO ecosystem" | X @funkyfVerse · https://snipverse.com/funkyf | LIVE |
 | Grid Runners | 1/1 Genesis NFTs (`gridrunnersx`), $GRID | X @xpr_gridrunners · https://gridrunners.netlify.app | UNCLEAR |
 | Snippy NFTs | KSTO mascot collection (sold out per standguard.net) | https://standguard.net/community/snippy | LIVE |
@@ -110,6 +118,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | XPR Radar | Voter intelligence, inactive-producer tracker, msig app | https://xpr.voterintelligence.blocksindia.com | protonind | UNCLEAR |
 | madblocks Pulse | Block-producer health tool | https://madblocks.tech | madblocks | UNCLEAR |
 | GeneroX | On-chain donation campaigns | https://generox.org | alvosec | LIVE |
+| CYPHR Tip Bot | Telegram bot for tipping, "rain", games (dice, Mafia, slots) and a daily XPR price call, across about 50 XPR tokens. Custodial: you deposit to `cyphrtipbot` with your memo, and withdrawals cost 1% (0% for Cypher Gang NFT holders). Running since 2025-12-04; site says 1,212+ users. Groups and token listings are reviewed by hand | https://cyphergang.com/tipbot · Telegram @cyphr_tip_bot | Cypher Gang | LIVE |
 | XPR Checkout / Wookey | WooCommerce / WordPress checkout plugin for XPR | https://xprnetwork.org/wookey-woocommerce-plugin · https://github.com/XPRNetwork/xpr-checkout-wp | XPR Network | UNCLEAR |
 | ProtonLive | Network analytics, being rebuilt | https://protonlive.io | protonuk | QUIET |
 | Proton Link | Wallet-linking tools for apps | https://proton.link | Proton NZ | LIVE |
@@ -134,6 +143,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | SNIPS | Snipcoins (linked to Snipverse per its grant application) | `snipcoins` (4) | — |
 | SHARD | Chain Runner's token | `chainrunshd` (4) | — |
 | CHARLIE | Charlie Bot's SimpleDEX token | `simpletoken`, token 2 | https://simpledex.fun/token/2 |
+| CYPHR | Cypher Gang's token. **On chain (10-15): supply = max supply = 4,206,942,069, issuer `cypherxpr`**; its site says fully issued Apr 2025, no new minting. Earned by holding Cypher NFTs, Brawls, auctions and marketplace rewards; spent on CYPHR.Market, the game shop, promotion and tipping; staked on BlastPad, farmed on Alcor (Alcor flags it `is_trusted`) | `tokencreate` (8) | https://explorer.xprnetwork.org/tokens/CYPHR-proton-tokencreate |
 | KSTO vetted tokens | SNIPPY 161, MARSH 5, HEAL 426, PBR 160, LBUG 43, SNIP 419, LADY 18, PAPA 115, BENDER 55, STRAZ 100, GUARD 172 (SimpleDEX token IDs, all graduated) | `simpletoken` | https://simpledex.fun/token/ID · https://ksto.world/vetted_tokens.html |
 
 **Watch out:**
@@ -155,6 +165,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | https://proton.eosusa.io/v2/state/get_top_holders?contract=C&symbol=S | Whether a symbol exists on a contract, and who holds it |
 | https://raw.githubusercontent.com/eoscafe/eos-airdrops/master/tokens.json | Community-kept token list (897 XPR entries) |
 | https://indexer.xpragents.com/api/stats | XPR Agents totals |
+| https://cyphr.market/collections | Every XPR NFT collection with market activity, with floor, volume, holders and age (a web page that builds in the browser, not JSON) |
 
 There is no official XPRNetwork token-list repo (checked 10-15).
 
@@ -170,6 +181,51 @@ There is no official XPRNetwork token-list repo (checked 10-15).
 | Staking | Stake and vote in WebAuth; long staking on the explorer | https://xprnetwork.org/blog/xpr-network-staking-guide |
 | Bounties | Open developer bounties | https://github.com/XPRNetwork/bounties |
 
+### All 37 active block producers, read from the chain
+Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN connector. 104 accounts are registered; 37 have `is_active=1`. The URL is whatever each producer set on chain. The projects column lists only what has been confirmed so far; blank does not mean they run nothing.
+
+| Producer | URL (as set on chain) | Projects confirmed so far |
+|---|---|---|
+| `alvosec` | https://alvosec.com | Xprotect, GeneroX; Consortium member |
+| `artwebin` | https://bp.artwebin.com | XPR Hub (xprhub.org, not yet read) |
+| `blocksforge` | https://www.blocksforge.com | XPROLL dice |
+| `bloxprod` | https://bloxprod.io | NFT Packs, NFT Claim Hub; named as MarketPulse's contract auditor |
+| `bpadex` | https://xpr.a-dex.io | A-DEX (not yet read) |
+| `brotonbp` | https://mainnet.brotonbp.com | Broton community (not yet read) |
+| `cafe` | https://metallicus.com/cafe | Metallicus's own producer |
+| `catsvote` | https://cats.vote | site returned error 525 on 10-15 |
+| `cerebroai` | https://cerebro.host |  |
+| `chaininfra` | https://www.chaininfra.net | ChainInfra Arcade, vote tool |
+| `cindronet` | https://cindro.net | also a Metal Blockchain validator (its site, 10-15) |
+| `cryptolions` | https://cryptolions.io | Consortium member |
+| `danemarkbp` | https://danemarkbp.com |  |
+| `energybp` | https://metalxpr.com/energybp |  |
+| `eosamsterdam` | https://proton.eosamsterdam.net | Consortium member |
+| `eosarabianet` | https://eosarabia.net |  |
+| `eosiodetroit` | https://detroitledger.tech |  |
+| `eosrio` | https://eosrio.io/proton/ |  |
+| `eosusa` | https://eosusa.io/bp/proton/ | public API + Hyperion endpoint |
+| `genereos` | https://genereos.io | Consortium member |
+| `homebloksbp` | https://homebloksbp.com | BlastPad, Vibrr, XPredicting |
+| `ledgerwiseio` | https://ledgerwise.io/proton |  |
+| `luminaryvisn` | https://luminaryvisn.com | Hyperion endpoint |
+| `madblocks` | https://madblocks.tech | games, Pulse BP tool |
+| `protonind` | https://proton.blocksindia.com | Blocks India: XPR Casino, XPR Radar |
+| `protonmadrid` | https://eosiomadrid.io/proton | public API endpoint |
+| `protonnz` | https://protonnz.com | SimpleDEX, XPR Agents, Shellbook and more; Consortium member |
+| `protonuk` | https://protonuk.io | ProtonLive |
+| `rockeronebp` | https://bp.rockerone.io |  |
+| `saltant` | https://proton.saltant.io | public API, snapshots |
+| `snipverse` | https://snipverse.io | Snipverse |
+| `storexbp` | https://storex.io | Storex (not yet read) |
+| `totalproton` | https://totalproton.tech |  |
+| `turtlebp` | https://turtlebp.online |  |
+| `xprcore` | https://xprcore.com |  |
+| `xprdata` | https://xprdata.org | XPR Dashboard, Whale Watcher (not yet read) |
+| `xprnodeonebp` | https://www.nodeone.io |  |
+
+Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (2026-08-24), `guild.nefty` (2026-04-28), `dappradar` (2025-11-26).
+
 **The sources disagree twice:**
 - The Consortium page says 40 active producers; Proton NZ counted 37 on 09-08.
 - The governance docs say to submit grants on GitHub first, while the grant-framework README says the dashboard is the only route.
@@ -183,7 +239,7 @@ There is no official XPRNetwork token-list repo (checked 10-15).
 | Metal X | Official | X https://twitter.com/MetalXApp · Reddit https://reddit.com/r/MetalXOfficial |
 | KSTO | Community | https://ksto.world · X https://x.com/Keep_Snipping · Telegram https://t.me/KSTOX · https://snipverse.com/kstoken · summary [KSTO.md](KSTO.md) |
 | FunkyFVerse | Community (KSTO ecosystem) | X https://x.com/funkyfVerse |
-| Cypher Gang | NFT community | https://cyphergang.com · X https://x.com/CypherGangNFT · Telegram https://t.me/CypherGang |
+| Cypher Gang | NFT community and CYPHR ecosystem | https://cyphergang.com · X https://x.com/CypherGangNFT · Telegram https://t.me/CypherGang · CYPHR.Market X https://x.com/CYPHRMARKET · MarketPulse X https://x.com/MarketPulseXPR |
 | Snipverse / Vibrr / Shellbook | Social platforms | sections 3 and 4 |
 | Proton Nigerian Hub | Regional education hub (grant application) | X https://x.com/ProtonNigeria |
 | Proton NZ | Block producer, builder, educator | https://protonnz.com · feed https://protonnz.com/feed.xml · X https://x.com/protonnz · YouTube https://www.youtube.com/channel/UCqNT7sTd-T9MQ-6UaIYDQFQ |
@@ -217,7 +273,7 @@ These are from [BP]. Check before citing:
 - XPR Dashboard and Whale Watcher (xprdata)
 - XPR Whales Alert (brotonbp)
 - XPR Tax Time Machine (danemarkbp)
-- XPR Hub (artwebin)
+- XPR Hub (artwebin): artwebin's producer site (read 10-15) describes it as its platform for tutorials, community updates and "AskHub" Q&A, at xprhub.org. The hub's own site is not yet read
 - Benchmark Services (saltant)
 - XPR AI Assistant and a Metal X trading bot (alvosec)
 
@@ -231,3 +287,5 @@ Older grant-proposal titles with unknown status include Protonext, Fishtank, Pro
 - XPredict (XT.com) is not XPredicting.
 - PulseVM runs on Metal Blockchain, not on XPR today.
 - Alcor is multi-chain, not XPR-only.
+- **"Cypher Market" is also the name of an unrelated darknet market.** Most web results for that name are about it. Cypher Gang's marketplace is **CYPHR.Market** (cyphr.market).
+- CYPHR (`CYPHR@tokencreate`, Cypher Gang) is not "Cypher" / CYPR listed on CoinMarketCap.
