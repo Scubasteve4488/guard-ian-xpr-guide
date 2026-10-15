@@ -52,6 +52,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | SimpleDEX | AMM swaps plus bonding-curve token launches (contracts `simpledex`, `simplelaunch`) | https://simpledex.fun · docs https://simpledex.fun/llms.txt | Proton NZ | LIVE |
 | BlastPad ($BLPAD) | Token launches, airdrops, staking pools | https://blastpad.io | homebloksbp [BP] | LIVE |
 | XPredicting | Prediction market | https://xpredicting.com | homebloksbp [BP] | UNCLEAR |
+| A-DEX | Multi-chain Antelope DEX (swap, analytics, whale signals, a price oracle) with an XPR front end | https://xpr.a-dex.io | A-DEX (producer `bpadex`) | LIVE (read 10-15) |
 | Price Battle | Price-prediction game | https://proton.link/battle | Proton NZ [PJ] | LIVE |
 | MarketPulse | On-chain UP/DOWN prediction rounds on XPR/USD, BTC/USD and ETH/USD, staked in XPR, settled by an on-chain price oracle after 24 h. Fee 10% of winnings (3% for Cypher Gang NFT holders) goes to buying back and burning CYPHR. The site says the contract was audited by Bloxprod BP and calls itself experimental | https://cyphergang.com/predictions · X @MarketPulseXPR | Cypher Gang | LIVE (read 10-15) |
 
@@ -64,6 +65,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | Snipverse | SocialFi platform for creators; SNIPS token; version 2.0 launched March 2025 | https://snipverse.com | snipverse BP; Frostic, LLC per its grant application | LIVE (854 users in 6 months [BP]) |
 | Vibrr | "Proof of engagement" social hub: earn VIBRR through posts, quests and games | https://vibrr.ai | homebloksbp [BP] | LIVE (4,553 users in 6 months [BP]) |
 | Shellbook | Social network for AI agents, with XPR identity and an s/xpr forum | https://shellbook.io · code https://github.com/paulgnz/shellbook | Paul Grey / Proton NZ | LIVE (low volume) |
+| XPR Hub | Community hub: beginner tutorials and videos, AskHub Q&A, a monthly "BP of the Month" vote, and a checker for votes going to inactive producers (it says 18.46% of staked XPR votes for inactive ones, read 10-15). Version 1.0 rebuilt | https://xprhub.org | artwebin (producer) | LIVE (read 10-15) |
 
 ## 4. AI agents
 
@@ -73,6 +75,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | Charlie Bot | Autonomous agent with paid services, machine-payment demos (x402 / MPP on XPR) and the CHARLIE token | https://charliebot.dev · code https://github.com/charliebot87 | LIVE |
 | Guard.IAN (this guide's builder) | Agent that buys into SimpleDEX launches and writes Utility Forge reports | https://standguard.net/ian · https://xpragents.com/agent/safeguard5 | LIVE |
 | Other registered agents (names from the registry, self-described, unchecked) | AI Toolkit Agent, PX Computer, Jacob, Chiru, The Keeper, Heisenbot, Grey Agent | https://xpragents.com | UNVERIFIED |
+| Memeverse | "AI pets" with personalities that think, vote in a council and build software; NFTs on XPR, Solana or WAX. 14 of its agents are registered on XPR Agents. Its $MEMECHAOS token is on pump.fun (Solana), not XPR | https://memechaos.com | LIVE (read 10-15) |
 | Build your own | Official agent runner and SDK | https://www.npmjs.com/package/create-xpr-agent · https://www.npmjs.com/package/@xpr-agents/sdk · https://www.npmjs.com/package/@xpr-agents/openclaw | LIVE |
 
 ## 5. Games
@@ -105,6 +108,8 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | FunkyFVerse, "Genesis of Funk" | NFT collection `genesisofunk`, "powered by the KSTO ecosystem" | X @funkyfVerse · https://snipverse.com/funkyf | LIVE |
 | Grid Runners | 1/1 Genesis NFTs (`gridrunnersx`), $GRID | X @xpr_gridrunners · https://gridrunners.netlify.app | UNCLEAR |
 | Snippy NFTs | KSTO mascot collection (sold out per standguard.net) | https://standguard.net/community/snippy | LIVE |
+| The Guardians of the Citadel | 300 "Genesis Cyber-Knights" NFTs themed on protecting XPR Network (also has an agent on XPR Agents) | https://guardiansofcitadel.carrd.co | LIVE (read 10-15) |
+| AtomicHub | Large AtomicAssets marketplace. Its front page on 10-15 offered only WAX Mainnet; XPR support was not shown, so don't point XPR users there without checking | https://atomichub.io | UNCLEAR for XPR |
 
 ## 7. Tools, security, analytics and payments
 
@@ -116,6 +121,11 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | XPR Auth Cleanup | Removes wallet-drainer permissions from an account in one signed transaction | https://cleanup.protonnz.com · https://github.com/paulgnz/xpr-auth-cleanup | Proton NZ | LIVE |
 | Xprotect | Phishing and domain scanner, Web3 DNS, block-producer monitor | https://xprotect.org | alvosec | LIVE |
 | XPR Radar | Voter intelligence, inactive-producer tracker, msig app | https://xpr.voterintelligence.blocksindia.com | protonind | UNCLEAR |
+| XPR Network Dashboard / Whale Watcher / XPRDATA Sentinel | Chain analytics and supply metrics; real-time large-transaction tracking (web and Telegram); Telegram price alerts that also track SimpleDEX launch tokens; a benchmark page | https://xprdata.org/dashboard · https://xprdata.org/whale-watcher · https://xprdata.org/benchmark | xprdata (producer) | LIVE (read 10-15) |
+| XPR Whales Alert | Telegram channel posting large on-chain moves above a dollar threshold (transfers, staking, swaps, lending) | https://brotonbp.com | Broton BP | LIVE (read 10-15) |
+| Storex | Online shop that takes crypto, with cashback and escrow; its blog has "Integrating the Proton Ecosystem". Newest blog post Jan 2024 | https://storex.io | Storex (producer `storexbp`) | UNCLEAR (shop loads, blog quiet) |
+| MetalXPR / EnergyBP | Kryptallon (California) says its MetalSolar, XPRSolar and SunCommons clean-energy products run on Metal Blockchain and XPR, with $ENERGY, $SOLAR and $CHARGE tokens (contracts not stated on the page) | https://metalxpr.com/energybp | Kryptallon, dba MetalXPR (producer `energybp`) | UNCLEAR (claims on its own page) |
+| TotalProton e-invoicing | Describes an on-chain e-invoice project (invoices stored on IPFS, payment and tax notification); no product link | https://totalproton.tech | TotalProton (producer) | UNCLEAR |
 | madblocks Pulse | Block-producer health tool | https://madblocks.tech | madblocks | UNCLEAR |
 | GeneroX | On-chain donation campaigns | https://generox.org | alvosec | LIVE |
 | CYPHR Tip Bot | Telegram bot for tipping, "rain", games (dice, Mafia, slots) and a daily XPR price call, across about 50 XPR tokens. Custodial: you deposit to `cyphrtipbot` with your memo, and withdrawals cost 1% (0% for Cypher Gang NFT holders). Running since 2025-12-04; site says 1,212+ users. Groups and token listings are reviewed by hand | https://cyphergang.com/tipbot · Telegram @cyphr_tip_bot | Cypher Gang | LIVE |
@@ -187,11 +197,11 @@ Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN c
 | Producer | URL (as set on chain) | Projects confirmed so far |
 |---|---|---|
 | `alvosec` | https://alvosec.com | Xprotect, GeneroX; Consortium member |
-| `artwebin` | https://bp.artwebin.com | XPR Hub (xprhub.org, not yet read) |
+| `artwebin` | https://bp.artwebin.com | XPR Hub (xprhub.org) |
 | `blocksforge` | https://www.blocksforge.com | XPROLL dice |
 | `bloxprod` | https://bloxprod.io | NFT Packs, NFT Claim Hub; named as MarketPulse's contract auditor |
-| `bpadex` | https://xpr.a-dex.io | A-DEX (not yet read) |
-| `brotonbp` | https://mainnet.brotonbp.com | Broton community (not yet read) |
+| `bpadex` | https://xpr.a-dex.io | A-DEX |
+| `brotonbp` | https://mainnet.brotonbp.com | XPR Whales Alert (Telegram) |
 | `cafe` | https://metallicus.com/cafe | Metallicus's own producer |
 | `catsvote` | https://cats.vote | site returned error 525 on 10-15 |
 | `cerebroai` | https://cerebro.host |  |
@@ -199,13 +209,13 @@ Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN c
 | `cindronet` | https://cindro.net | also a Metal Blockchain validator (its site, 10-15) |
 | `cryptolions` | https://cryptolions.io | Consortium member |
 | `danemarkbp` | https://danemarkbp.com |  |
-| `energybp` | https://metalxpr.com/energybp |  |
+| `energybp` | https://metalxpr.com/energybp | MetalXPR (Kryptallon) clean-energy tokens |
 | `eosamsterdam` | https://proton.eosamsterdam.net | Consortium member |
 | `eosarabianet` | https://eosarabia.net |  |
 | `eosiodetroit` | https://detroitledger.tech |  |
 | `eosrio` | https://eosrio.io/proton/ |  |
 | `eosusa` | https://eosusa.io/bp/proton/ | public API + Hyperion endpoint |
-| `genereos` | https://genereos.io | Consortium member |
+| `genereos` | https://genereos.io | Consortium member; its site now brands as Genpool (multi-network staking) |
 | `homebloksbp` | https://homebloksbp.com | BlastPad, Vibrr, XPredicting |
 | `ledgerwiseio` | https://ledgerwise.io/proton |  |
 | `luminaryvisn` | https://luminaryvisn.com | Hyperion endpoint |
@@ -217,11 +227,11 @@ Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN c
 | `rockeronebp` | https://bp.rockerone.io |  |
 | `saltant` | https://proton.saltant.io | public API, snapshots |
 | `snipverse` | https://snipverse.io | Snipverse |
-| `storexbp` | https://storex.io | Storex (not yet read) |
-| `totalproton` | https://totalproton.tech |  |
+| `storexbp` | https://storex.io | Storex shop |
+| `totalproton` | https://totalproton.tech | describes an e-invoicing project |
 | `turtlebp` | https://turtlebp.online |  |
 | `xprcore` | https://xprcore.com |  |
-| `xprdata` | https://xprdata.org | XPR Dashboard, Whale Watcher (not yet read) |
+| `xprdata` | https://xprdata.org | XPR Network Dashboard, Whale Watcher, XPRDATA Sentinel; XPR Hub's BP of the Month for 2026-09 |
 | `xprnodeonebp` | https://www.nodeone.io |  |
 
 Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (2026-08-24), `guild.nefty` (2026-04-28), `dappradar` (2025-11-26).
@@ -266,14 +276,14 @@ Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (20
 
 ## 13. Named elsewhere, not yet confirmed at their own site (UNVERIFIED)
 These are from [BP]. Check before citing:
-- A-DEX (bpadex)
-- Storex (storexbp)
+- ~~A-DEX (bpadex)~~ → confirmed 10-15, section 2
+- ~~Storex (storexbp)~~ → read 10-15, section 7 (UNCLEAR)
 - XPR Escrow and Crypto Travel Deals (homebloksbp)
 - Neard music streaming and a session protocol called Railgun, which is not the Ethereum RAILGUN (rockeronebp)
-- XPR Dashboard and Whale Watcher (xprdata)
-- XPR Whales Alert (brotonbp)
-- XPR Tax Time Machine (danemarkbp)
-- XPR Hub (artwebin): artwebin's producer site (read 10-15) describes it as its platform for tutorials, community updates and "AskHub" Q&A, at xprhub.org. The hub's own site is not yet read
+- ~~XPR Dashboard and Whale Watcher (xprdata)~~ → confirmed 10-15, section 7
+- ~~XPR Whales Alert (brotonbp)~~ → confirmed 10-15, section 7
+- XPR Tax Time Machine (danemarkbp): danemarkbp.com showed only server specs on 10-15
+- ~~XPR Hub (artwebin)~~ → confirmed 10-15, section 3
 - Benchmark Services (saltant)
 - XPR AI Assistant and a Metal X trading bot (alvosec)
 
