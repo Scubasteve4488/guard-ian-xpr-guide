@@ -89,6 +89,10 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | XPR Slots | Open-source, provably fair slot demo | https://xprslots.com · https://github.com/paulgnz/xpr-slots | Paul Grey | LIVE (demo, low use) |
 | MadTower / MadRaffle | Climbing game; raffle for voters | https://madblocks.tech | madblocks BP | UNCLEAR |
 | Cypher Brawls | Tactical hex-grid campaign and PvP game: your Cypher Gang NFT is your fighter (or a 1,000 XPR "Base Recruit"); shop in CYPHR; earn CYPHR and XPR. Pre-alpha (app v2026.09.16; its wiki says about 11% built: campaign, PvP, shop) | https://app.cypherbrawls.com · guide https://cyphergang.com/wiki | Cypher Gang | LIVE, pre-alpha (was UNCLEAR; confirmed 10-15) |
+| Degen Hoopers | NFT basketball league: 3,000 "hoopers" (1,045 minted, the rest sealed in packs, read 10-15). Arcade games (3-point shoot-out, 3v3, the Buckets card game) and weekend leagues paying NUTMEG and NFT prizes. Playing needs one of its NFTs and a WebAuth wallet. Tokens: NUTMEG (traded on Alcor; contract not checked here) and BOOTNUT (SimpleDEX 68, used for "Bootleg" primary sales) | https://degenhoopers.com | Degen Hoopers team | LIVE (read 10-15) |
+| Atomic Ramjet | Arcade space shooter. Each run costs RAMJET (SimpleDEX 323; the site writes "RJ"), 20 to 450 depending on difficulty and pack. A weekly pot is paid to the top 20 pilots | https://atomicramjet.com | Atomic Ramjet team | LIVE (read 10-15) |
+| THC Arcade | Grow, Yard and City games for THC holders (SimpleDEX 254). You claim THC with WebAuth, capped at 50,000 per wallet per day. The site says 18+ and calls itself an independent community site | https://thcarcade.fun | community | LIVE (read 10-15) |
+| XPRGAMES | Wager XG or XPR on Keno, Dice Roll, Coin Flip and Multi Dice (the site says on-chain RNG, about 96% RTP). XG staking is "coming soon". Also runs GiftBot, a Telegram tipping bot (GIFT, SimpleDEX 361). XG is SimpleDEX 145 | https://www.xprgames.app | XPRGAMES | LIVE (read 10-15) |
 
 ## 6. NFTs
 
@@ -165,7 +169,26 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 - **XRP is not XPR.** Ripple's XRP on XPR is XXRP (double X).
 - **Copies are everywhere.** Alcor's list held 426 tokens copying these symbols on other contracts, and flagged 405 of them as scams (10-15). SimpleDEX also has lookalikes, such as a "METAL" and a "BTC" that are not the real ones.
 - **FOOBAR@xtokens** is a demo token per XPR's own repos (`foobar-faucet`). Don't treat it as an asset.
-- **Same symbol, different tokens:** BEAR exists at least as `BEAR@tokencreate` (5.89B, read 10-15) and `BEAR@simpletoken`; NDAO also exists on both `tokencreate` and `simpletoken`. Always name the contract.
+- **Same symbol, different tokens:** BEAR exists at least as `BEAR@tokencreate` (5.89B, read 10-15) and `BEAR@simpletoken`. The SimpleDEX one (token 227) is Beartallicus's (§8b). NDAO also exists on both `tokencreate` and `simpletoken`. Always name the contract.
+
+### 8b. SimpleDEX tokens that run their own website
+
+Read 2026-10-15 from each launch's `simplelaunch::community` record (the creator fills in a website field), then opened in a browser. The site's claims are the site's own; nothing here checks that a product works as described. Games are in §5 (BOOTNUT 68, XG 145, THC 254, RAMJET 323, GIFT 361); CryptoCurrencyShops (VEX 157, FRAGG 370) is in §7.
+
+| Token (SimpleDEX ID) | What its site says | Site | Status |
+|---|---|---|---|
+| BEAR (227) | Beartallicus: "$BEAR belongs on TDBN". A hub with swap links (SimpleDEX, Alcor, Vibrr) and pages for governance, treasury, NFTs and community rooms. Its footer calls it a tribute to a community member | https://beartallicus.com | LIVE |
+| DEXIDX (290) | Built By Jacob. Says it now runs an active XPR/XMD grid trading bot on Metal X and is no longer a top-10 index. Holding 1M, 2M or 5M DEXIDX unlocks more views of the bot. Trading results not verified | https://dex10index.vercel.app | LIVE |
+| BPT (445) | BodyF1RST BodyPointToken. Workouts, meals and streaks in the BodyF1RST fitness app earn BPT, which can be redeemed in the app or traded on SimpleDEX | https://bodyf1rst.com/bpt/ | LIVE |
+| NDAOXPR (308) | nDAO's community token: lock pools, an "airdrop arcade", and a stated burn of 11M on 2026-03-26 | https://ndao.org/NDAOXPR | LIVE |
+| CRICKET (215), PEGG (288) | Crypto Crickets, a crypto apparel shop. Every purchase earns 10,000 PEGG, airdropped by hand after you put your WebAuth @name in the order notes | https://cryptocrickets.biz | LIVE |
+| AVEY (93) | Meme site ("the people's avocado"). It says the supply is fixed at 1 billion | https://aveyxpr.xyz | LIVE (meme) |
+| HOV (420) | House of Validators: its launch text describes a private community for Metal Blockchain node operators. The linked site is a game, "Dragon Dash", development build v0.1 | https://dragon-dash-production.up.railway.app | UNCLEAR (dev build) |
+| LFQP (465) | The linked site is a sign-in page for its own "Leafquip Superledger / T3-NET". It doesn't say what the XPR token is used for | https://lfqp.grok.me | UNCLEAR |
+| LOANSKI (3), GENIE (458) | Their sites are site-builder placeholders: "Launching Soon" (loanski.xyz) and a template page (geniexpr.com) | — | NOT LIVE (10-15) |
+| XBULL (162), MTLXBOT (191), PANDA (452) | protonbull.com, metalxbot.com and pandaxpr.com did not load (browser error page, 10-15) | — | DOWN (10-15) |
+| PEPE (91), TIMECAP (135), TRAMP (286) | pepeonxpr.com, xprtimecap.com and tramponxpr.xyz were not opened: the browser used for this check blocks them. TIMECAP's launch text says you don't need the token to use XPR Time Capsule | — | NOT CHECKED |
+| LOVE (35), BENDER (55), YEN (65), SEED (116) | All link keepsnipping.com and the KSTO Telegram. Not opened: blocked in the browser used for this check | — | NOT CHECKED |
 
 ## 9. Live token and market feeds (JSON, plain GET, read 10-15)
 
