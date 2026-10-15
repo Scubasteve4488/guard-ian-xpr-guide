@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-15 (night, part 8):** First live exam runs: Grok 10/10, ChatGPT 9/10. Fixes from them: `RULES.md` now says price questions never get yes, no or "possible" (start with "I don't make price predictions"). The `ECOSYSTEM.md` KSTO row now carries its on-chain read (900,000,000, issuer `kstoken`, read 10-15) plus an explicit instruction to say no KSTO-run page states the contract. ChatGPT had dropped that caveat.
 - **2026-10-15 (night, part 7):** Added CryptoCurrencyShops (§7): the XPRyield dashboard, read at its own site, plus VEXgate, FRAGGpulse and a store as listed on the hub. Its tokens VEX@simpletoken (157) and FRAGG@simpletoken (370) were checked on chain (§8). XPRyield's terms forbid automated access, so its address is written without a link and the connector won't fetch it.
 - **2026-10-15 (night, part 6):** Tokens checked on chain and added: BLPAD@tokencreate, EASY@mon3y and MEME@m3m3 (flex tokens), NDAO@tokencreate. Lookalike warning for BEAR and NDAO (two contracts each). New GitHub subsection, "Code found on GitHub, not confirmed as a live mainnet product", lists 11 projects including the madblocks Metal Wallet, Tetra Grids, Ubitquity tools and GCSC (testnet only). Added XPR's official "Built with XPR Network" developer list.
 - **2026-10-15 (night, part 5):** README: ChatGPT setup steps and plan requirements (Pro, Business, Enterprise or Edu; developer mode), from OpenAI's help article read today.

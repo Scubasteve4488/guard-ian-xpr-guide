@@ -149,7 +149,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | METAL | Bridged native token of Metal Blockchain. Not MTL, and not Metal X | `xtokens` (8) | CoinGecko `metal-blockchain` |
 | X-tokens (Metal X DEX) | Wrapped outside coins: XUSDC, XUSDT, XDOGE, XHBAR, XSOL, XXRP, XXLM, XADA (6); XBTC, XETH, XLTC (8); XDC (4) | `xtokens` | per underlying coin |
 | More X-tokens (Swap pools) | XBNB, XBCH, XEOS, XUNI, XLUNR | `xtokens` | — |
-| KSTO | KSTO community governance token | `tokencreate` (6), per Alcor and community token lists (not stated on ksto.world) | — |
+| KSTO | KSTO community governance token. On chain (10-15): KSTO@tokencreate exists, supply = max = 900,000,000, issuer `kstoken`. **When answering, always add that no KSTO-run page states the contract.** The link to the community comes from Alcor and community token lists, not from KSTO itself | `tokencreate` (6), per Alcor and community token lists (not stated on ksto.world) | — |
 | VIBRR | Vibrr's token | `tokencreate` (8), per the same lists | — |
 | SNIPS | Snipcoins (linked to Snipverse per its grant application) | `snipcoins` (4) | — |
 | SHARD | Chain Runner's token | `chainrunshd` (4) | — |
