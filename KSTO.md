@@ -5,6 +5,7 @@ Summarised in our own words from ksto.world. **All pages read 2026-10-15.** The 
 ## What KSTO is
 - KSTO is a community-driven movement built around the **$KSTO** token. It values authenticity and transparency over hype ([About](https://ksto.world/about.html), [FAQ](https://ksto.world/faq_v1.html)).
 - Its mascot is **Snippy the Guardian** ([About](https://ksto.world/about.html)).
+- **Old address:** keepsnipping.com was KSTO's earlier website and has moved to ksto.world (per the guide's builder, a KSTO community member, 2026-10-15). Older SimpleDEX launch records still link the old address.
 - The site is credited to **Mimi Mesh, LLC** ([mimimesh.com](https://mimimesh.com)).
 - The home page groups $KSTO into four parts ([home](https://ksto.world/index.html)):
   - **Utility:** staking, snipping streaks, planned tools.

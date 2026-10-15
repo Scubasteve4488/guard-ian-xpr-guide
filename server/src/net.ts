@@ -142,8 +142,8 @@ export async function politeFetch(
 }
 
 /** POST a JSON body to an XPR RPC path (e.g. /v1/chain/get_info) and parse the JSON answer. */
-export async function rpc(path: string, body: unknown, ttlSec: number, ctx?: ExecutionContext) {
-	const r = await politeFetch(RPC_ENDPOINTS, path, { method: 'POST', body: JSON.stringify(body ?? {}) }, { ttlSec, ctx });
+export async function rpc(path: string, body: unknown, ttlSec: number, ctx?: ExecutionContext, startAt?: number) {
+	const r = await politeFetch(RPC_ENDPOINTS, path, { method: 'POST', body: JSON.stringify(body ?? {}) }, { ttlSec, ctx, startAt: startAt === undefined ? undefined : startAt % RPC_ENDPOINTS.length });
 	let json: any;
 	try {
 		json = JSON.parse(r.text);

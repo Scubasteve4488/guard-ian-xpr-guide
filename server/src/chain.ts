@@ -2,7 +2,7 @@
 // SOURCE: XPRNetwork/xpr-network-dev-skill @ a1d455e skill/rpc-queries.md:181-256 (get_table_rows parameters; the
 // all-numeric account-name bug and its nameToU64 fix, copied as published) and :66-73 (poll/caching defaults).
 
-import { rpc, politeFetch, HYPERION_ENDPOINTS, UpstreamError } from './net.ts';
+import { rpc, politeFetch, HYPERION_ENDPOINTS, RPC_ENDPOINTS, UpstreamError } from './net.ts';
 
 /** Antelope account / contract name: 1–12 chars of a-z, 1-5 and '.', not ending in '.'. */
 export function isAccountName(s: string): boolean {
@@ -33,6 +33,16 @@ export function nameToU64(name: string): string {
 }
 export function safeName(name: string): string {
 	return /^\d+$/.test(name) ? nameToU64(name) : name;
+}
+
+/**
+ * Table bounds. SOURCE: rpc-queries.md "Fix depends on which parameter is numeric": scope → u64 encoding, but
+ * lower_bound / upper_bound → append "." (safeBoundsName), and only when the key is an account NAME.
+ * Fixed 2026-10-15: bounds used to go through safeName, so a numeric ID made only of digits 1-5 (5, 14, 115…)
+ * was re-encoded as a name and the read came back empty (simplelaunch curves 14 and 15, measured).
+ */
+export function boundFor(value: string, keyType?: string): string {
+	return keyType === 'name' && /^\d+$/.test(value) ? value + '.' : value;
 }
 
 // TTLs, per rpc-queries.md:68-69: chain_id forever-ish, most state 10 s+.
@@ -90,7 +100,7 @@ export async function tokenBalances(name: string, ctx?: ExecutionContext) {
 }
 
 export async function table(
-	args: { code: string; table: string; scope?: string; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean },
+	args: { code: string; table: string; scope?: string; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean; key_type?: string },
 	ctx?: ExecutionContext,
 ) {
 	const limit = Math.max(1, Math.min(50, args.limit ?? 20));
@@ -101,12 +111,20 @@ export async function table(
 		json: true,
 		limit,
 	};
-	if (args.lower_bound) body.lower_bound = safeName(args.lower_bound);
-	if (args.upper_bound) body.upper_bound = safeName(args.upper_bound);
+	if (args.key_type) body.key_type = args.key_type;
+	if (args.lower_bound) body.lower_bound = boundFor(args.lower_bound, args.key_type);
+	if (args.upper_bound) body.upper_bound = boundFor(args.upper_bound, args.key_type);
 	if (args.reverse) body.reverse = true;
-	const r = await rpc('/v1/chain/get_table_rows', body, TTL.table, ctx);
+	let r = await rpc('/v1/chain/get_table_rows', body, TTL.table, ctx);
+	// Stuck page (seen 2026-10-15 on one node: lower_bound 84 → 1 row, more=true, next_key "84"). Following it would
+	// loop forever, so ask a different node once (rpc-queries.md best practice 5, "Multiple endpoints").
+	const stuck = (x: typeof r) => !!x.json.more && !!args.lower_bound && String(x.json.next_key ?? '') === String(body.lower_bound);
+	if (stuck(r)) {
+		const used = RPC_ENDPOINTS.findIndex((e) => r.source.startsWith(e));
+		r = await rpc('/v1/chain/get_table_rows', body, 0, ctx, used >= 0 ? used + 1 : undefined);
+	}
 	return {
-		data: { rows: r.json.rows ?? [], more: !!r.json.more, next_key: r.json.next_key ?? null, limit },
+		data: { rows: r.json.rows ?? [], more: !!r.json.more, next_key: r.json.next_key ?? null, limit, ...(stuck(r) ? { stuck: true } : {}) },
 		source: r.source,
 		readAt: r.readAt,
 	};

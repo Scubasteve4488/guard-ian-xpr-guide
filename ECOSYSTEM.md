@@ -188,7 +188,7 @@ Read 2026-10-15 from each launch's `simplelaunch::community` record (the creator
 | LOANSKI (3), GENIE (458) | Their sites are site-builder placeholders: "Launching Soon" (loanski.xyz) and a template page (geniexpr.com) | — | NOT LIVE (10-15) |
 | XBULL (162), MTLXBOT (191), PANDA (452) | protonbull.com, metalxbot.com and pandaxpr.com did not load (browser error page, 10-15) | — | DOWN (10-15) |
 | PEPE (91), TIMECAP (135), TRAMP (286) | pepeonxpr.com, xprtimecap.com and tramponxpr.xyz were not opened: the browser used for this check blocks them. TIMECAP's launch text says you don't need the token to use XPR Time Capsule | — | NOT CHECKED |
-| LOVE (35), BENDER (55), YEN (65), SEED (116) | All link keepsnipping.com and the KSTO Telegram. Not opened: blocked in the browser used for this check | — | NOT CHECKED |
+| LOVE (35), BENDER (55), YEN (65), SEED (116) | KSTO-community tokens. They link keepsnipping.com, KSTO's old address, which has moved to ksto.world (per the guide's builder, 10-15; see KSTO.md) | https://ksto.world | LIVE (as ksto.world) |
 
 ## 9. Live token and market feeds (JSON, plain GET, read 10-15)
 

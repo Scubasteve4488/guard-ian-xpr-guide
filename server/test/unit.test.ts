@@ -1,6 +1,6 @@
 // Unit tests: node --experimental-strip-types test/unit.test.ts  (no network: fetch is stubbed)
 import { readFileSync } from 'node:fs';
-import { isAccountName, isSymbol, nameToU64, safeName } from '../src/chain.ts';
+import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table } from '../src/chain.ts';
 import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted } from '../src/sources.ts';
 import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
@@ -173,6 +173,35 @@ t('redirect loop stops', refused.includes('more than 3'));
 stub((url) => (url.endsWith('/ECOSYSTEM.md') ? new Response('New project: https://brand-new-project.io/app', { status: 200 }) : new Response('x', { status: 500 })));
 const gl = await guideLinks('o/r', 'main');
 t('a project added to the guide becomes fetchable', gl.hosts.has('brand-new-project.io') && checkSourceUrl('https://brand-new-project.io/app', gl).ok);
+
+// ── table bounds and stuck paging (fixed 2026-10-15)
+t('numeric ID bound stays a number', boundFor('15') === '15' && boundFor('115') === '115' && boundFor('84') === '84');
+t('all-digit name bound gets upstream "." fix', boundFor('333555', 'name') === '333555.' && boundFor('simplelaunch', 'name') === 'simplelaunch');
+let tableBodies: any[] = [];
+stub((url, init) => {
+	const b = JSON.parse(init?.body ?? '{}');
+	tableBodies.push(b);
+	return new Response(JSON.stringify({ rows: [{ tokenId: 15 }], more: false, next_key: '' }), { status: 200 });
+});
+await table({ code: 'simplelaunch', table: 'curves', lower_bound: '15', upper_bound: '15' });
+t('table sends ID 15 as 15, not a name-encoded number', tableBodies[0].lower_bound === '15' && tableBodies[0].upper_bound === '15');
+let nCalls = 0;
+stub((url, init) => {
+	nCalls++;
+	const b = JSON.parse(init?.body ?? '{}');
+	const next = nCalls === 1 ? b.lower_bound : '91';
+	return new Response(JSON.stringify({ rows: [{ tokenId: 84 }], more: true, next_key: next }), { status: 200 });
+});
+const st = await table({ code: 'simplelaunch', table: 'community', lower_bound: '84', limit: 50 });
+t('stuck page retried on another node', nCalls === 2 && st.data.next_key === '91' && !(st.data as any).stuck);
+nCalls = 0;
+stub((url, init) => {
+	nCalls++;
+	const b = JSON.parse(init?.body ?? '{}');
+	return new Response(JSON.stringify({ rows: [{ tokenId: 84 }], more: true, next_key: b.lower_bound }), { status: 200 });
+});
+const st2 = await table({ code: 'simplelaunch', table: 'community', lower_bound: '84', limit: 49 });
+t('stuck twice is reported, not looped', nCalls === 2 && (st2.data as any).stuck === true);
 
 globalThis.fetch = realFetch;
 console.log(`${pass} passed, ${failN} failed`);
