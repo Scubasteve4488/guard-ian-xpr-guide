@@ -30,6 +30,8 @@ Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX lau
 - `RULES.md`: how every answer must be built.
 - `SOURCES.md`: the tiered source catalog (official, community, press, data, regulators, credit unions).
 - `KSTO.md`: the KSTO community, in our own words, linked to ksto.world.
+- `ECOSYSTEM.md`: the ecosystem directory. Metallicus products, DeFi, social platforms, agents, games, NFTs, tools, tokens (symbol + contract), live token feeds, governance, communities and GitHub.
+- `CHANGELOG.md`: every change, dated.
 
 ## Disclosure
 Built by @Scubasteve4488, a KSTO community member who holds XPR. **Not affiliated with, or endorsed by, Metallicus or XPR Network.** Nothing here is financial advice. Found something wrong? Open an issue with the source, and it gets fixed and dated.

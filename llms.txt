@@ -12,6 +12,17 @@ How to use this guide (read RULES.md first):
 - [RULES.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/RULES.md): how every answer must be built
 - [SOURCES.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/SOURCES.md): the full tiered source catalog (official, community, press, data, regulators, credit unions)
 - [KSTO.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/KSTO.md): the KSTO community, in our own words, linked to ksto.world
+- [ECOSYSTEM.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/ECOSYSTEM.md): **the full ecosystem directory**. Metallicus products, DEXs and DeFi, social platforms, AI agents, games, NFTs, tools and security, tokens (symbol + contract), live token feeds, governance, communities and the GitHub orgs. Start here for "what is X on XPR?"
+
+## Ecosystem quick links (details in ECOSYSTEM.md)
+- DeFi: [Metal X](https://metalx.com), [Alcor](https://alcor.exchange/v/xpr), [SimpleDEX](https://simpledex.fun), [BlastPad](https://blastpad.io), [Metal X Lending / LOAN](https://app.metalx.com/lending)
+- Social: [Snipverse](https://snipverse.com), [Vibrr](https://vibrr.ai), [Shellbook](https://shellbook.io)
+- Agents: [XPR Agents](https://xpragents.com), [Charlie Bot](https://charliebot.dev)
+- Tools: [XPR Pulse](https://xprpulse.com), [XPR Tax](https://tax.protonnz.com), [XPR Auth Cleanup](https://cleanup.protonnz.com), [Xprotect](https://xprotect.org), [Explorer](https://explorer.xprnetwork.org)
+- Live token feeds (JSON): [Metal X markets](https://dex.api.mainnet.metalx.com/dex/v1/markets/all), [SimpleDEX tokens](https://indexer.protonnz.com/api/tokens?fields=compact&limit=1000), [Alcor tokens](https://proton.alcor.exchange/api/v2/tokens)
+- Governance: [Consortium](https://xprnetwork.org/blog/the-xpr-network-consortium), [governance portal](https://gov.xprnetwork.org), [grants](https://github.com/XPRNetwork/grant-framework)
+- Code: [XPRNetwork](https://github.com/XPRNetwork), [MetalBlockchain](https://github.com/MetalBlockchain), [paulgnz](https://github.com/paulgnz), [charliebot87](https://github.com/charliebot87)
+- Learn: [StandGuard Learn](https://standguard.net/learn) (builder's own site), [XPR help centre](https://help.xprnetwork.org)
 
 ## XPR Network: official
 - [XPR Network docs](https://docs.xprnetwork.org): getting started, CLI, Web SDK, contracts
