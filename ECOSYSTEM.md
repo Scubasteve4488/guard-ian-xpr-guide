@@ -274,6 +274,33 @@ Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (20
 | StandGuard (builder's own) | standguard.net site; this guide | https://github.com/Scubasteve4488/metallicus-guardian-guard · https://github.com/Scubasteve4488/guard-ian-xpr-guide |
 | ⚠ `github.com/metallicus` | **Not the company**: an unrelated personal account | — |
 
+## 12b. How things work: key facts (read at the official source 2026-10-15)
+Live numbers can change: read the chain or the linked page before stating one, and give the time read.
+
+**Zero gas fees and who pays:** users pay no gas. They get free CPU, NET and RAM for normal use. Block producers provide the capacity and are paid in XPR from inflation (21 active producers plus standby). Power users and dApps can buy RAM or rent CPU/NET at https://resources.xprnetwork.org, and dApps can stake resources for their users. Source: https://xprnetwork.org/blog/how-xpr-network-achieves-zero-gas-fees
+
+**Staking:** source https://xprnetwork.org/blog/xpr-network-staking-guide
+- **Short staking:** WebAuth only, no minimum. You vote for up to 4 producers (the guide says you must pick 4 to claim rewards). Unstaking returns your XPR after a 24-hour lockup.
+- **Long staking:** Explorer only, minimum 100 XPR, 90 or 365 days. The reward is tied to XPR's value in Bitcoin satoshis, not a fixed APY.
+  - 90-day: extra XPR only if that value fell.
+  - 365-day: extra XPR if it stays below 106% of the staked value.
+
+**SimpleDEX launches** (Proton NZ). Source: https://simpledex.fun/llms-launches.txt (header v1.11; table updated for 10-15)
+- **Token and fees:** 1,000,000,000 max supply per token, 80% on the bonding curve and 20% for the DEX pool. Buy fee 1% and sell fee 1%; the creator gets 50% of fees and the treasury 50%. **Creators get no token allocation.**
+- **Creation fee:** 20,000 XPR (live: `simplelaunch` table `fees`).
+- **Anti-snipe windows:** creator-only for the first **120 seconds** (changed from 60 on 2026-10-15; live: `simplelaunch` table `antisnipe`, field `creatorOnlyPeriodSec`). Then 5 minutes capped at 5,000 XPR per buy, then open. The doc's field notes still say "default 60"; the chain read 120 on 10-15. The chain wins.
+- **Graduation:** at 50,000 XPR on the curve, after a 5-minute cooldown; anyone can trigger it. It creates a pool seeded with the XPR and the 20%. Buyers then `claim`.
+- **Supply after graduation:** unsold curve tokens are never minted and there is no admin mint, so most graduated tokens circulate 700–750M, not 1B. Burns go to `token.burn`.
+
+**LOAN lending.** Source: https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/loan-protocol.md
+- **Contracts:** main contract `lending.loan` (not `lending`). L-token shares on `shares.loan`. LOAN token on `loan.token` (4 decimals).
+- **Collateral factors** include XPR 40%, XUSDC 80%, XMD 90%. The health factor below 1.0 is liquidatable. Liquidation incentive 10% and close factor 10% (global).
+- **LOAN max supply is unbounded** (max_supply 0); about 114.2 billion circulated in Sept 2026. An older doc said 100M and was corrected. Read live with get_currency_stats on `loan.token`.
+
+**Metal Dollar (XMD) backing.** Source: https://metaldollar.com and https://dollar.metalx.com/treasury-cryptos
+- **How it works:** minted and redeemed 1:1 against basket stablecoins (USDC, PYUSD, USDP) on XPR, Ethereum and Metal Blockchain. The Metal DAO reviews basket assets.
+- **Treasury snapshot** shown on 10-15 (block 400,002,261, Aug 25): XUSDC about 96.47% of the treasury against a 60% target; PYUSD and USDP about 0%. Check the live treasury page for current figures.
+
 ## 13. Named elsewhere, not yet confirmed at their own site (UNVERIFIED)
 These are from [BP]. Check before citing:
 - ~~A-DEX (bpadex)~~ → confirmed 10-15, section 2
