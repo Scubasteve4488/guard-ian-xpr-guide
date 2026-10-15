@@ -27,8 +27,8 @@ https://guard-ian-guide.rangelt88.workers.dev/mcp
 The GitMCP URL above also works (docs only, cached).
 
 - **Claude** (claude.ai): Customize → Connectors → Add custom connector → paste the URL.
-- **Grok** (grok.com): Connectors → New Connector → Custom → paste the URL.
-- **ChatGPT** (web only, not mobile): needs **Pro** (read/fetch use in developer mode, enough for this read-only guide) or **Business / Enterprise / Edu**. Plus and Free are not listed. Settings → Apps → Advanced settings → turn on **Developer mode** → Apps → **Create** → paste the URL → **Scan Tools** → **Create**. Then pick it from the tools menu in a new chat. Source: [OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt), read 2026-10-15; it is a beta and may change.
+- **Grok** (grok.com): **Plugins** (bottom left of the sidebar) → Connectors → New Connector → Custom → name + paste the URL → Add Connector. Tested 2026-10-15.
+- **ChatGPT** (web): open **chatgpt.com/plugins** → **Add** (top right) → **Add custom MCP server** → name, paste the URL, Authentication **No authentication** → tick "I understand and want to continue" → **Create as a plugin** → **Connect**. Tested on a Pro account 2026-10-15; then just ask in a new chat. OpenAI's [custom MCP server guide](https://developers.openai.com/api/docs/guides/custom-mcp-server.md) gives the same path. Which plans have it: older help said Pro, Business, Enterprise or Edu ([OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt), read 2026-10-15). The new page doesn't say, so other plans are unverified.
 - **Cursor / VS Code / other MCP apps:** add the URL as a remote MCP server. GitMCP's README has a block for each app.
 
 Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX launch graduate?"*
