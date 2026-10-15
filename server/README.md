@@ -13,7 +13,7 @@ A free, **read-only** remote MCP server: the live version of the GUARD.IAN XPR G
 |---|---|
 | `guide_search` | Keyword search across the whole guide: ecosystem directory, source catalog, rules, KSTO, index |
 | `guide_read` | Read one guide file, always the latest commit on `main` (cached 5 min) |
-| `source_fetch` | Fetch one page from a source the guide lists (allow-listed hosts only, HTTPS, 20,000-character cap) |
+| `source_fetch` | Fetch one page from any site the guide links to. The list updates itself from the guide's own links, so a project the daily update adds is readable within 5 minutes. HTTPS only, robots.txt respected, up to 3 redirects that stay on listed sites, 20,000-character cap. Social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn) are never fetched |
 | `xpr_chain_info` | Live chain status: chain id, head block, last irreversible block |
 | `xpr_account` | Live public account facts: created, XPR balance, resources, permission structure, votes |
 | `xpr_token_balances` | Every token an account holds, as symbol + contract + amount (Hyperion) |
@@ -28,7 +28,8 @@ It follows the XPR developer skill's **Endpoint Etiquette** (`rpc-queries.md`, X
 - Rotates across the official public endpoints.
 - Sends a `User-Agent`.
 - Stops on 403 and backs off on 429/503.
-- Caches every read (5–60 s for chain data, 5 min for guide files).
+- Caches every read (5–60 s for chain data, 5 min for guide files, 10 min for source pages, 1 h for robots.txt).
+- Respects each site's robots.txt before reading a page (the approach of GitMCP's `fetch_generic_url_content`; code adapted with credit in `src/robots.ts`, Apache-2.0).
 - Limits each client to **60 requests per minute** (Cloudflare Workers Rate Limiting binding).
 
 ## Deploy (Cloudflare dashboard, no command line)

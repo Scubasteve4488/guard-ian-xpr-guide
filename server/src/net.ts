@@ -38,6 +38,7 @@ export interface FetchResult {
 	source: string; // the exact URL that answered
 	cached: boolean;
 	readAt: string; // ISO time the upstream answered (or the cached copy was stored)
+	location?: string; // only with opts.returnRedirects: the Location header of a 3xx answer
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -81,7 +82,7 @@ export async function politeFetch(
 	pool: string[],
 	path: string,
 	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
-	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number } = {},
+	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
 	const key = cacheKey(pool.join('|') + path, init.body);
@@ -124,6 +125,11 @@ export async function politeFetch(
 			continue;
 		}
 		if (res.status >= 300 && res.status < 400) {
+			// The caller (source_fetch) re-checks the target against its allow-list before following it.
+			if (opts.returnRedirects) {
+				const location = res.headers.get('Location') || '';
+				return { status: res.status, text: '', source: url, cached: false, readAt: new Date().toISOString(), location };
+			}
 			lastErr = `${new URL(url).host} redirected (not followed)`;
 			continue;
 		}

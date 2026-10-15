@@ -6,7 +6,7 @@ import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { GUIDE_FILES, readGuideFile, splitSections, searchSections, type GuideFile } from './guide.ts';
-import { fetchSource } from './sources.ts';
+import { fetchSource, guideLinks } from './sources.ts';
 import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol } from './chain.ts';
 import { tokenCheck } from './tokens.ts';
 import { UpstreamError } from './net.ts';
@@ -18,7 +18,7 @@ interface Env {
 	RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> };
 }
 
-const VERSION = '1.0.0';
+const VERSION = '1.1.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:
@@ -107,13 +107,14 @@ function createServer(env: Env, ctx?: ExecutionContext) {
 		{
 			title: 'Fetch an official source page',
 			description:
-				'Fetch one page from a source the guide lists (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, block producers, catalogued GitHub orgs, data APIs). Returns readable text (HTML stripped, max 20,000 characters). Hosts outside the guide\'s source list are refused.',
+				'Fetch one page from any site the guide links to (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, ecosystem projects, block producers, catalogued GitHub orgs, data APIs, press and regulators). The list updates itself from the guide. Returns readable text (HTML stripped, max 20,000 characters). Follows up to 3 redirects that stay on listed sites and respects robots.txt. Sites the guide does not link to, and social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn), are refused.',
 			inputSchema: z.object({ url: z.string().url().max(500).describe('https URL taken from the guide, e.g. https://simpledex.fun/llms-launches.txt') }),
 			annotations: { title: 'Fetch a source page', ...RO },
 		},
 		async ({ url }) => {
 			try {
-				const r = await fetchSource(url, ctx);
+				const links = await guideLinks(repo, branch, ctx, env.GITHUB_TOKEN);
+				const r = await fetchSource(url, ctx, links);
 				const notes = [r.truncated ? 'Truncated at 20,000 characters.' : '', r.jsShell ? 'This page builds itself in the browser, so little text was readable. Use another source or a live API.' : '']
 					.filter(Boolean)
 					.join(' ');
