@@ -35,5 +35,11 @@ Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX lau
 - `ECOSYSTEM.md`: the ecosystem directory. Metallicus products, DeFi, social platforms, agents, games, NFTs, tools, tokens (symbol + contract), live token feeds, governance, communities and GitHub.
 - `CHANGELOG.md`: every change, dated.
 
+## Credits
+- **Created, directed and operated by @Scubasteve4488**, GUARD.IAN's creator and operator and a KSTO community member. He came up with the idea, set the rules (sources only, no guessing, records worded exactly), chose what goes in and reviews every change.
+- **Built with Claude Code** (Anthropic's AI coding assistant). Commits say so with a "Co-Authored-By: Claude" line.
+- **GUARD.IAN** is the AI agent whose knowledge and rules this guide carries. Next step: GUARD.IAN takes over daily maintenance itself, with its own signed commits.
+- **Built on:** XPR Network's developer skill and docs, Metallicus's published sources, Proton NZ's SimpleDEX docs and indexers, [GitMCP](https://github.com/idosal/git-mcp), and Cloudflare's [remote MCP template](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless).
+
 ## Disclosure
-Built by @Scubasteve4488, a KSTO community member who holds XPR. **Not affiliated with, or endorsed by, Metallicus or XPR Network.** Nothing here is financial advice. Found something wrong? Open an issue with the source, and it gets fixed and dated.
+@Scubasteve4488 holds XPR and the GUARD token. **Not affiliated with, or endorsed by, Metallicus or XPR Network.** Nothing here is financial advice. Found something wrong? Open an issue with the source, and it gets fixed and dated.
