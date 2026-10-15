@@ -153,6 +153,9 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | SNIPS | Snipcoins (linked to Snipverse per its grant application) | `snipcoins` (4) | — |
 | SHARD | Chain Runner's token | `chainrunshd` (4) | — |
 | CHARLIE | Charlie Bot's SimpleDEX token | `simpletoken`, token 2 | https://simpledex.fun/token/2 |
+| BLPAD | BlastPad's token. On chain (10-15): supply = max = 12,000,000,000, issuer `tokencreate`; Alcor flags it `is_trusted` | `tokencreate` (6) | https://blastpad.io |
+| EASY / MEME ("flex tokens") | A token family (EASY, GRAMS, WON, MEME) described in the EASY website's code; Goldminer's agent says holding EASY pays GRAMS. **On chain (10-15): EASY supply = max = 21,000,000, issuer `mon3y`; MEME about 9.98T of a 10T max, issuer `m3m3`.** Both flagged `is_trusted` by Alcor. GRAMS and WON contracts not yet confirmed | EASY `mon3y` (6) · MEME `m3m3` (4) | code https://github.com/dougbutner/EASY-Website |
+| NDAO | NeuroDAO / NFTitle DAO token, a default in Ubitquity's XPR Telegram tip bot. On chain (10-15): supply = max = 111,111,111, issuer `nftitledao` | `tokencreate` (4) | https://github.com/ubitquity/telegram_tip_bot_xpr_network |
 | CYPHR | Cypher Gang's token. **On chain (10-15): supply = max supply = 4,206,942,069, issuer `cypherxpr`**; its site says fully issued Apr 2025, no new minting. Earned by holding Cypher NFTs, Brawls, auctions and marketplace rewards; spent on CYPHR.Market, the game shop, promotion and tipping; staked on BlastPad, farmed on Alcor (Alcor flags it `is_trusted`) | `tokencreate` (8) | https://explorer.xprnetwork.org/tokens/CYPHR-proton-tokencreate |
 | KSTO vetted tokens | SNIPPY 161, MARSH 5, HEAL 426, PBR 160, LBUG 43, SNIP 419, LADY 18, PAPA 115, BENDER 55, STRAZ 100, GUARD 172 (SimpleDEX token IDs, all graduated) | `simpletoken` | https://simpledex.fun/token/ID · https://ksto.world/vetted_tokens.html |
 
@@ -160,6 +163,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 - **XRP is not XPR.** Ripple's XRP on XPR is XXRP (double X).
 - **Copies are everywhere.** Alcor's list held 426 tokens copying these symbols on other contracts, and flagged 405 of them as scams (10-15). SimpleDEX also has lookalikes, such as a "METAL" and a "BTC" that are not the real ones.
 - **FOOBAR@xtokens** is a demo token per XPR's own repos (`foobar-faucet`). Don't treat it as an asset.
+- **Same symbol, different tokens:** BEAR exists at least as `BEAR@tokencreate` (5.89B, read 10-15) and `BEAR@simpletoken`; NDAO also exists on both `tokencreate` and `simpletoken`. Always name the contract.
 
 ## 9. Live token and market feeds (JSON, plain GET, read 10-15)
 
@@ -272,7 +276,25 @@ Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (20
 | charliebot87 (Charlie Bot) | `mpp-xpr` (XPR payments for the Machine Payments Protocol; npm `mppx-xpr-network`), `x402-demo`, `xpr-agent-sdk`, `xpr-hyperion-rotation`, `xpr-account-trust-cli`, `skill-simpledex-trading` | https://github.com/charliebot87 |
 | AntelopeIO | The node software XPR runs (Spring) | https://github.com/AntelopeIO/spring/releases |
 | StandGuard (builder's own) | standguard.net site; this guide | https://github.com/Scubasteve4488/metallicus-guardian-guard · https://github.com/Scubasteve4488/guard-ian-xpr-guide |
+| Official developer project list | XPR's docs page "Built with XPR Network": SDKs (Web, Swift, Kotlin), contract tools (TS contracts, IDE, Vert), core contracts (cron, RNG, oracle, long staking, resources) and demo apps (voting, document signing, Taskly). Some repos still carry old "proton-" names | https://docs.xprnetwork.org/built-with-xpr-network |
 | ⚠ `github.com/metallicus` | **Not the company**: an unrelated personal account | — |
+
+### Code found on GitHub, not confirmed as a live mainnet product
+These repos mention XPR Network (GitHub search, 10-15). **Code existing is not a product being live:** check each one before relying on it.
+
+| Project | What the code says | Link | Status |
+|---|---|---|---|
+| madblocks Metal Wallet | Windows wallet for Bitcoin/BTCVM and Dogecoin/DogecoinVM and the bridges between them, by the madblocks producer | https://github.com/Ambrotd/madblocks-Metal-Wallet | CODE (new 2026-10) |
+| Alcor bridge indexer | Indexer for Alcor's bridge (created 2026-10-15) | https://github.com/alcorexchange/alcor-bridge-indexer | CODE |
+| Tetra Grids projects | HUMAN (news boards, TRUE token), The Channel, Pure Liquid DEX (perps on Antelope), Hedgewaters (EASY-backed loans), XPR App Forge, speakEASY | https://github.com/TetraGrids · https://github.com/dougbutner | CODE |
+| Ubitquity XPR tools | Telegram tip bot (UBITQUITY and nDAO defaults), XPR account verifier, token swap tool, UBQTY token. The company site's home page doesn't mention XPR | https://github.com/ubitquity · https://ubitquity.io | CODE / UNCLEAR |
+| GCSC (Global Construction Smart Contract) | Construction-industry DAO, 14 contracts **deployed to XPR testnet only** | https://github.com/Melxisedek75/gcsc-website | TESTNET |
+| ProtonPunkz | Pixel-art NFTs; Polygon first, XPR "secondary" | https://github.com/protonpunkz/ProtonPunkz | CODE / UNCLEAR |
+| Dingleberry ($DINGLE) | Brand assets; the collection "The Dingleberries" trades on CYPHR.Market | https://github.com/dingleberrycoin/dingle-assets | NFTs LIVE; token contract not confirmed |
+| ReLocke | Agentic ABIs, WebAuthn and GraphQL tools for Antelope chains | https://github.com/relocke | CODE |
+| Arena escrow contract | XPR escrow contract for arena match settlements | https://github.com/hashstacking-maker/xpr-escrow-contract | CODE |
+| Saltant tools | XPR Peer Probe (node diagnostics), AntelopeIO tools | https://github.com/Saltant | CODE |
+| chaininfra courses | EVM-to-XPR migration course, key refresh, delegation demo | https://github.com/chaininfra | CODE |
 
 ## 12b. How things work: key facts (read at the official source 2026-10-15)
 Live numbers can change: read the chain or the linked page before stating one, and give the time read.
