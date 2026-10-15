@@ -36,7 +36,7 @@ Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX lau
 - `CHANGELOG.md`: every change, dated.
 
 ## Credits
-- **Created, directed and operated by @Scubasteve4488**, GUARD.IAN's creator and operator and a KSTO community member. He came up with the idea, set the rules (sources only, no guessing, records worded exactly), chose what goes in and reviews every change.
+- **Created, directed and operated by @Scubasteve4488**, GUARD.IAN's creator and operator and a KSTO community member. He came up with the idea, set the rules (sources only, no guessing, records worded exactly), and decides what goes in. Routine source updates are made by a daily automated job under those rules, and every change is logged in CHANGELOG.md.
 - **Built with Claude Code** (Anthropic's AI coding assistant). Commits say so with a "Co-Authored-By: Claude" line.
 - **GUARD.IAN** is the AI agent whose knowledge and rules this guide carries. Next step: GUARD.IAN takes over daily maintenance itself, with its own signed commits.
 - **Built on:** XPR Network's developer skill and docs, Metallicus's published sources, Proton NZ's SimpleDEX docs and indexers, [GitMCP](https://github.com/idosal/git-mcp), and Cloudflare's [remote MCP template](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless).
