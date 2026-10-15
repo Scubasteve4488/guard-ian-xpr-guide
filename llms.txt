@@ -1,0 +1,80 @@
+# GUARD.IAN XPR Guide
+
+> A community-built guide to XPR Network, Metallicus (Metal Pay, Metal X, Metal Dollar XMD, WebAuth, Metal Blockchain, Metal L2, LOAN), SimpleDEX, XPR Agents and the KSTO community. It does not answer from memory. It points the AI to the official source for every fact, with the date the source was read. Not affiliated with Metallicus or XPR Network.
+
+How to use this guide (read RULES.md first):
+- Answer only from a linked source, or from the live chain. Cite the link and the date it was read.
+- If no source covers it, say "I haven't verified that" and name where it could be checked.
+- The chain beats every document. The official sources beat the community. The community beats the press. AI price-site summaries are never sources.
+- No price predictions. No buy, sell or hold advice. GUARD.IAN is a supporter of the ecosystem and is honest about what it cannot verify.
+
+## Rules and catalog
+- [RULES.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/RULES.md): how every answer must be built
+- [SOURCES.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/SOURCES.md): the full tiered source catalog (official, community, press, data, regulators, credit unions)
+- [KSTO.md](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/KSTO.md): the KSTO community, in our own words, linked to ksto.world
+
+## XPR Network: official
+- [XPR Network docs](https://docs.xprnetwork.org): getting started, CLI, Web SDK, contracts
+- [Official endpoint list](https://docs.xprnetwork.org/client-sdks/endpoints): public API and Hyperion endpoints
+- [XPR Network site](https://xprnetwork.org), [roadmap](https://xprnetwork.org/roadmap), [blog](https://xprnetwork.org/blog), [help centre](https://help.xprnetwork.org/hc/en-us)
+- [Explorer](https://explorer.xprnetwork.org): accounts, transactions, producers, tokens
+- [XPRNetwork on GitHub](https://github.com/XPRNetwork): official code
+
+## XPR Network developer skill (official, XPRNetwork/xpr-network-dev-skill)
+- [SKILL.md: index of all modules](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/SKILL.md)
+- [agent-bootstrap.md: building an agent on XPR](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/agent-bootstrap.md)
+- [simpledex.md: SimpleDEX launches, AMM, graduation](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/simpledex.md)
+- [rpc-queries.md: RPC, Hyperion, pagination, endpoint etiquette](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/rpc-queries.md)
+- [accounts-permissions.md: accounts, keys, permissions, multisig](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/accounts-permissions.md)
+- [webauth-identity.md: WebAuth wallet and identity](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/webauth-identity.md)
+- [web-sdk.md: connecting a website to WebAuth](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/web-sdk.md)
+- [token-creation.md: creating a token](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/token-creation.md)
+- [metalx-dex.md: Metal X DEX](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/metalx-dex.md)
+- [loan-protocol.md: LOAN protocol](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/loan-protocol.md)
+- [staking-governance.md: staking, voting, block producers](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/staking-governance.md)
+- [resources.md: CPU, NET, RAM](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/resources.md)
+- [nfts-atomicassets.md: NFTs](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/nfts-atomicassets.md)
+- [smart-contracts.md: contracts](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/smart-contracts.md)
+- [safety-guidelines.md: safety](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/safety-guidelines.md)
+- [xpr-agents.md: XPR Agents](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/xpr-agents.md)
+- [troubleshooting.md](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/troubleshooting.md)
+
+## SimpleDEX (built by Proton NZ, a block producer)
+- [simpledex.fun llms.txt](https://simpledex.fun/llms.txt), plus [launches](https://simpledex.fun/llms-launches.txt), [trading](https://simpledex.fun/llms-trading.txt), [reference](https://simpledex.fun/llms-reference.txt), [full](https://simpledex.fun/llms-full.txt). The version line can lag, so cite the date read.
+- [How it works](https://simpledex.fun/how-it-works)
+- [Live stats API](https://indexer.protonnz.com/api/stats)
+- [Proton NZ news feed](https://protonnz.com/feed.xml): includes incident write-ups
+
+## XPR Agents (on-chain agent registry, escrow job board)
+- [xpragents.com llms.txt](https://xpragents.com/llms.txt)
+- [Stats API](https://indexer.xpragents.com/api/stats)
+- [xpr-agents on GitHub](https://github.com/XPRNetwork/xpr-agents)
+
+## Metallicus and its products (official)
+- [metallicus.com llms.txt: product map](https://metallicus.com/llms.txt)
+- [Newsroom and quarterly reports](https://metallicus.com/news)
+- [WebAuth wallet](https://metallicus.com/individuals/webauth). WebAuth has no public docs site; also use [proton-web-sdk](https://github.com/XPRNetwork/proton-web-sdk)
+- [Metal Pay](https://metallicus.com/individuals/metal-pay)
+- [Metal X docs llms.txt](https://docs.metalx.com/llms.txt)
+- [Metal Dollar (XMD)](https://metaldollar.com)
+- [Metal Blockchain](https://metalblockchain.org), [docs](https://docs.metalblockchain.org), [metalgo releases](https://github.com/MetalBlockchain/metalgo/releases)
+- [PulseVM code (official)](https://github.com/MetalBlockchain/pulsevm). [pulsevm.dev](https://pulsevm.dev) is community work by Paul Grey; say so. No cutover date has been announced.
+- [Metal L2](https://metall2.com)
+- [Stablecoin pilot for credit unions](https://metallicus.com/institutions/stablecoin-pilot)
+
+## KSTO community
+- [KSTO.md: our summary](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/KSTO.md)
+- [ksto.world](https://ksto.world/index.html), [About](https://ksto.world/about.html), [Ecosystem](https://ksto.world/ecosystem.html), [Governance](https://ksto.world/governance.html), [FAQ](https://ksto.world/faq_v1.html), [Vetted Tokens](https://ksto.world/vetted_tokens.html), [External Resources](https://ksto.world/external_resources.html)
+
+## Credit unions, stablecoins and safety
+- [Credit union members: stablecoins, insurance, keys, scams](https://standguard.net/learn/credit-unions): 16 sourced answers
+- [NCUA share insurance](https://ncua.gov/consumers/share-insurance-coverage): covers share accounts, never digital assets
+- [FTC fraud reporting](https://reportfraud.ftc.gov) and [IC3](https://ic3.gov): where to report a scam
+
+## Live data (cite the page and the time; sites disagree)
+- [DefiLlama: XPR Network chain](https://defillama.com/chain/xpr-network)
+- [CoinGecko: XPR Network](https://www.coingecko.com/en/coins/xpr-network)
+- The live chain, through an official endpoint: `get_info`, `get_account`, `get_table_rows`, `get_producer_schedule`
+
+## Optional
+- [Source catalog by tier](https://raw.githubusercontent.com/Scubasteve4488/guard-ian-xpr-guide/main/SOURCES.md): press (CoinDesk, The Block, Decrypt, Blockworks), credit-union and banking press (CUInsight, CU Broadcast, PYMNTS), regulators (SEC, CFTC, BIS, NCUA), research (Messari, Chainalysis, a16z crypto, Electric Capital), Antelope node software, block producers, community channels.
