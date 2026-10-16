@@ -20,7 +20,7 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | `xpr_chain_info` | Live chain status: chain id, head block, last irreversible block |
 | `xpr_account` | Live public account facts: created, XPR balance, resources, permission structure, votes |
 | `xpr_token_balances` | Every token an account holds, as symbol + contract + amount (Hyperion) |
-| `xpr_table` | Read any contract table (max 50 rows, paged), e.g. `simplelaunch` / `antisnipe`. A token's `stat` table (supply, max supply, issuer) takes the symbol in capitals as scope, e.g. code `xmd.token`, table `stat`, scope `XMD` (since 1.14.0) |
+| `xpr_table` | Read any contract table (max 50 rows, paged), e.g. `simplelaunch` / `antisnipe`. A token's `stat` table (supply, max supply, issuer) takes the symbol in capitals as scope, e.g. code `xmd.token`, table `stat`, scope `XMD` (since 1.14.0). People named inside rows (stakers, voters, owners, blocklisted accounts) are shown as `[private account]`; contracts, registered agents and producers stay (since 1.14.2) |
 | `xpr_producers` | The live active block-producer schedule |
 | `suggest_update` | The one write: a private suggestion box for a fact the guide is missing (with the user's OK). Stores only the fact and an optional https link, nothing about the sender (no IP, no account). No tool reads it back. Limits: 3 a minute per connection, 50 a day in total, duplicates stored once, recovery phrases and private keys refused. The daily job checks each one at an official source before anything is added |
 | `xpr_token_check` | "Is this the real token?" Compares symbol + contract against XPR's developer token registry, the chain, Metal X's markets, Alcor's flags and SimpleDEX. It never declares anything safe or a scam |

@@ -7,7 +7,7 @@ import { parseRobotsTxt, isPathAllowed, robotsAllows } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
-import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN } from '../src/history.ts';
+import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN, personNames, maskRows, TABLE_PUBLIC_CHECKS } from '../src/history.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling, looksLikePdf } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
@@ -420,6 +420,34 @@ t('history: person-like key variants masked', odd.to_account === PRIVATE && odd.
 const nested = maskData({ items: [{ buyer: 'personsix', qty: '1.0000 XPR' }, { owner: { account: 'personseven' } }] }, keepH);
 t('history: arrays of objects masked', nested.items[0].buyer === PRIVATE && nested.items[0].qty === '1.0000 XPR' && nested.items[1].owner.account === PRIVATE);
 t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR', quantity: '5.0000 XPR' }, keepH).memo === 'hello');
+
+// ── 1.14.2 table rows (2026-10-16: longstaking::stakes showed two private stakers' accounts unmasked)
+{
+	const stakeRows = [
+		{ index: 3, plan_index: 3, account: 'stakerone', start_time: '2023-10-03T11:04:16.000', staked: '490.3525 XPR', oracle_price: '0.00000002444006053' },
+		{ index: 12, plan_index: 3, account: 'stakertwo', start_time: '2023-10-03T20:12:59.000', staked: '100.0000 XPR', oracle_price: '0.00000002444006053' },
+	];
+	t('rows: personNames finds people under person keys only', [...personNames(stakeRows)].sort().join() === 'stakerone,stakertwo');
+	const checked: string[] = [];
+	const mr = await maskRows(stakeRows, 'longstaking', 'stakes', makeKeep(['longstaking']), async (n) => (checked.push(n), false));
+	t('rows: private stakers hidden, numbers kept', mr.rows[0].account === PRIVATE && mr.rows[1].account === PRIVATE && mr.rows[0].staked === '490.3525 XPR' && mr.hidden === 2);
+	t('rows: each unknown name checked once', checked.sort().join() === 'stakerone,stakertwo');
+	const pub = await maskRows([{ owner: 'somecontract', voter: 'aperson' }], 'x', 'y', makeKeep(['x']), async (n) => n === 'somecontract');
+	t('rows: a public account (contract/agent) stays visible', pub.rows[0].owner === 'somecontract' && pub.rows[0].voter === PRIVATE && pub.hidden === 1);
+	const many = Array.from({ length: 9 }, (_, i) => ({ account: `person${'abcdefghi'[i]}` }));
+	let calls = 0;
+	const capped = await maskRows(many, 'blocklist', 'blocklist', makeKeep(['blocklist']), async () => (calls++, true));
+	t('rows: check budget capped, the rest hidden unchecked', calls === TABLE_PUBLIC_CHECKS && capped.hidden === 9 - TABLE_PUBLIC_CHECKS && capped.rows.filter((r: any) => r.account === PRIVATE).length === 9 - TABLE_PUBLIC_CHECKS);
+	const failing = await maskRows([{ account: 'someone1' }], 'c', 't', makeKeep(['c']), async () => { throw new Error('rpc down'); });
+	t('rows: a failed check counts as private', failing.rows[0].account === PRIVATE);
+	const prods = await maskRows([{ owner: 'standbybp1', is_active: 1, url: 'https://x' }], 'eosio', 'producers', makeKeep(['eosio']), async () => false);
+	t('rows: eosio producers table keeps producer names', prods.rows[0].owner === 'standbybp1' && prods.hidden === 0);
+	const agents = await maskRows([{ account: 'someagent', owner: 'agentowner1' }], 'agentcore', 'agents', makeKeep(['agentcore']), async () => false);
+	t('rows: agentcore agents keep the agent, hide its owner', agents.rows[0].account === 'someagent' && agents.rows[0].owner === PRIVATE);
+	const typedKeep = await maskRows([{ account: 'typedacct' }], 'c', 't', makeKeep(['c', 'typedacct']), async () => false);
+	t('rows: an account the caller typed stays', typedKeep.rows[0].account === 'typedacct');
+	t('rows: plan tables untouched', JSON.stringify((await maskRows([{ index: 2, plan_days: 90, multiplier: 100 }], 'longstaking', 'plans', makeKeep(['longstaking']), async () => false)).rows) === '[{"index":2,"plan_days":90,"multiplier":100}]');
+}
 
 // ── 1.10.0 more.ts: Metal Blockchain, governance, testnet, DogecoinVM (stubbed network)
 {

@@ -34,7 +34,8 @@
 import { z } from 'zod';
 import { politeFetch, UpstreamError } from './net.ts';
 import { robotsAllows } from './robots.ts';
-import { makeKeep, maskName } from './history.ts';
+import { makeKeep, maskName, maskData } from './history.ts';
+import { exemptionsFrom } from './privacy.ts';
 import { table, isAccountName, isTableName, scopeFor } from './chain.ts';
 import { labelUntrusted } from './sources.ts';
 import { tableAccountRefs } from './access.ts';
@@ -471,7 +472,9 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext, ga
 					const body: any = { code: a.code, table: a.table, scope: scopeFor(a.scope ?? a.code), json: true, limit: Math.max(1, Math.min(50, a.limit ?? 20)) };
 					if (a.lower_bound) body.lower_bound = a.lower_bound;
 					const r = await testnetRpc('/v1/chain/get_table_rows', body, 15, ctx);
-					return ok({ network: 'XPR Network testnet', rows: r.json.rows ?? [], more: !!r.json.more, next_key: r.json.next_key ?? null }, r.source, r.readAt, 'Live testnet. Page with lower_bound = next_key.');
+					// People named inside the rows are hidden (same rule as xpr_table; testnet keeps only the contract and typed names).
+					const rows = maskData(r.json.rows ?? [], makeKeep([a.code, ...exemptionsFrom(a)]));
+					return ok({ network: 'XPR Network testnet', rows, more: !!r.json.more, next_key: r.json.next_key ?? null }, r.source, r.readAt, 'Live testnet. Page with lower_bound = next_key. People\'s accounts in the rows are shown as [private account].');
 				}
 				const which = (a.simpledex ?? 'stats') as keyof typeof TESTNET_INDEXER_PATHS;
 				const g = await getJson(TESTNET_INDEXER, TESTNET_INDEXER_PATHS[which], 60, ctx);

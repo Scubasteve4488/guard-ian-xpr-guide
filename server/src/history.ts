@@ -60,6 +60,54 @@ export function maskData(v: any, keep: Set<string>, depth = 0, personal = false)
 	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, !NOT_PERSON.has(k) && (personal || PERSON_KEY.test(k)));
 	return out;
 }
+/** Every name-shaped string maskData would hide (same walk, same person keys), so a caller can check a few first. */
+export function personNames(v: any, out: Set<string> = new Set(), depth = 0, personal = false): Set<string> {
+	if (v == null || depth >= MAX_DEPTH) return out;
+	if (typeof v === 'string') {
+		if (personal && NAME.test(v)) out.add(v);
+		return out;
+	}
+	if (typeof v !== 'object') return out;
+	if (Array.isArray(v)) {
+		for (const x of v) personNames(x, out, depth + 1, personal);
+		return out;
+	}
+	for (const [k, x] of Object.entries(v)) personNames(x, out, depth + 1, !NOT_PERSON.has(k) && (personal || PERSON_KEY.test(k)));
+	return out;
+}
+
+// Tables whose rows ARE public entities by their nature: the registered block producers and the registered agents.
+const PUBLIC_ROW_FIELDS: Record<string, string> = { 'eosio/producers': 'owner', 'agentcore/agents': 'account' };
+/** How many unknown names one table read may check on chain before the rest are hidden unchecked (rate budget). */
+export const TABLE_PUBLIC_CHECKS = 5;
+
+/**
+ * Table rows can name people in any field (a staker, a voter, an owner, a blocklisted account): found 2026-10-16 in
+ * `longstaking::stakes`, where two private stakers' accounts came back unmasked. Hide them like history reads do.
+ * Names already kept stay; up to `max` other names are checked with `isPub` (contracts, registered agents and
+ * producers stay visible); every name left over is hidden. A failed check counts as private.
+ */
+export async function maskRows(
+	rows: any[],
+	code: string,
+	table: string,
+	keep: Set<string>,
+	isPub: (name: string) => Promise<boolean>,
+	max = TABLE_PUBLIC_CHECKS,
+): Promise<{ rows: any[]; hidden: number }> {
+	const field = PUBLIC_ROW_FIELDS[`${code}/${table}`];
+	if (field) for (const r of rows ?? []) if (r && typeof r[field] === 'string' && NAME.test(r[field])) keep.add(r[field]);
+	const unknown = [...personNames(rows)].filter((n) => !keep.has(n)).sort();
+	for (const n of unknown.slice(0, max)) {
+		try {
+			if (await isPub(n)) keep.add(n);
+		} catch {
+			/* unknown -> private */
+		}
+	}
+	const hidden = unknown.filter((n) => !keep.has(n)).length;
+	return { rows: maskData(rows ?? [], keep), hidden };
+}
 const auths = (list: any[], keep: Set<string>) => (list ?? []).map((x: any) => `${maskName(x.actor, keep)}@${x.permission}`);
 
 let producerCache: { at: number; names: string[] } | null = null;
