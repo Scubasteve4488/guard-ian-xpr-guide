@@ -88,8 +88,11 @@ npm run type-check
 npm run dev       # local server at http://127.0.0.1:8787/mcp
 ```
 
-## Private mode (1.13.1, builder: "private")
-With the Worker **Secret** `ACCESS_PATH` set, the connector answers only at `/mcp/<that value>`. Plain `/mcp` and the landing page return 404; `/health` stays. Without the secret, nothing changes. The value is never written anywhere in this repo.
+## Private address (1.13.1, changed in 1.14.1)
+- With the Worker **Secret** `ACCESS_PATH` set, the connector also answers at `/mcp/<that value>`, and that address always works.
+- The public address (`/mcp`, and the landing page `/`) stays open unless the Worker Secret `LOCK_PUBLIC` is `1`; then only the private address works. `/health` always answers.
+- 1.13.1 closed the public address whenever `ACCESS_PATH` was set. 1.14.1 reopened it (builder, 2026-10-16: he needs it on his phone).
+- The values are never written anywhere in this repo.
 
 ## Emergency off switch
 Any tool can be switched off at once, with no code change. In the Cloudflare dashboard open the Worker `guard-ian-guide` → **Settings** → **Variables and Secrets** → **Add**, choose type **Secret**, name `DISABLED_TOOLS`, value a comma-separated list of tool names (for example `xpr_actions,xpr_table`), or `*` for every tool. Then select **Deploy**. Use the Secret type: deploys never delete secrets, but they do wipe plain variables set in the dashboard. Remove the secret to switch the tools back on.
