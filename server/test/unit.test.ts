@@ -13,7 +13,7 @@ import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateL
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
-import { u64ToName, tableAccountRefs } from '../src/access.ts';
+import { u64ToName, tableAccountRefs, accessGate } from '../src/access.ts';
 import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
 import { z } from 'zod';
 
@@ -595,5 +595,9 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 	});
 	t('catalog: every more.ts tool describes cleanly', real.names().length >= 4 && undescribable.length === 0);
 }
+// Private mode (2026-10-16).
+t('private mode off: landing at /, /mcp passes', accessGate('/') === 'open-landing' && accessGate('/mcp') === 'pass' && accessGate('/mcp', '  ') === 'pass');
+t('private mode on: only /mcp/<secret> is served', accessGate('/mcp/abcDEF123', 'abcDEF123') === 'rewrite');
+t('private mode on: /mcp, /, a wrong or partial secret are 404', ['/mcp', '/', '/mcp/abc', '/mcp/abcDEF1234', '/mcp/abcDEF123/x', '/x/abcDEF123'].every((p) => accessGate(p, 'abcDEF123') === 'deny'));
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

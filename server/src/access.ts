@@ -113,6 +113,17 @@ export function tableAccountRefs(a: { code: string; scope?: string; scope_type?:
 	return { direct: [...direct], encoded: [...encoded] };
 }
 
+/**
+ * Private mode (builder, 2026-10-16: "private"). With a secret set, the connector answers only at /mcp/<secret>
+ * ('rewrite' → served as /mcp); everything else is 'deny' (404), the landing page included. Without one, the public
+ * behaviour stays: '/' shows the landing page, everything else passes.
+ */
+export function accessGate(pathname: string, secret?: string): 'pass' | 'rewrite' | 'deny' | 'open-landing' {
+	const s = (secret ?? '').trim();
+	if (!s) return pathname === '/' || pathname === '' ? 'open-landing' : 'pass';
+	return pathname === `/mcp/${s}` ? 'rewrite' : 'deny';
+}
+
 export function privateRefusal(name: string, net?: Network) {
 	const host = net === 'testnet' ? 'https://testnet.explorer.xprnetwork.org' : 'https://explorer.xprnetwork.org';
 	return {
