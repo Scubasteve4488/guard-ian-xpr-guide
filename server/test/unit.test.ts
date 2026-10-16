@@ -7,6 +7,7 @@ import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
+import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, MASK, KEY_MASK } from '../src/privacy.ts';
 
 let pass = 0,
 	failN = 0;
@@ -271,5 +272,30 @@ const real = await tokenCheck('XMD', 'xmd.token');
 t('metal x: same-side match still found', real.facts.some((f) => f.startsWith('Metal X lists XMD@xmd.token in 1 market')));
 
 globalThis.fetch = realFetch;
+
+// ── privacy: wallet names and private keys (builder's ruling 2026-10-16)
+{
+	const b = ['scuba', 'steve', '44'].join(''); // the builder's account, assembled so this file doesn't spell it
+	const page = `$GUARD\n\n Creator: ${b}\n\n $SNIPPY\n\n Creator: hulkwarrior\n Created by @westcoastred. Created by the team.`;
+	const m1 = await maskText(page);
+	t('privacy: KSTO-style Creator lines hidden', !m1.includes(b) && !m1.includes('hulkwarrior') && m1.includes(`Creator: ${MASK}`));
+	t('privacy: "Created by @name" hidden, "Created by the team" kept', !m1.includes('westcoastred') && m1.includes('Created by the team'));
+	const json = JSON.stringify({ rows: [{ id: 172, creator: b, symbol: 'GUARD' }, { id: 5, creator: 'westcoastred', updatedBy: 'someone1' }] });
+	const m2 = await maskText(json);
+	t('privacy: creator/updatedBy JSON fields hidden', !m2.includes(b) && !m2.includes('westcoastred') && !m2.includes('someone1') && m2.includes('"symbol":"GUARD"'));
+	const m3 = await maskText(`The owner permission is ${b}@active; see ${b}.`);
+	t('privacy: builder account hidden anywhere, trailing dot kept', !m3.includes(b) && m3.endsWith(`${MASK}.`));
+	const m4 = await maskText('Built by @Scubasteve4488 on GitHub; contract simplelaunch, issuer kstoken, producer protonnz.');
+	t('privacy: public handle and contract/project/producer accounts kept', m4.includes('@Scubasteve4488') && m4.includes('simplelaunch') && m4.includes('kstoken') && m4.includes('protonnz'));
+	const ex = exemptionsFrom({ account: b });
+	t('privacy: an account the caller typed is not hidden', (await maskText(`{"creator":"${b}"} ${b}`, ex)).split(b).length === 3);
+	t('privacy: extra names from the secret', !(await maskText('holder list: alice1 bob2', new Set(), parsePrivateList(' Alice1 , x '))).includes('alice1'));
+	const key = 'PVT_K1_' + '2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V';
+	t('privacy: private key in a tool call detected', containsPrivateKey({ query: `my key ${key}` }) && !containsPrivateKey({ query: 'what is a PVT_K1 key?' }));
+	t('privacy: private key in output hidden', (await maskText(`key ${key} end`)).includes(KEY_MASK));
+	const r = await maskResult({ content: [{ type: 'text', text: `Creator: ${b}` }], isError: false }, new Set(), new Set());
+	t('privacy: maskResult masks tool content', r.content![0].text === `Creator: ${MASK}` && r.isError === false);
+}
+
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

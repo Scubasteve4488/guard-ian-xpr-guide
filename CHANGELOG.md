@@ -2,6 +2,15 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night): server 1.4.0, privacy and dates (builder's rulings, 2026-10-15 20:24 CT, with IAN-CODE's review)**
+  - **Wallet names stay private.** Every tool result now passes through a privacy filter (`server/src/privacy.ts`). It hides:
+    - private people's accounts the AI comes across: a "Creator:" line on a community page, and creator/buyer/seller/holder fields in SimpleDEX data;
+    - the builder's own account, anywhere it appears.
+  - **Still shown:** contract, project, producer, exchange and agent accounts, and any account the user typed in.
+  - **Private keys:** a private key in a tool call is refused with a warning, and none is ever returned.
+  - RULES §3 and the built-in rules (7 and 8) say the same. Tests 85/85.
+  - **Dates:** the AI gives the source's own date, or says "live", instead of a "read" date on every fact (RULES §1, built-in rule 2).
+  - **WebAuth backup and restore** (§2b), quoted from the two official help articles updated 2026-10-05, including the 12-word phrase. Next to them, a hard rule: never share a key or phrase, and if you ever pasted one, move your funds to a new wallet.
 - **2026-10-16 (early, part 10):** RULES: the no-private-information rule now also covers pages and chain rows the AI reads live. Community token lists and SimpleDEX launch records show creator accounts, and one AI repeated one in exam bundle 8. When the creator is a person, the AI says "created by a community member".
 - **2026-10-16 (IAN-CODE, builder's yes):** Server 1.3.0, from IAN-CODE's security review (`guard-project/docs/xpr-guide/CONNECTOR-SECURITY-REVIEW-2026-10-16.md`):
   1. **Never get banned.** A host that answers 403 is not contacted again for 6 hours; 429/503 hosts wait out Retry-After (2-60 s); when every host is cooling down, nothing is sent. New shared budgets per TARGET, not per caller (`CHAIN_LIMITER` 60/min for all XPR RPC + Hyperion reads together, `HOST_LIMITER` 20/min per other site), so changing a URL or a table bound cannot multiply traffic to anyone; they fail closed. A memory cache backs up the Cache API. Source: XPR dev skill `rpc-queries.md` Endpoint Etiquette (@ b7d9f1f, lines 62-70).
