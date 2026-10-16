@@ -596,6 +596,9 @@ Live numbers can change: read the chain or the linked page before stating one, a
 - **Long staking:** Explorer only, minimum 100 XPR, 90 or 365 days. The reward is tied to XPR's value in Bitcoin satoshis, not a fixed APY.
   - 90-day: extra XPR only if that value fell.
   - 365-day: extra XPR if it stays below 106% of the staked value.
+  - **Live contract `longstaking` (chain read 2026-10-16, table `plans`):** two plans take new stakes: 90 days with multiplier 100 and 365 days with multiplier 106, both using price oracle feed 2. Two older plans (90 days ×105, 365 days ×150) take no new stakes but can still be claimed. The 100 and 106 match the staking guide's "fell" and "106%" rules.
+  - The contract has a `claimstake` action (account, stake number) and a `cancelstake` action. The official help article (updated 2025-10-07) says a long stake can't be undone before its unlock date; the staking guide says the XPR is released when the period ends. Who may call `cancelstake`, and whether claiming is automatic, are not stated: https://help.xprnetwork.org/hc/en-us/articles/18031266904599-How-do-I-Long-Stake-my-XPR
+  - The contract's code link on the official developer list (github.com/XPRNetwork/proton-longstaking) does not open publicly (checked 2026-10-16), so the exact top-up formula is not verified. Each stake row stores the XPR/BTC oracle price at the start.
 
 **SimpleDEX launches** (Proton NZ). Source: https://simpledex.fun/llms-launches.txt (header v1.11; table updated for 10-15)
 - **Token and fees:** 1,000,000,000 max supply per token, 80% on the bonding curve and 20% for the DEX pool. Buy fee 1% and sell fee 1%; the creator gets 50% of fees and the treasury 50%. **Creators get no token allocation.**
