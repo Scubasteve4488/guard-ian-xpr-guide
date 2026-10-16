@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 3):** Flex tokens completed: GRAMS@gold.mon3y and WON@w3won read on chain. Taxes come from the project's own docs, plus the warning about the opt-out actions. The Goldminer agent was added to §4 (its site couldn't be read, so UNCLEAR), and its "backed by XPAGX" claim is noted against XPAXG@xtokens, read on chain.
 - **2026-10-16 (early, part 2):** New §2b "Getting XPR": where XPR trades (official help-center list, dated 2025-04-05 and flagged as old), the Ethereum and BNB Chain XPR contracts (read on those chains: "Proton", XPR, 4 decimals, 10B supply), how withdrawals to WebAuth work (@name, XPR Network only), wallets (WebAuth, Anchor, explorer docs; Trezor/KeepKey/OneKey UNCLEAR) and bridges.
 - **2026-10-16 (early):** §6 NFTs: added Aetherian Farm / Aetherian Seedrealm, read on CYPHR.Market and on chain (`atomicassets` collections, `agentcore` agents). The game world its agent describes has no site yet, so it is marked UNCLEAR.
 - **2026-10-15 (night, part 10):** Server 1.2.1, two `xpr_table` fixes (builder's yes).
