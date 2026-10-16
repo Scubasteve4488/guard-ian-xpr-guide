@@ -10,6 +10,11 @@
 	"compatibility_date": "2026-07-02",
 	"compatibility_flags": ["nodejs_compat"],
 	"workers_dev": true,
+	// 2026-10-16 (builder: "Fix all the stuff it doesnt do"): an address on his own domain, so the connector URL no
+	// longer carries the Cloudflare account name. The workers.dev address keeps working for apps already connected.
+	// Custom Domains: developers.cloudflare.com/workers/configuration/routing/custom-domains/ (DNS record and
+	// certificate are created by Cloudflare; the zone must be on this account).
+	"routes": [{ "pattern": "guide.standguard.net", "custom_domain": true }],
 	"preview_urls": false,
 	"observability": {
 		"enabled": true,
