@@ -18,7 +18,7 @@ https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
 
 Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
-**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide live (no cache delay) and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"**. Code: [`server/`](server/).
+**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"**. Code: [`server/`](server/).
 
 ```
 https://guard-ian-guide.rangelt88.workers.dev/mcp
@@ -30,6 +30,8 @@ The GitMCP URL above also works (docs only, cached).
 - **Grok** (grok.com): **Plugins** (bottom left of the sidebar) → Connectors → New Connector → Custom → name + paste the URL → Add Connector. Tested 2026-10-15.
 - **ChatGPT** (web): open **chatgpt.com/plugins** → **Add** (top right) → **Add custom MCP server** → name, paste the URL, Authentication **No authentication** → tick "I understand and want to continue" → **Create as a plugin** → **Connect**. Tested on a Pro account 2026-10-15; then just ask in a new chat. OpenAI's [custom MCP server guide](https://developers.openai.com/api/docs/guides/custom-mcp-server.md) gives the same path. Which plans have it: older help said Pro, Business, Enterprise or Edu ([OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt), read 2026-10-15). The new page doesn't say, so other plans are unverified.
 - **Cursor / VS Code / other MCP apps:** add the URL as a remote MCP server. GitMCP's README has a block for each app.
+
+**After an update:** fixes, live data and new guide text reach everyone by themselves. Only a *new tool* needs one step in your app, a refresh of its tool list: see [refreshing the tool list](server/README.md#after-an-update-refresh-the-tool-list-in-your-ai-app).
 
 Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX launch graduate?"*
 

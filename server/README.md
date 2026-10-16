@@ -15,8 +15,8 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | Tool | What it does |
 |---|---|
 | `guide_search` | Keyword search across the whole guide: ecosystem directory, source catalog, rules, KSTO, index |
-| `guide_read` | Read one guide file, always the latest commit on `main` (cached 5 min) |
-| `source_fetch` | Fetch one page from any site the guide links to. The list updates itself from the guide's own links, so a project the daily update adds is readable within 5 minutes. HTTPS only, robots.txt respected, up to 3 redirects that stay on listed sites, 20,000-character cap. Social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn) are never fetched |
+| `guide_read` | Read one guide file, always the latest commit on `main` (cached up to 5 min here and up to 5 min at GitHub) |
+| `source_fetch` | Fetch one page from any site the guide links to. The list updates itself from the guide's own links, so a project the daily update adds is readable within about 10 minutes. HTTPS only, robots.txt respected, up to 3 redirects that stay on listed sites, 20,000-character cap. Social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn) are never fetched |
 | `xpr_chain_info` | Live chain status: chain id, head block, last irreversible block |
 | `xpr_account` | Live public account facts: created, XPR balance, resources, permission structure, votes |
 | `xpr_token_balances` | Every token an account holds, as symbol + contract + amount (Hyperion) |
@@ -94,4 +94,4 @@ Any tool can be switched off at once, with no code change. In the Cloudflare das
 AI apps save a connector's tool list when you add it, so new tools can be missing until you refresh.
 - **ChatGPT:** Settings → Plugins → GUARD.IAN XPR Guide → **Refresh tools**.
 - **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guard-ian-guide.rangelt88.workers.dev/mcp?v=1.12`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed all 27.)
-- **Claude:** new tools appear in a new chat.
+- **Claude:** a chat keeps the tool list it started with (seen 2026-10-16: a Claude session started on an earlier server version still listed 16 tools while the server had 27). Start a new chat to load the current list.
