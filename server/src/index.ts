@@ -155,7 +155,7 @@ function createServer(env: Env, ctx?: ExecutionContext) {
 		async () => {
 			try {
 				const r = await chainInfo(ctx);
-				return ok(r.data, r.source, r.readAt);
+				return ok(r.data, r.source, r.readAt, 'Live read. Quote the chain id with the block number: 384da888112027f0321850a169f737c33e53b388aad48b5adace4bab97f437e0 is XPR mainnet, so it proves the read came from mainnet and not a testnet.');
 			} catch (e) {
 				return fail(e, 'Public endpoints may be busy; try again shortly.');
 			}

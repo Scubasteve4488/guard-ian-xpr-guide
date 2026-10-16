@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night): server 1.5.1.** `xpr_chain_info` tells the AI to quote the mainnet chain id with the block, and the §1 LOAN row now names its contracts (`lending.loan`, not `lending`). ChatGPT left both out in the re-test.
 - **2026-10-16 (night): server 1.5.1.** `xpr_producers` now says on its own that "active" has two meanings: the 21 in the schedule, and the larger number marked `is_active`. Grok went straight to the tool in a re-test and gave only the 21. The guide note alone didn't reach it.
 - **2026-10-16 (IAN-CODE, builder's go):** Server 1.5.0.
   1. **Official help center readable.** New tools `xpr_help_search` and `xpr_help_article` read help.xprnetwork.org (Metallicus Client Services) through Zendesk's public Help Center API, because the HTML pages sit behind a Cloudflare browser check. robots.txt allows these endpoints. Every result carries the article's own "updated" date. Shared 20/min budget, 6 h cache.
