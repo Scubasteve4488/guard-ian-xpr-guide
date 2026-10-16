@@ -14,6 +14,8 @@ import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like 
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
 import { u64ToName, tableAccountRefs } from '../src/access.ts';
+import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
+import { z } from 'zod';
 
 let pass = 0,
 	failN = 0;
@@ -549,6 +551,49 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 	t('table: numeric id bound is not a name', tableAccountRefs({ code: 'simplelaunch', lower_bound: '15' }).direct.length === 0);
 	t('table: scope = contract is fine', tableAccountRefs({ code: 'simplelaunch' }).direct.length === 0);
 	t('table: token-id scope is not a name', tableAccountRefs({ code: 'simplelaunch', scope: '14', scope_type: 'number' }).encoded.length === 0 && tableAccountRefs({ code: 'simplelaunch', scope: '14', scope_type: 'number' }).direct.length === 0);
+}
+
+// ── guide_tools (catalog.ts): every tool reachable by name, for apps that saved an older tool list
+{
+	const cat = new ToolCatalog();
+	let seen: unknown = null;
+	cat.add('xpr_account', { title: 'Account', description: 'Read one account. Second sentence.', inputSchema: z.object({ account: z.string().min(1).max(12) }), annotations: { readOnlyHint: true } }, async (a) => {
+		seen = a;
+		return { content: [{ type: 'text', text: 'ran ' + (a as any).account }] };
+	});
+	cat.add('suggest_update', { title: 'Suggest', description: 'Save a fact.', inputSchema: z.object({ fact: z.string() }), annotations: { readOnlyHint: false } }, async () => ({ content: [{ type: 'text', text: 'SAVED' }] }));
+	t('catalog: guide_tools not counted until registered', cat.count === 2 && !cat.offered);
+	cat.add(CATALOG_TOOL, {}, async () => ({ content: [{ type: 'text', text: 'x' }] }));
+	t('catalog: counts itself once registered, never stores itself', cat.count === 3 && cat.offered && !cat.names().includes(CATALOG_TOOL));
+	const listed = JSON.parse(cat.list('9.9.9').content[0].text);
+	t('catalog: list names every tool with a one-sentence summary', listed.tools.length === 2 && listed.tools[0].summary === 'Read one account.' && listed.tools[1].writes === true && /9\.9\.9/.test(listed.server));
+	const d = JSON.parse(cat.describe('xpr_account').content[0].text);
+	t('catalog: describe gives the JSON schema of the inputs', d.inputs.type === 'object' && d.inputs.properties.account.maxLength === 12);
+	const r = await cat.call('xpr_account', { account: 'eosio.token' }, {});
+	t('catalog: call runs the tool handler with parsed inputs', r.content[0].text === 'ran eosio.token' && (seen as any).account === 'eosio.token');
+	t('catalog: arguments may arrive as a JSON string', (await cat.call('xpr_account', '{"account":"xtokens"}', {})).content[0].text === 'ran xtokens');
+	t('catalog: app-prefixed names are understood', (await cat.call('mcp__GUARD_IAN_XPR_Guide-a1166e8e__XPR_ACCOUNT', { account: 'xtokens' }, {})).content[0].text === 'ran xtokens');
+	const bad = await cat.call('xpr_account', { account: 'waytoolongaccountname' }, {});
+	t('catalog: inputs are checked against the tool schema', bad.isError === true && /did not fit/.test(bad.content[0].text));
+	t('catalog: non-object arguments refused', (await cat.call('xpr_account', '[1,2]', {})).isError === true && (await cat.call('xpr_account', 'not json', {})).isError === true);
+	const unknown = await cat.call('no_such_tool', {}, {});
+	t('catalog: unknown name lists the real tools', unknown.isError === true && /xpr_account/.test(unknown.content[0].text));
+	t('catalog: cannot call itself', (await cat.call(CATALOG_TOOL, { action: 'list' }, {})).isError === true);
+	const w = await cat.call('suggest_update', { fact: 'x' }, {});
+	t('catalog: a tool that saves something only runs as a direct call', w.isError === true && !/SAVED/.test(w.content[0].text));
+	t('catalog: describe of an unknown tool is an error', cat.describe('nope').isError === true);
+	t('catalog: name normalising', normalizeToolName(' guard/xpr_table ') === 'xpr_table' && normalizeToolName('XPR_TABLE') === 'xpr_table');
+	t('catalog: footer names the version, count and guide_tools', /1\.2\.3, 5 tools/.test(footerText('1.2.3', 5)) && /guide_tools/.test(footerText('1.2.3', 5)) && !/guide_tools/.test(footerText('1.2.3', 5, false)));
+	t('catalog: input schema accepts object or string arguments', catalogInput.safeParse({ action: 'call', name: 'x', arguments: { a: 1 } }).success && catalogInput.safeParse({ action: 'call', name: 'x', arguments: '{}' }).success && !catalogInput.safeParse({ action: 'run' }).success);
+
+	// Every real tool in more.ts can be described (its zod schema converts to JSON Schema).
+	const real = new ToolCatalog();
+	registerMoreTools((n: string, c: unknown, h: any) => real.add(n, c, h), undefined, async () => null);
+	const undescribable = real.names().filter((n) => {
+		const x = real.describe(n);
+		return x.isError || /could not be described/.test(x.content[0].text);
+	});
+	t('catalog: every more.ts tool describes cleanly', real.names().length >= 4 && undescribable.length === 0);
 }
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

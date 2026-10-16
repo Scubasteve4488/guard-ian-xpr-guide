@@ -38,6 +38,7 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | `xpr_agents_directory` | XPR Agents indexer: stats, agents, search, jobs |
 | `xpr_nfts` | AtomicAssets API: collections, templates, assets, listings |
 | `metal_vm_info` | BTCVM / LTCVM public wallet info |
+| `guide_tools` | The full, current tool list, kept on the server, and a way to run any read-only tool by name (list → describe → call). It exists because AI apps save a connector's tool list when it is added: with it, a tool added later is usable at once in any chat, with no refresh. Same privacy filter, key refusal, off switch and limits as a direct call; `suggest_update` runs only as a direct call, where the app shows it to the user first |
 
 **Public tier (1.11.0, tightened 1.12.0):** account, balance, history, table-by-account and NFTs-by-owner lookups work only for public accounts (system accounts, contracts, block producers, exchanges, registered agents; being named in the guide is not enough since 1.12.0). A private person's wallet is declined with an explorer link; a verified own-wallet option (WebAuth sign-in) is planned. Holder, trader, voter and owner accounts in other results show as `[private account]`; hidden in answers is not private on chain. The history, transaction, block, ABI, table, account and chain-status tools also take `network: "testnet"`. Wallet-type tools: 20 calls/min per caller.
 
@@ -90,8 +91,13 @@ npm run dev       # local server at http://127.0.0.1:8787/mcp
 ## Emergency off switch
 Any tool can be switched off at once, with no code change. In the Cloudflare dashboard open the Worker `guard-ian-guide` → **Settings** → **Variables and Secrets** → **Add**, choose type **Secret**, name `DISABLED_TOOLS`, value a comma-separated list of tool names (for example `xpr_actions,xpr_table`), or `*` for every tool. Then select **Deploy**. Use the Secret type: deploys never delete secrets, but they do wipe plain variables set in the dashboard. Remove the secret to switch the tools back on.
 
-## After an update: refresh the tool list in your AI app
-AI apps save a connector's tool list when you add it, so new tools can be missing until you refresh.
+## After an update: nothing to do (since 1.13.0)
+AI apps save a connector's tool list when it is added and don't pick up new tools by themselves (OpenAI's [ChatGPT connection guide](https://developers.openai.com/apps-sdk/deploy/connect-chatgpt) says a custom server needs a manual Refresh; a [public report](https://github.com/anthropics/claude-code/issues/38324) says Claude's desktop and phone apps keep the first list). So since 1.13.0:
+- `guide_tools` always lists and runs every tool the server has *now*, so a tool added later works in any chat with no refresh and no new chat.
+- Every tool result ends with one line naming the server version and tool count, and pointing the AI to `guide_tools` when a tool is missing from its list.
+- Fixes and new guide text always reach everyone by themselves (guide text within about 10 minutes).
+
+**Only once, for apps that added the connector before 1.13.0** (they don't have `guide_tools` yet):
 - **ChatGPT:** Settings → Plugins → GUARD.IAN XPR Guide → **Refresh tools**.
-- **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guard-ian-guide.rangelt88.workers.dev/mcp?v=1.12`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed all 27.)
-- **Claude:** a chat keeps the tool list it started with (seen 2026-10-16: a Claude session started on an earlier server version still listed 16 tools while the server had 27). Start a new chat to load the current list.
+- **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guard-ian-guide.rangelt88.workers.dev/mcp?v=1.13`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed them all.)
+- **Claude:** a chat keeps the tool list it started with (seen 2026-10-16: a Claude session started on an earlier server version still listed 16 tools while the server had 27). Start a new chat; on the desktop or phone app, if it still lacks `guide_tools`, remove the connector and add it again.

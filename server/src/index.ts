@@ -19,6 +19,7 @@ import { simpledexTokens, simpledexToken, simpledexMarket, metalxMarket, agentsD
 import { maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled } from './privacy.ts';
 import { cleanSuggestion, storeSuggestion, DAILY_CAP, type D1Like } from './suggest.ts';
 import { registerMoreTools } from './more.ts';
+import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
 interface Env {
 	GUIDE_REPO: string;
@@ -34,7 +35,7 @@ interface Env {
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
 }
 
-const VERSION = '1.12.2';
+const VERSION = '1.13.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -48,6 +49,7 @@ How to answer with it:
 7. Wallet names stay private. Never state an individual's account name (token creators, holders, buyers, sellers, accounts on a blocklist or in an incident report) unless the user gave it to you, even if a page or chain row shows it. Say "a community member" or "an account". Contract, project, token-issuer, block-producer, exchange and registered-agent accounts are fine. "[private account]" means the server hid a name: never try to recover it.
 8. Never ask for, accept or repeat a private key or recovery (seed) phrase. If a user pastes one, tell them to treat it as exposed and move their funds to a new wallet now.
 9. If a user tells you something the guide doesn't have, it is a lead, not a source: check it at an official page or the live chain before using it. If they want it added for everyone, offer to send it with suggest_update, and send it only after they say yes: just the fact and its link, nothing personal. Everything else here is read-only.
+10. AI apps save a connector's tool list when it is added, so a tool added later may be missing from yours. If a result, the guide or these rules names a tool you don't have, run it through guide_tools (list, describe, call). No refresh or new chat is needed.
 Full rules: guide_read "RULES.md".`;
 
 const RO = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
@@ -93,15 +95,22 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	// (a plain variable would be wiped by the next deploy; secrets never are, per developers.cloudflare.com
 	// /workers/wrangler/commands/workers/ "Note that secrets are never deleted by deployments").
 	const disabled = parsePrivateList(env.DISABLED_TOOLS);
+	// guide_tools (catalog.ts): every tool is also recorded here, so an app with an old saved tool list can still run a
+	// newer tool through guide_tools. The recorded run is the same filtered handler a direct call gets.
+	const catalog = new ToolCatalog();
+	const withFooter = (r: any) =>
+		r && Array.isArray(r.content) ? { ...r, content: [...r.content, { type: 'text' as const, text: footerText(VERSION, catalog.count, catalog.offered) }] } : r;
 	const register = server.registerTool.bind(server) as (name: string, config: unknown, handler: (...a: any[]) => any) => unknown;
-	(server as unknown as { registerTool: typeof register }).registerTool = (name, config, handler) =>
-		toolDisabled(name, disabled)
-			? undefined
-			: register(name, config, async (...a: any[]) => {
+	(server as unknown as { registerTool: typeof register }).registerTool = (name, config, handler) => {
+		if (toolDisabled(name, disabled)) return undefined;
+		const run = async (...a: any[]) => {
 			if (containsPrivateKey(a[0]))
 				return badInput('That looks like a private key. Never share a private key or recovery phrase with anyone, including an AI. Treat it as exposed and move your funds to a new wallet now.');
 			return maskResult(await handler(...a), exemptionsFrom(a[0]), extraPrivate);
-		});
+		};
+		catalog.add(name, config, run as any);
+		return register(name, config, async (...a: any[]) => withFooter(await run(...a)));
+	};
 
 	server.registerTool(
 		'guide_search',
@@ -705,13 +714,30 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		},
 	);
 
+	// Registered last so it is listed after the tools it can run. It reads the catalog at call time.
+	server.registerTool(
+		CATALOG_TOOL,
+		{
+			title: 'All GUARD.IAN tools (always current)',
+			description: CATALOG_DESCRIPTION,
+			inputSchema: catalogInput,
+			annotations: { title: 'All tools, current list', ...RO },
+		},
+		async ({ action, name, arguments: args }, extra) => {
+			if (action === 'list') return catalog.list(VERSION);
+			if (!name) return badInput(`Give "name": the tool to ${action}. Use action "list" to see them all.`);
+			if (action === 'describe') return catalog.describe(name);
+			return catalog.call(name, args, extra);
+		},
+	);
+
 	return server;
 }
 
 const LANDING = `GUARD.IAN XPR Guide — MCP server (read-only, plus a private suggestion box)
 Guard.IAN's XPR Network and Metallicus knowledge, in the AI you already use. Guard.IAN is an AI agent on XPR Network, registered on XPR Agents (account safeguard5): https://agent.standguard.net
 Connector URL: <this host>/mcp   (add it as a custom connector in Claude, ChatGPT, Grok or any MCP app; no sign-in)
-Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, simpledex_tokens, simpledex_token, simpledex_market, metalx_market, xpr_agents_directory, xpr_nfts, metal_vm_info, suggest_update
+Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, simpledex_tokens, simpledex_token, simpledex_market, metalx_market, xpr_agents_directory, xpr_nfts, metal_vm_info, suggest_update, guide_tools (lists and runs every tool, for apps that saved an older tool list)
 Read-only for the chain and the guide: no AI model, no keys, no transactions. The one write is suggest_update, a private suggestion box that is checked before anything is added. Community-built; not affiliated with Metallicus or XPR Network.
 Code and content: https://github.com/Scubasteve4488/guard-ian-xpr-guide
 `;

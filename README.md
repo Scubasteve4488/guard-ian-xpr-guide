@@ -33,7 +33,7 @@ The GitMCP URL above also works (docs only, cached).
 - **ChatGPT** (web): open **chatgpt.com/plugins** → **Add** (top right) → **Add custom MCP server** → name, paste the URL, Authentication **No authentication** → tick "I understand and want to continue" → **Create as a plugin** → **Connect**. Tested on a Pro account 2026-10-15; then just ask in a new chat. OpenAI's [custom MCP server guide](https://developers.openai.com/api/docs/guides/custom-mcp-server.md) gives the same path. Which plans have it: older help said Pro, Business, Enterprise or Edu ([OpenAI help](https://help.openai.com/en/articles/12584461-developer-mode-and-mcp-apps-in-chatgpt), read 2026-10-15). The new page doesn't say, so other plans are unverified.
 - **Cursor / VS Code / other MCP apps:** add the URL as a remote MCP server. GitMCP's README has a block for each app.
 
-**After an update:** fixes, live data and new guide text reach everyone by themselves. Only a *new tool* needs one step in your app, a refresh of its tool list: see [refreshing the tool list](server/README.md#after-an-update-refresh-the-tool-list-in-your-ai-app).
+**After an update: nothing to do.** Fixes, live data and new guide text reach everyone by themselves, and new tools work in any chat through `guide_tools` with no refresh (since server 1.13.0). If your app added the connector before that, refresh its tool list once: [how](server/README.md#after-an-update-nothing-to-do-since-1130).
 
 Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX launch graduate?"*
 
