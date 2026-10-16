@@ -58,6 +58,20 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 
 DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor about $432K, SimpleDEX about $180K TVL. Source: https://defillama.com/chain/xpr-network. Figures move; cite the page and the time.
 
+## 2b. Getting XPR: where it trades, wallets, moving it
+
+Read 2026-10-15. This answers "where does XPR trade and how do I move it safely". It is not advice to buy anything.
+
+- **Where XPR trades (official list).** XPR Network's help center lists 16 places, in an article last updated 2025-04-05: Metal X swap (the network's own DEX), Metal Pay, KuCoin, Gate.io, PancakeSwap, Uniswap, Bithumb, HitBTC, OKX (listed as "OKEx"), Bitrue (listed as "Bittrue"), LATOKEN, CoinEx, MEXC, CoinSpot, Easy Crypto and Liquid. The list is more than a year old, so check the exchange's own XPR page before relying on it. Article: https://help.xprnetwork.org/hc/en-us/articles/4417459294615-Where-Can-I-Buy-XPR-Network-XPR. Live market lists: CoinMarketCap (`proton`) and CoinGecko (`xpr-network`).
+- **XPR on other chains (read on those chains 10-15).** XPR also exists as an ERC-20 token on Ethereum (`0xd7efb00d12c2c13131fd319336fdf952525da2af`) and a BEP-20 token on BNB Chain (`0x5de3939b2f811a61d830e6f52d13b066881412ab`). These are the contracts the help article links for Uniswap and PancakeSwap. Both contracts report name "Proton", symbol XPR, 4 decimals and a total supply of 10,000,000,000. They are tokens on other chains, not native XPR.
+- **Moving XPR to a WebAuth wallet.** The withdrawal address is your WebAuth username without the "@", and there are no gas fees (help article, updated 2026-06-08: https://help.xprnetwork.org/hc/en-us/articles/4410313664407-How-do-I-withdraw-XPR-to-my-WebAuth-Wallet-from-an-exchange-over-XPR-Network). A WebAuth address is an @name, not a 0x address, so the withdrawal has to go out on XPR Network itself, not as the Ethereum or BNB Chain token.
+- **Wallets.**
+  - **WebAuth** (§1) is the official wallet for XPR Network and Metal Blockchain. It is non-custodial: keys stay on your device, and Metal's support cannot recover a lost key (help article, updated 2025-10-12). The browser wallet can sign with Face/Touch ID, a YubiKey or Google Titan key, or an Ethereum wallet (help article, updated 2025-01-31).
+  - **Anchor** (Greymass) lists Proton, XPR's chain ID `384da888…f437e0`, as a supported network on desktop and mobile (Greymass support page, modified 2021-12-02). The XPR explorer's own docs have an Anchor login guide.
+  - **Explorer docs:** https://docs.bloks.io documents explorer.xprnetwork.org, including transfers, staking and login guides for WebAuth, Anchor, Ledger, Trezor, cleos and several older EOS-era wallets. Whether each older wallet is still maintained: UNCLEAR.
+  - **Trezor, KeepKey and OneKey** pages mention XPR but don't make clear whether they mean native XPR or the Ethereum/BNB token: UNCLEAR. Confirm the network before sending.
+- **Bridges.** The Metal X Bridge (§1) brings outside coins onto XPR as X-tokens, with an identity check. Alcor's bridge indexer appeared on GitHub on 2026-10-15 (§12, CODE only).
+
 ## 3. Social and community platforms
 
 | Name | What it is | Link | Run by (as stated) | Status |

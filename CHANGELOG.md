@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 2):** New §2b "Getting XPR": where XPR trades (official help-center list, dated 2025-04-05 and flagged as old), the Ethereum and BNB Chain XPR contracts (read on those chains: "Proton", XPR, 4 decimals, 10B supply), how withdrawals to WebAuth work (@name, XPR Network only), wallets (WebAuth, Anchor, explorer docs; Trezor/KeepKey/OneKey UNCLEAR) and bridges.
 - **2026-10-16 (early):** §6 NFTs: added Aetherian Farm / Aetherian Seedrealm, read on CYPHR.Market and on chain (`atomicassets` collections, `agentcore` agents). The game world its agent describes has no site yet, so it is marked UNCLEAR.
 - **2026-10-15 (night, part 10):** Server 1.2.1, two `xpr_table` fixes (builder's yes).
   1. **Numeric bounds.** A number made only of digits 1-5 (token IDs such as 5, 14, 15, 115) was re-encoded as an account name, so the read came back empty. Measured: `simplelaunch` curves 14 and 15. Bounds now follow the XPR dev skill's rule (`rpc-queries.md`): numbers stay numbers, and an all-digit account name gets a trailing "." only when `key_type` is "name".
