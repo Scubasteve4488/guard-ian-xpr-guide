@@ -8,6 +8,7 @@ Every change to the guide is dated here. Nothing is deleted. Outdated items are 
   3. **Fetch list tightened** (review M5): auto-allowed links now come only from llms.txt, ECOSYSTEM.md, SOURCES.md and KSTO.md, not CHANGELOG, README or RULES. GitHub section words such as advisories or orgs no longer count as owners.
   - llms.txt: the simpledex.md link now warns that the module still says 60 s and has no graduation cooldown, and points to llms-launches.txt and the live tables.
 
+- **2026-10-16 (night): server 1.4.1.** `xpr_producers` now says on its own that "active" has two meanings: the 21 in the schedule, and the larger number marked `is_active`. Grok went straight to the tool in a re-test and gave only the 21. The guide note alone didn't reach it.
 - **2026-10-16 (night): server 1.4.0, privacy and dates (builder's rulings, 2026-10-15 20:24 CT, with IAN-CODE's review)**
   - **Wallet names stay private.** Every tool result now passes through a privacy filter (`server/src/privacy.ts`). It hides:
     - private people's accounts the AI comes across: a "Creator:" line on a community page, and creator/buyer/seller/holder fields in SimpleDEX data;

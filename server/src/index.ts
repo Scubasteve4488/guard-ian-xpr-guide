@@ -244,14 +244,14 @@ function createServer(env: Env, ctx?: ExecutionContext) {
 		'xpr_producers',
 		{
 			title: 'XPR Network: active block producers',
-			description: 'The live active block-producer schedule (who is producing blocks right now).',
+			description: 'The live block-producing schedule: the 21 producers making blocks right now. "Active producers" can also mean every registered producer marked is_active (a larger number), so give both.',
 			inputSchema: z.object({}),
 			annotations: { title: 'Block producers', ...RO },
 		},
 		async () => {
 			try {
 				const r = await producers(ctx);
-				return ok(r.data, r.source, r.readAt);
+				return ok(r.data, r.source, r.readAt, 'This is the producing schedule (21 at any moment). Registered producers marked is_active=1 are a larger set (37 of 104 on 2026-10-15, per ECOSYSTEM.md). When asked how many are active, give both numbers, and read the is_active count live with xpr_table (code "eosio", table "producers", paging until more is false) or say it is the 10-15 figure.');
 			} catch (e) {
 				return fail(e, 'Try again shortly.');
 			}
