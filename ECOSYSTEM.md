@@ -249,27 +249,27 @@ Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN c
 | `brotonbp` | https://mainnet.brotonbp.com | XPR Whales Alert (Telegram) |
 | `cafe` | https://metallicus.com/cafe | Metallicus's own producer |
 | `catsvote` | https://cats.vote | site returned error 525 on 10-15 |
-| `cerebroai` | https://cerebro.host |  |
+| `cerebroai` | https://cerebro.host | Site not readable in the browser used for this check (10-15) |
 | `chaininfra` | https://www.chaininfra.net | ChainInfra Arcade, vote tool |
 | `cindronet` | https://cindro.net | also a Metal Blockchain validator (its site, 10-15) |
-| `cryptolions` | https://cryptolions.io | Consortium member |
+| `cryptolions` | https://cryptolions.io | Consortium member. A Web3 development studio that runs Jungle, the Vaulta (EOS) testnet (its site, 10-15). Serves an XPR API node (proton.cryptolions.io, listed in the XPR dev skill's endpoint table) |
 | `danemarkbp` | https://danemarkbp.com |  |
 | `energybp` | https://metalxpr.com/energybp | MetalXPR (Kryptallon) clean-energy tokens |
-| `eosamsterdam` | https://proton.eosamsterdam.net | Consortium member |
+| `eosamsterdam` | https://proton.eosamsterdam.net | Consortium member. Site not readable in the browser used for this check (10-15) |
 | `eosarabianet` | https://eosarabia.net |  |
 | `eosiodetroit` | https://detroitledger.tech |  |
-| `eosrio` | https://eosrio.io/proton/ |  |
-| `eosusa` | https://eosusa.io/bp/proton/ | public API + Hyperion endpoint |
+| `eosrio` | https://eosrio.io/proton/ | Independent producer in Rio de Janeiro. Its menu links Hyperion's GitHub and its SimplEOS wallet, and EOSUSA's site credits EOS Rio with developing the Hyperion history tool (both read 10-15). Its XPR page returned 403 on 10-15 |
+| `eosusa` | https://eosusa.io/bp/proton/ | Public API + Hyperion endpoint. Its site (read 10-15) also lists DelphiOracle price feeds, chain backups/snapshots and IPFS services on the chains it serves |
 | `genereos` | https://genereos.io | Consortium member; its site now brands as Genpool (multi-network staking) |
 | `homebloksbp` | https://homebloksbp.com | BlastPad, Vibrr, XPredicting |
-| `ledgerwiseio` | https://ledgerwise.io/proton |  |
+| `ledgerwiseio` | https://ledgerwise.io/proton | Site not readable in the browser used for this check (10-15) |
 | `luminaryvisn` | https://luminaryvisn.com | Hyperion endpoint |
 | `madblocks` | https://madblocks.tech | games, Pulse BP tool |
 | `protonind` | https://proton.blocksindia.com | Blocks India: XPR Casino, XPR Radar |
 | `protonmadrid` | https://eosiomadrid.io/proton | public API endpoint |
 | `protonnz` | https://protonnz.com | SimpleDEX, XPR Agents, Shellbook and more; Consortium member |
 | `protonuk` | https://protonuk.io | ProtonLive |
-| `rockeronebp` | https://bp.rockerone.io |  |
+| `rockeronebp` | https://bp.rockerone.io | Runs the registered agent `rockerclaw` (XPR Agents registry, endpoint rockerone.io, chain read 10-15). Site not readable in the browser used for this check |
 | `saltant` | https://proton.saltant.io | public API, snapshots |
 | `snipverse` | https://snipverse.io | Snipverse |
 | `storexbp` | https://storex.io | Storex shop |
