@@ -39,6 +39,11 @@ async function isProtectedByHash(word: string): Promise<boolean> {
 	return yes;
 }
 
+/** Emergency off switch: true when the DISABLED_TOOLS list names this tool, or holds "*". */
+export function toolDisabled(name: string, disabled: Set<string>): boolean {
+	return disabled.has('*') || disabled.has(name.toLowerCase());
+}
+
 export function parsePrivateList(raw?: string): Set<string> {
 	return new Set((raw ?? '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean));
 }

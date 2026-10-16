@@ -13,8 +13,9 @@ import { tokenCheck } from './tokens.ts';
 import { helpSearch, helpArticle } from './help.ts';
 import { actions as historyActions, transaction as historyTx, abi as contractAbi, block as historyBlock, explorerAccount, isFilter, isIsoTime } from './history.ts';
 import { UpstreamError, setUpstreamLimiters, type Limiter } from './net.ts';
-import { maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList } from './privacy.ts';
+import { maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled } from './privacy.ts';
 import { cleanSuggestion, storeSuggestion, DAILY_CAP, type D1Like } from './suggest.ts';
+import { registerMoreTools } from './more.ts';
 
 interface Env {
 	GUIDE_REPO: string;
@@ -24,11 +25,12 @@ interface Env {
 	CHAIN_LIMITER?: Limiter; // shared: all XPR RPC + Hyperion reads together
 	HOST_LIMITER?: Limiter; // shared: per target host for every other site
 	PRIVATE_ACCOUNTS?: string; // Worker secret, optional: extra comma-separated account names to hide (privacy.ts)
+	DISABLED_TOOLS?: string; // Worker SECRET (secrets survive deploys), optional: emergency off switch, comma-separated tool names or "*" for all
 	SUGGESTIONS?: D1Like; // D1 "guard-ian-suggestions": the private suggestion box (suggest.ts)
 	SUGGEST_LIMITER?: Limiter; // per caller IP, for suggest_update only
 }
 
-const VERSION = '1.8.2';
+const VERSION = '1.10.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:
@@ -70,9 +72,16 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	// Privacy (privacy.ts): every tool's output passes through the wallet-name filter, and a private key in a tool call
 	// is refused before anything runs. Wrapped here once so no tool can skip it.
 	const extraPrivate = parsePrivateList(env.PRIVATE_ACCOUNTS);
+	// Emergency off switch (researcher review 2026-10-16): a tool named in the DISABLED_TOOLS secret is not offered at all;
+	// "*" switches every tool off. Set it in Cloudflare → the Worker → Settings → Variables and Secrets, type Secret
+	// (a plain variable would be wiped by the next deploy; secrets never are, per developers.cloudflare.com
+	// /workers/wrangler/commands/workers/ "Note that secrets are never deleted by deployments").
+	const disabled = parsePrivateList(env.DISABLED_TOOLS);
 	const register = server.registerTool.bind(server) as (name: string, config: unknown, handler: (...a: any[]) => any) => unknown;
 	(server as unknown as { registerTool: typeof register }).registerTool = (name, config, handler) =>
-		register(name, config, async (...a: any[]) => {
+		toolDisabled(name, disabled)
+			? undefined
+			: register(name, config, async (...a: any[]) => {
 			if (containsPrivateKey(a[0]))
 				return badInput('That looks like a private key. Never share a private key or recovery phrase with anyone, including an AI. Treat it as exposed and move your funds to a new wallet now.');
 			return maskResult(await handler(...a), exemptionsFrom(a[0]), extraPrivate);
@@ -443,6 +452,9 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		},
 	);
 
+	// Items 5-8 (1.10.0): Metal Blockchain, governance, testnet, DogecoinVM. All read-only; through the same privacy wrapper.
+	registerMoreTools((n, c, h) => (server as any).registerTool(n, c, h), ctx);
+
 	// The one tool that writes: a private suggestion box (suggest.ts). Never read back to users; nothing about the sender
 	// is stored; the daily job checks each suggestion at an official source before anything reaches the guide.
 	const ISSUES = 'https://github.com/Scubasteve4488/guard-ian-xpr-guide/issues';
@@ -485,7 +497,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 
 const LANDING = `GUARD.IAN XPR Guide — MCP server (read-only, plus a private suggestion box)
 Connector URL: <this host>/mcp   (add it as a custom connector in Claude, ChatGPT, Grok or any MCP app; no sign-in)
-Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, suggest_update
+Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, suggest_update
 Read-only for the chain and the guide: no AI model, no keys, no transactions. The one write is suggest_update, a private suggestion box that is checked before anything is added. Community-built; not affiliated with Metallicus or XPR Network.
 Code and content: https://github.com/Scubasteve4488/guard-ian-xpr-guide
 `;

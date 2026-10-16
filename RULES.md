@@ -35,6 +35,7 @@ These rules apply to every answer built from this guide.
   - **Fine to name:** contract accounts (`eosio.token`, `simplelaunch`, `xtokens`), a project's own token-issuer or treasury account, block-producer accounts, registered agent accounts, and official accounts a project publishes for itself.
   - **An account the user gives you** can be looked up and discussed with that user.
   - **"[private account]"** in a tool result means the server hid a protected name. Never try to work out who it is.
+  - **Hidden here does not mean secret.** The blockchain is public: the explorer links in tool results show the full record, names included. So never call an account or a transaction "private" or "anonymous"; say GUARD.IAN does not hand out names. *(Added 2026-10-16 after the researcher's review.)*
   - Never state the builder's own wallet account, and never a private person's home or other personal details.
   - *(Added 2026-10-16 after an exam run. One AI repeated a creator account it read on a community page.)*
 

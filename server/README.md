@@ -2,7 +2,7 @@
 
 A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.8.2 as of 2026-10-16).
 
-**Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which a person checks before anything is added.
+**Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which the daily job checks at an official source or the live chain before anything is added.
 
 **What it is not:**
 - **No AI model inside.** Your own Claude, ChatGPT or Grok writes the answers.
@@ -29,6 +29,10 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | `xpr_transaction` | Every action in one transaction, inline actions included |
 | `xpr_block` | One block: time stamp, producer, actions in order (up to 60) |
 | `xpr_abi` | A contract's live interface: actions, tables, and one action's fields in order |
+| `metal_blockchain` | Metal Blockchain (layer 0) through Metallicus's public API server: P-Chain height and METAL supply, validators (count, total stake, top by stake; reward addresses left out), every chain on Metal with its subnet and VM, staking minimums. Mainnet or Tahoe testnet |
+| `xpr_governance` | gov.xprnetwork.org from the on-chain `gov` contract (a port of the official XPR Agents governance skill's reads): communities with strategy, fee and quorum; recent proposals; one proposal with title, text and vote totals from the Gov API; global counts. Voters are not listed; authors and admins are hidden |
+| `xpr_testnet` | XPR Network TESTNET: chain status (checks the testnet chain id), one account, one table, and the SimpleDEX testnet indexer (stats, tokens, newest, pools, graduations) |
+| `dogecoinvm_status` | DogecoinVM: its published alpha limits and warnings (official repo), whether its chain is registered on Metal, and the DOGE in the bridge's multisig on the Dogecoin chain (BlockCypher). Its /api and /rpc pages are not read: its robots.txt disallows them |
 
 `source_fetch` reads long pages in parts (`find` a word, or `offset`). The history, transaction, block, ABI and account tools add an explorer.xprnetwork.org link (the explorer itself builds its pages in the browser, so the tools read the same data from Hyperion and the chain).
 
@@ -75,3 +79,6 @@ npm test          # unit tests, network stubbed
 npm run type-check
 npm run dev       # local server at http://127.0.0.1:8787/mcp
 ```
+
+## Emergency off switch
+Any tool can be switched off at once, with no code change. In the Cloudflare dashboard open the Worker `guard-ian-guide` → **Settings** → **Variables and Secrets** → **Add**, choose type **Secret**, name `DISABLED_TOOLS`, value a comma-separated list of tool names (for example `xpr_actions,xpr_table`), or `*` for every tool. Then select **Deploy**. Use the Secret type: deploys never delete secrets, but they do wipe plain variables set in the dashboard. Remove the secret to switch the tools back on.
