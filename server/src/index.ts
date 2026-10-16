@@ -34,7 +34,7 @@ interface Env {
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
 }
 
-const VERSION = '1.12.0';
+const VERSION = '1.12.1';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:
@@ -696,7 +696,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 				const msg =
 					r.status === 'duplicate'
 						? 'Already received: this exact suggestion is already waiting to be checked. Nothing new was saved.'
-						: `Received, as suggestion #${r.id}. It will be checked at an official source or the live chain, normally at the next daily check, and added to the guide only if it holds up. It is private: no one else can read it. Nothing about the sender was stored.`;
+						: `Received, as suggestion #${r.id}. It will be checked at an official source or the live chain, normally at the next daily check. If it holds up, it is added after the builder's final OK. It is private: no one else can read it. Nothing about the sender was stored.`;
 				return { content: [{ type: 'text' as const, text: msg }] };
 			} catch {
 				return badInput(`The suggestion box could not save this right now. The user can open an issue with the source link at ${ISSUES}`);

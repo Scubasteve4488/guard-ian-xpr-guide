@@ -2,7 +2,7 @@
 
 A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.12.0 as of 2026-10-16).
 
-**Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which the daily job checks at an official source or the live chain before anything is added.
+**Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which the daily job checks at an official source or the live chain, and the builder approves, before anything is added.
 
 **What it is not:**
 - **No AI model inside.** Your own Claude, ChatGPT or Grok writes the answers.
@@ -89,3 +89,9 @@ npm run dev       # local server at http://127.0.0.1:8787/mcp
 
 ## Emergency off switch
 Any tool can be switched off at once, with no code change. In the Cloudflare dashboard open the Worker `guard-ian-guide` → **Settings** → **Variables and Secrets** → **Add**, choose type **Secret**, name `DISABLED_TOOLS`, value a comma-separated list of tool names (for example `xpr_actions,xpr_table`), or `*` for every tool. Then select **Deploy**. Use the Secret type: deploys never delete secrets, but they do wipe plain variables set in the dashboard. Remove the secret to switch the tools back on.
+
+## After an update: refresh the tool list in your AI app
+AI apps save a connector's tool list when you add it, so new tools can be missing until you refresh.
+- **ChatGPT:** Settings → Plugins → GUARD.IAN XPR Guide → **Refresh tools**.
+- **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guard-ian-guide.rangelt88.workers.dev/mcp?v=1.12`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed all 27.)
+- **Claude:** new tools appear in a new chat.
