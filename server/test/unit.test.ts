@@ -342,7 +342,7 @@ globalThis.fetch = realFetch;
 	const ex = exemptionsFrom({ account: b });
 	t('privacy: an account the caller typed is not hidden', (await maskText(`{"creator":"${b}"} ${b}`, ex)).split(b).length === 3);
 	t('privacy: extra names from the secret', !(await maskText('holder list: alice1 bob2', new Set(), parsePrivateList(' Alice1 , x '))).includes('alice1'));
-	const key = 'PVT_K1_' + '2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V';
+	const key = 'PVT_K1_' + 'abcdefghijk'.repeat(5); // a made-up, low-entropy test value in a valid key shape, not a key
 	t('privacy: private key in a tool call detected', containsPrivateKey({ query: `my key ${key}` }) && !containsPrivateKey({ query: 'what is a PVT_K1 key?' }));
 	t('privacy: private key in output hidden', (await maskText(`key ${key} end`)).includes(KEY_MASK));
 	const r = await maskResult({ content: [{ type: 'text', text: `Creator: ${b}` }], isError: false }, new Set(), new Set());
@@ -376,7 +376,7 @@ globalThis.fetch = realFetch;
 	t('suggest: normal sentence not mistaken for a phrase', !looksLikeRecoveryPhrase('XPR Network makes a block every 0.5 seconds, and a block becomes irreversible after about three minutes.'));
 	const okFact = 'Metal X lists a new XPR/XMD lending market as of this week.';
 	t('suggest: phrase refused, nothing saved', !cleanSuggestion(`my words are ${phrase}`).ok);
-	t('suggest: private key refused', !cleanSuggestion('key PVT_K1_' + '2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V here please').ok);
+	t('suggest: private key refused', !cleanSuggestion(`key ${'PVT_K1_' + 'abcdefghijk'.repeat(5)} here please`).ok);
 	t('suggest: too short refused', !cleanSuggestion('xpr up').ok);
 	t('suggest: too long refused', !cleanSuggestion('a'.repeat(1501)).ok);
 	t('suggest: http (not https) link refused', !cleanSuggestion(okFact, 'http://example.com/x').ok);
