@@ -31,9 +31,9 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | Metal X Swap (formerly Proton Swap) | AMM swaps; contract `proton.swaps` | https://app.metalx.com/swap | LIVE. A Sept 2026 incident is covered in Proton NZ's post-mortem (its title says the pools were "100% restored"): https://protonnz.com/blog/proton-swaps-heist |
 | Metal X Lending / LOAN Protocol | Over-collateralised lending and borrowing; LOAN is the governance and rewards token. **Contracts: lending runs on `lending.loan` (not `lending`), L-token shares on `shares.loan`, LOAN on `loan.token`** (XPR dev skill `loan-protocol.md`; borrow limits and liquidation in §12b) | https://app.metalx.com/lending · https://metallicus.com/loan-protocol · https://xprnetwork.org/loan | LIVE |
 | Metal X Bridge | Brings outside coins (BTC, ETH, XRP, SOL and others) onto XPR as X-tokens. Identity check required (Metal X FAQ) | https://app.metalx.com/bridge | LIVE |
-| Metal Pay | Card on-ramp to buy crypto; XPR in the US, Australia and New Zealand | https://www.metalpay.com · how to buy XPR https://www.metalpay.com/how-to-buy/xpr-network · help https://help.metalpay.com/hc/en-us | LIVE |
+| Metal Pay | Card on-ramp to buy crypto; XPR in the US, Australia and New Zealand. Fees, identity check and Metal Pay Connect: §1c | https://www.metalpay.com · how to buy XPR https://www.metalpay.com/how-to-buy/xpr-network · help https://help.metalpay.com/hc/en-us | LIVE |
 | WebAuth | The official XPR Network wallet, made by Metallicus: self-custody, biometric signing, staking and voting | https://webauth.com · https://metallicus.com/individuals/webauth | LIVE |
-| Metal Dollar (XMD) | Dollar stablecoin backed by a basket of stablecoins, minted and redeemed 1:1. Metal X's quote currency. **On XPR: `XMD@xmd.token`, 6 decimals, issuer `xmd.treasury`** (developer token registry and chain, read 10-16). **On Ethereum since 2026-09-26** (official announcement): contract `0xA6707A8A00E94d1834cCdA2856C9Cf948941078d`, with USDC, PYUSD, USDP and RLUSD as its reserve assets there. Read on Ethereum 10-15: name "Metal Dollar", XMD, 6 decimals, supply 142.247121. The two official pages disagree: metaldollar.com/networks (read 10-15) still says the Ethereum contract "should be published" later, while the announcement publishes it. Both are Metallicus pages; the announcement is the newer | https://metaldollar.com · Ethereum announcement https://metaldollar.com/blog/metal-dollar-on-ethereum · Ethereum app https://eth.metaldollar.metalx.com/mint-n-redeem · networks https://metaldollar.com/networks | LIVE |
+| Metal Dollar (XMD) | Dollar stablecoin backed by a basket of stablecoins, minted and redeemed 1:1. Metal X's quote currency. **On XPR: `XMD@xmd.token`, 6 decimals, issuer `xmd.treasury`** (developer token registry and chain, read 10-16). **On Ethereum since 2026-09-26** (official announcement): contract `0xA6707A8A00E94d1834cCdA2856C9Cf948941078d`, with USDC, PYUSD, USDP and RLUSD as its reserve assets there. Read on Ethereum 10-15: name "Metal Dollar", XMD, 6 decimals, supply 142.247121. The two official pages disagree: metaldollar.com/networks (read 10-15) still says the Ethereum contract "should be published" later, while the announcement publishes it. Both are Metallicus pages; the announcement is the newer. How minting works, the live treasury and governance: §1c | https://metaldollar.com · Ethereum announcement https://metaldollar.com/blog/metal-dollar-on-ethereum · Ethereum app https://eth.metaldollar.metalx.com/mint-n-redeem · networks https://metaldollar.com/networks | LIVE |
 | Metal Blockchain | Layer 0 for institutions. Metallicus's developer page (read 10-16) lists: EVM-compatible contracts (Solidity), **sovereign subnets** with their own membership rules and token economics, **"Up to 4,500 TPS per subnet"**, and proof-of-stake validators. It is pitched for private blockchains, digital identity and on-chain records. Mainnet live since Oct 18, 2022 (newsroom) | https://metalblockchain.org · docs https://docs.metalblockchain.org · explorer https://explorer.metalblockchain.org · developer page https://metallicus.com/developers/metal-blockchain · whitepaper https://cdn.metalblockchain.org/MB%20Whitepaper-compressed.pdf | LIVE |
 | Metal L2 | Ethereum L2 on the OP Stack; MTL is moving to it as gas ("Homecoming"). Metallicus's developer page (read 10-16): EVM-equivalent and "Built on the Superchain using the OP Stack". ETH and ERC-20 bridging, with deposit and withdrawal flows. Its whitepaper says it connects Ethereum chains to TDBN (§1a) | https://metall2.com · explorer https://explorer.metall2.com · docs https://docs.metall2.com · developer page https://metallicus.com/developers/metal-l2 | LIVE |
 | PulseVM | Metallicus engine for running XPR-style contracts on Metal Blockchain. **No cutover date has been announced** | code https://github.com/MetalBlockchain/pulsevm · docs (community, by Paul Grey) https://pulsevm.dev · StandGuard summary https://standguard.net/projects/pulsevm | Code LIVE; network not live |
@@ -41,7 +41,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | XPR Network NFT Market | Gasless NFT market from the Metallicus team, priced in XUSDC | https://nft.xprnetwork.org | UNCLEAR (no listings visible) |
 | XPR Network Explorer | Accounts, tokens, block producers, voting (formerly bloks.io) | https://explorer.xprnetwork.org · testnet https://testnet.explorer.xprnetwork.org | LIVE |
 | FedNow listing | Metallicus in the Federal Reserve's FedNow explorer / Innovator Exchange | https://explore.fednow.org/explore-the-city?id=10&postId=121&vendor=metallicus-inc | LIVE |
-| Stablecoin pilot for credit unions | Metallicus's white-label stablecoin programme | https://metallicus.com/institutions/stablecoin-pilot | LIVE |
+| Stablecoin pilot for credit unions | Metallicus's programme for an institution to issue and test its own branded stablecoin (the page doesn't use the word white-label; §1c) | https://metallicus.com/institutions/stablecoin-pilot | LIVE |
 | Quarterly reports | CEO's quarterly summaries | https://metallicus.com/news · Q3 2026: https://www.metallicus.com/blog/metallicus---2026-q3-report | LIVE |
 
 ### 1a. Metallicus, the company (its own pages, read 2026-10-16)
@@ -68,7 +68,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 - **Recent official news (newsroom):** SOC 2 Type I assessment completed (Aug 18, 2026). 2026 Q2 report (Jul 6, 2026). "Full-stack digital-dollar infrastructure for banks and credit unions" (Jun 23, 2026). https://metallicus.com/news
 - **Whitepapers** (https://metallicus.com/company/whitepapers):
   - **XPR Network v2.0**, which calls it "a layer 1 delegated proof-of-stake (DPoS) blockchain": https://cdn.metallicus.com/XPR_Network_Whitepaper_v2.0.pdf
-  - **Metal DAO v1.0**: founded 2017, run by MTL holders. https://cdn.metallicus.com/Metal_DAO_Whitepaper_v1.0.pdf
+  - **Metal DAO v1.0**: founded 2017 per this page, run by MTL holders (the paper itself says MTL was founded in 2016; §1c). https://cdn.metallicus.com/Metal_DAO_Whitepaper_v1.0.pdf
   - **Metal Dollar v1.1**: basket of USDC, PYUSD and USDP, governed by the Metal DAO. https://cdn.metallicus.com/Metal_Dollar_Whitepaper_v1.1.pdf
   - **Metal L2 v1.0**: OP Stack. https://cdn.metallicus.com/Metal_L2_Whitepaper_v1.0.pdf
   - **Metal Blockchain v1.2**: layer 0. https://cdn.metallicus.com/Metal_Blockchain_Whitepaper_v1.2.pdf
@@ -112,6 +112,119 @@ Source: https://xprnetwork.org/roadmap. The page gives no dates.
 - **One bounty item:** WooKey (WebAuth for WooCommerce).
 - **"A-Chain" is on the official roadmap, with no date.** That makes this the official source for the name. For the PulseVM side, see §1 PulseVM and §12b.
 - **An older official page** (governance docs, "last updated 3 years ago") claims 4,000 transactions per second, and describes WebAuth, Metal X, lending and the original "XPR Network Market" NFT market. https://gov.docs.xprnetwork.org/xpr-network/xpr-network-and-ecosystem
+
+### 1c. Metal Dollar, Metal DAO, Metal Pay and the institution pages: the details (read 2026-10-16)
+
+**Metal Dollar (XMD): how it works**
+- **Minting is not buying.** You deposit a supported reserve asset into the Metal Dollar treasury and get XMD at a fixed 1:1 protocol rate. Redeeming returns XMD for an available reserve asset, also 1:1. Buying XMD on a market is a separate trade at the market price. Availability, account verification and network support still apply. Source: https://metaldollar.com/how-it-works (page undated).
+- **Networks:** Ethereum, XPR Network and Metal Blockchain (https://metaldollar.com, undated). The Ethereum contract is in §1.
+- **The live XPR treasury: contract `xmd.treasury`, table `tokens`, read 2026-10-16.**
+  - It holds four reserve assets. Minting and redeeming are switched on for all four, and the mint fee and the redemption fee are both 0.
+  - Each asset has a maximum share of the treasury and a `minSupply` setting:
+
+    | Reserve asset | Max share of the treasury | `minSupply` |
+    |---|---|---|
+    | `XUSDC@xtokens` (USD Coin) | 60% | 10,000,000 |
+    | `XPYUSD@xtokens` (PayPal USD) | 15% | 1,000,000 |
+    | `XPAX@xtokens` (Pax Dollar, USDP) | 15% | 1,000,000 |
+    | `MPD@mpd.token` | 2% | 100,000 |
+  - **XPAX is USDP.** It keeps USDP's old name, Paxos Standard (PAX), and is not Pax Gold, PAXG (https://metaldollar.com/reserves, undated).
+  - **What MPD is: unverified.** The Metal Dollar article of 2026-08-28 mentions "a separate MPD reserve line" and doesn't explain it. On the chain, MPD@mpd.token has a supply of 100,008 and its issuer is `mpd.token`. It is not in XPR's developer token registry.
+  - **Contract settings (table `xmdglobals`):**
+    - the contract is not paused;
+    - the fee account is `fee.metal`;
+    - `minOraclePrice` is 0.995. None of the sources read explain what this setting does.
+- **Read balances live; don't copy old figures.**
+  - Read `xmd.treasury`'s token balances and the XMD supply (`xmd.token`) live.
+  - metaldollar.com's reserve box is a "Verified preview snapshot" from block 400,002,261 on Aug 25, not a live feed.
+  - On 2026-10-16 the chain showed an XMD supply of 2,829,944.72 (live at that moment).
+- **Reserve assets Metal DAO has voted on** (https://metaldollar.com/governance, undated):
+  - A yes vote only approves the next stage. Technical work, checks and readiness come before an asset goes live.
+  - **Live:** PYUSD (proposal #138, Aug 2023).
+  - **Addition approved, not live:** RLUSD (#221, Dec 2024) and GUSD (#286, Nov 2025).
+  - **Evaluation approved, not live** (proposals #321 to #327, Jun to Aug 2026):
+    - MoneyGram's MGUSD
+    - SoFi Bank's SOFID
+    - Fidelity Digital Assets' FIDD
+    - Open Standard's OUSD
+    - Fiserv's FIUSD
+    - Western Union / Anchorage Digital's USDPT
+  - On XPR, RLUSD is not in the live treasury (chain, 10-16). The Ethereum announcement does name RLUSD as a reserve asset on Ethereum (§1).
+- **Older documents name a different basket and rules.** Newest first; the chain wins:
+  1. **Live chain and metaldollar.com (2026):** USDC, PYUSD and USDP, plus the MPD line on the chain.
+  2. **Metal Dollar whitepaper v1.1 (undated):**
+     - Its abstract names USDC, PYUSD and PAX, but its sections 3.1 and 4.1 name USDC, TUSD and PAX.
+     - It says a proposal needs a 40% quorum.
+     - It describes no reserve attestation or audit, and no plan if a basket stablecoin loses its peg.
+     - Link: https://cdn.metallicus.com/Metal_Dollar_Whitepaper_v1.1.pdf
+  3. **Metal DAO whitepaper v1.0 (undated):** it names "USDC, TUSD, PAX, and USDT" as examples of basket stablecoins, and gives a 3% quorum. https://cdn.metallicus.com/Metal_DAO_Whitepaper_v1.0.pdf
+
+**Metal DAO**
+- **What it is:** MTL holders decide on Metal Dollar. On XPR the token is `XMT@xtokens` (§8). Votes happen at https://gov.xprnetwork.org (community 4). The Metal DAO whitepaper says there is no governance on Ethereum.
+- **Live rules, from the chain** (`gov` contract, table `communities`, row 4 "Metal DAO", read 2026-10-16):
+  - voting strategy `xmt-balances`: one XMT is one vote;
+  - publishing a proposal costs 100 XMT;
+  - quorum 300, meaning 3%. The server's governance tool reads this field as hundredths of a percent, per the official XPR Agents governance skill.
+- **The governance docs agree with the chain:** 100 XMT a proposal, 3% quorum (changeable by vote), one XMT one vote. Source: https://gov.docs.xprnetwork.org/communities/metal-dao (last updated about a year ago).
+- **What a proposal can change** (same docs):
+  - add or remove basket stablecoins (Metallicus runs a compliance review on each new one);
+  - the minimum supply per stablecoin;
+  - a swap fee (none today);
+  - the 50,000 XMT admission fee, which goes to the `xprtreasury` account.
+  - Changes to the smart contract itself are out of scope.
+- **From the Metal DAO whitepaper v1.0 (undated):**
+  - **Supply:** MTL's maximum is 66,588,888, "hard-capped" and fully handed out.
+  - **History:**
+    - Metal Pay launched in 2018 and paid MTL rewards ("Proof-of-Processed-Payments"); that ended in September 2021.
+    - The XPR token became XMT in 2020.
+    - Metal Dollar launched on XPR in July 2022.
+    - The governance platform launched in June 2023.
+  - **Founding date, two Metallicus sources disagree:** the whitepaper says MTL was founded in 2016. The whitepapers page (https://metallicus.com/company/whitepapers, undated) says Metal DAO was "Founded in 2017".
+
+**Metal Pay and Metal Pay Connect** (official help center: https://help.xprnetwork.org/hc/en-us/sections/33629400773143-Metal-Pay-Connect)
+- **What Connect is:** a one-step card on-ramp. You buy crypto by card and receive it straight to an XPR Network @name.
+  - Signing up through Connect also creates a Metal Pay account (article dated 2025-07-22).
+  - Metal L2's docs call it a "plug & play" fiat on-ramp connected to TDBN (§1a): https://docs.metall2.com/builders/metal-pay-connect. Its developer docs are at connect-docs.metalpay.com (not opened here).
+- **Where it works:** the United States and its territories, Australia and New Zealand (article updated 2025-07-22).
+- **Fees** (help articles dated 2025-07-22; check the app for today's fees):
+  - **Trading fee:** 2% to buy or sell most coins. The article gives these rates for buying (it doesn't say what selling them costs):
+    - BTC: 0.5%
+    - MTL, XPR, LOAN and METAL: 0.5%
+    - USDC: 0%
+    - LTC, HBAR, XLM and XRP: 3%
+  - **Holding MTL lowers the trading fee:** 2,000 MTL gives 25% off, 4,000 gives 50% off, and 10,000 means no trading fee. The Metal DAO whitepaper gives the same tiers.
+  - **Card processing, charged on top:**
+    - United States: debit 2.5%, credit 3.5%.
+    - Everywhere else: 4.5% on both.
+- **Identity check** (article dated 2025-07-22). You give:
+  - card details and a billing address;
+  - your legal name and a phone number that gets a text code;
+  - your Social Security Number;
+  - a photo of a government ID or passport;
+  - a live selfie;
+  - then six questions.
+- **Not allowed:** VOIP phone numbers, VPNs or proxies, more than one account, prepaid debit cards, and handing an account to someone else. Only US customers can link a VISA card.
+- **One name, two products.** The help center's "Metal Pay Connect" is this consumer on-ramp. Metallicus's institutions page uses the same name for payment routing between banks' existing rails and blockchains (https://metallicus.com/institutions/metal-pay-connect, undated).
+
+**The institution pages** (metallicus.com, all undated, read 2026-10-16)
+- **Banks and credit unions** get the same offer:
+  - **Five parts:**
+    - Metal Pay Enterprise, a white-label API;
+    - Metal Blockchain;
+    - the Stablecoin Pilot;
+    - optional wallet and identity layers;
+    - optional trading and lending.
+  - **Five rollout stages**, from a discovery session to go-live.
+  - **What's missing:** no prices and no customer results. Compliance is mentioned only in general words; no regulator, licence or audit is named on these pages. The SOC 2 Type I news is in §1a.
+  - Pages: https://metallicus.com/institutions/banks · https://metallicus.com/institutions/credit-unions
+- **Credit unions whose logos are shown** (logos only, no case details):
+  - **Institutions page:** Fairwinds, OneAZ, Excite, GreenState, Directions, TDECU, Vibrant, Cornerstone, MDDC and the GoWest Credit Union Association. https://metallicus.com/institutions
+  - **Innovation Program and Stablecoin Pilot pages:** Sound, One Nevada, Gesa, Bay Federal, Desert Financial, Cornerstone, CrossState, MDDC and GoWest.
+- **Innovation Program:** education, a sandbox and use-case work on payments, identity, stablecoins and AI. No cost is stated. https://metallicus.com/institutions/innovation-program
+- **Stablecoin Pilot:** an institution issues and tests its own branded stablecoin in a controlled setting. It covers mint and burn, payment flows and wallet connections. No chain, reserve custodian or cost is named. https://metallicus.com/institutions/stablecoin-pilot
+- **Stablecoins page:** institution-branded stablecoins, mint and burn controls, links to reserve custody providers (none named) and public, private or hybrid networks. https://metallicus.com/institutions/stablecoins
+- **FedNow Integration:** real-time payments through a direct FedNow connection. The page names no certification. The newsroom separately lists a FedNow Request for Payment certification (Feb 27, 2026; §1a), and Metallicus is in the Federal Reserve's FedNow explorer (§1). https://metallicus.com/institutions/fednow
+- **Metal Identity:** identity for users, systems and AI agents. This page doesn't mention MemberPass. https://metallicus.com/institutions/metal-identity
 
 ## 2. DEXs, launchpads and DeFi
 
@@ -332,7 +445,7 @@ There is no official XPRNetwork token-list repo (checked 10-15).
 | XPR Network Consortium | Six-member steering body. Metallicus (permanent), Crypto Lions, Alvosec, Proton NZ, EOS Amsterdam, GenerEOS; two-year terms | https://xprnetwork.org/blog/the-xpr-network-consortium |
 | Governance portal | Gasless proposals and votes. Communities: XPR Network, Metal X, LOAN Protocol, XPR Grants, Metal DAO | https://gov.xprnetwork.org · docs https://gov.docs.xprnetwork.org |
 | XPR Grants | Paid from the `xprgrants` account. Individuals up to $1,000 (open source $2,500), small teams and companies more. Per milestone, Consortium-verified, community vote | https://github.com/XPRNetwork/grant-framework |
-| Metal DAO | XMT holders vote on the XMD basket | https://gov.docs.xprnetwork.org/communities/metal-dao |
+| Metal DAO | XMT holders vote on the XMD basket. Live rules (3% quorum, 100 XMT a proposal) and the assets voted on: §1c | https://gov.docs.xprnetwork.org/communities/metal-dao |
 | Block producers | Elected by stakers; 21 in the active schedule. Read the live list with `get_producer_schedule`; names change | https://explorer.xprnetwork.org |
 | Staking | Stake and vote in WebAuth; long staking on the explorer | https://xprnetwork.org/blog/xpr-network-staking-guide |
 | Bounties | Open developer bounties | https://github.com/XPRNetwork/bounties |
