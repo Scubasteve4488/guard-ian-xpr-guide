@@ -436,10 +436,13 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 	t('rows: a public account (contract/agent) stays visible', pub.rows[0].owner === 'somecontract' && pub.rows[0].voter === PRIVATE && pub.hidden === 1);
 	const many = Array.from({ length: 9 }, (_, i) => ({ account: `person${'abcdefghi'[i]}` }));
 	let calls = 0;
-	const capped = await maskRows(many, 'blocklist', 'blocklist', makeKeep(['blocklist']), async () => (calls++, true));
+	const capped = await maskRows(many, 'somecode', 'voters', makeKeep(['somecode']), async () => (calls++, true));
 	t('rows: check budget capped, the rest hidden unchecked', calls === TABLE_PUBLIC_CHECKS && capped.hidden === 9 - TABLE_PUBLIC_CHECKS && capped.rows.filter((r: any) => r.account === PRIVATE).length === 9 - TABLE_PUBLIC_CHECKS);
 	const failing = await maskRows([{ account: 'someone1' }], 'c', 't', makeKeep(['c']), async () => { throw new Error('rpc down'); });
 	t('rows: a failed check counts as private', failing.rows[0].account === PRIVATE);
+	let blChecks = 0;
+	const bl = await maskRows([{ account_name: 'somecontract' }, { account_name: 'aperson' }], 'blocklist', 'blocklist', makeKeep(['blocklist']), async () => (blChecks++, true));
+	t('rows: blocklist names always hidden, no checks', blChecks === 0 && bl.rows.every((r: any) => r.account_name === PRIVATE) && bl.hidden === 2);
 	const prods = await maskRows([{ owner: 'standbybp1', is_active: 1, url: 'https://x' }], 'eosio', 'producers', makeKeep(['eosio']), async () => false);
 	t('rows: eosio producers table keeps producer names', prods.rows[0].owner === 'standbybp1' && prods.hidden === 0);
 	const agents = await maskRows([{ account: 'someagent', owner: 'agentowner1' }], 'agentcore', 'agents', makeKeep(['agentcore']), async () => false);

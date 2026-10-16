@@ -78,6 +78,9 @@ export function personNames(v: any, out: Set<string> = new Set(), depth = 0, per
 
 // Tables whose rows ARE public entities by their nature: the registered block producers and the registered agents.
 const PUBLIC_ROW_FIELDS: Record<string, string> = { 'eosio/producers': 'owner', 'agentcore/agents': 'account' };
+// Tables whose names are never shown, whatever the account is (RULES: accounts on a blocklist stay private; naming one
+// would read as a label). Live check 2026-10-16: one listed account passed the contract check and was shown.
+const ALWAYS_PRIVATE_TABLES = new Set(['blocklist/blocklist']);
 /** How many unknown names one table read may check on chain before the rest are hidden unchecked (rate budget). */
 export const TABLE_PUBLIC_CHECKS = 5;
 
@@ -98,6 +101,7 @@ export async function maskRows(
 	const field = PUBLIC_ROW_FIELDS[`${code}/${table}`];
 	if (field) for (const r of rows ?? []) if (r && typeof r[field] === 'string' && NAME.test(r[field])) keep.add(r[field]);
 	const unknown = [...personNames(rows)].filter((n) => !keep.has(n)).sort();
+	if (ALWAYS_PRIVATE_TABLES.has(`${code}/${table}`)) max = 0;
 	for (const n of unknown.slice(0, max)) {
 		try {
 			if (await isPub(n)) keep.add(n);
