@@ -2,6 +2,9 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 9):** From exam bundle 5:
+  - **MarketPulse risk notice:** the row now carries the site's own words, read in a browser 10-16: "You may lose the XPR you stake". It also says predictions are final, draws and one-sided rounds are refunded, and rounds lock daily at 16:00 UTC.
+  - **NFT list warning:** "anyone can mint any name, check the creator" now opens the row instead of closing it. Both AIs had left it out.
 - **2026-10-16 (early, part 8):** Producer list: "active" has two meanings, and the guide now explains both. 21 accounts are in the live block-producing schedule at any moment. A larger number of registered accounts are marked `is_active=1` (37 of 104 on 10-15), and the guide says how to read that count live. Found in exam bundle 4, where Grok gave only the 21.
 - **2026-10-16 (early, part 7):** Gaps found by exam bundle 2, when both Grok and ChatGPT missed the same facts. Each fix was read at its source today:
   - **KSTO's name:** "Kulture Speaks Truth Onchain", from its FAQ (KSTO.md and the §14 row).
