@@ -187,7 +187,8 @@ export const DOGEVM = {
 	// The chain ID, VM ID, bridge address and limits are read live from the official repo's docs (raw GitHub, cached
 	// a day), not typed in here: a typed-in copy goes stale, and the docs' example chain ID turned out not to be the
 	// only DogecoinVM chain on Metal (live read 2026-10-16).
-	raw: 'https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main',
+	// The repo's default branch is `dogecoin`, not `main` (checked 2026-10-16); HEAD follows whatever it is.
+	raw: 'https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/HEAD',
 	warning: 'README @ cfb9dad (2026-10-13): the code has not been audited, the chain has one validator, and one operator holds every peg signer key. Keep amounts small.',
 };
 
@@ -196,27 +197,31 @@ const B58 = /^[1-9A-HJ-NP-Za-km-z]+$/;
  *  VM ID sentence in README.md. Returns null fields when a doc is unreadable or its shape changed. */
 export async function dogevmDocs(ctx?: ExecutionContext) {
 	const get = (path: string) => politeFetch([DOGEVM.raw], path, { method: 'GET' }, { ttlSec: 86400, ctx, startAt: 0 });
-	const out: any = { info: null, vmID: null, sources: [] as string[] };
+	const out: any = { info: null, vmID: null, sources: [] as string[], problems: [] as string[] };
 	try {
 		const api = await get('/docs/API.md');
-		if (api.status === 200) {
+		if (api.status !== 200) out.problems.push(`docs/API.md answered HTTP ${api.status}`);
+		else {
 			out.sources.push(api.source);
 			const sec = api.text.split('### `GET /api/info`')[1] ?? '';
 			const m = sec.match(/```json\s*([\s\S]*?)```/);
 			if (m) out.info = JSON.parse(m[1]);
 		}
-	} catch {
+	} catch (e) {
 		out.info = null;
+		out.problems.push(`docs/API.md: ${e instanceof UpstreamError ? e.message : 'not parseable'}`);
 	}
 	try {
 		const rd = await get('/README.md');
-		if (rd.status === 200) {
+		if (rd.status !== 200) out.problems.push(`README.md answered HTTP ${rd.status}`);
+		else {
 			out.sources.push(rd.source);
 			const v = rd.text.match(/VM ID is `([^`]{30,70})`/);
 			if (v && B58.test(v[1])) out.vmID = v[1];
 		}
-	} catch {
+	} catch (e) {
 		out.vmID = null;
+		out.problems.push(`README.md: ${e instanceof UpstreamError ? e.message : 'error'}`);
 	}
 	const peg = out.info?.pegAddress;
 	out.pegAddress = typeof peg === 'string' && /^[A9D]/.test(peg) && B58.test(peg) && peg.length >= 26 && peg.length <= 35 ? peg : null;
@@ -506,7 +511,7 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 				repo: DOGEVM.repo,
 			};
 			const sources: string[] = [...docs.sources];
-			const notes: string[] = [];
+			const notes: string[] = docs.problems.length ? [`Official docs: ${docs.problems.join('; ')}.`] : [];
 			let readAt = new Date().toISOString();
 			try {
 				// Every chain on Metal mainnet that runs the DogecoinVM VM (the 2026-10-16 live read found three: two named

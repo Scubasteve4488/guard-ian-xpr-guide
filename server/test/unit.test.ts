@@ -448,8 +448,8 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 	stub((url, init) => {
 		seen.push(url);
 		if (url.endsWith('/robots.txt')) return new Response('not found', { status: 404 });
-		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main/docs/API.md')) return new Response(API_MD, { status: 200 });
-		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main/README.md')) return new Response(README_MD, { status: 200 });
+		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/HEAD/docs/API.md')) return new Response(API_MD, { status: 200 });
+		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/HEAD/README.md')) return new Response(README_MD, { status: 200 });
 		const body = init?.body ? JSON.parse(init.body) : {};
 		if (url.includes('metalblockchain.org')) {
 			const m = body.method;
