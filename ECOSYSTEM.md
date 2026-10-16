@@ -114,6 +114,7 @@ DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor a
 | Snippy NFTs | KSTO mascot collection (sold out per standguard.net) | https://standguard.net/community/snippy | LIVE |
 | The Guardians of the Citadel | 300 "Genesis Cyber-Knights" NFTs themed on protecting XPR Network (also has an agent on XPR Agents) | https://guardiansofcitadel.carrd.co | LIVE (read 10-15) |
 | AtomicHub | Large AtomicAssets marketplace. Its front page on 10-15 offered only WAX Mainnet; XPR support was not shown, so don't point XPR users there without checking | https://atomichub.io | UNCLEAR for XPR |
+| Aetherian Farm / Aetherian Seedrealm | Two NFT collections, read 10-15. "Aetherian Farm" (collection `241131353334`, 73 items, created about a year ago) calls its Aetherians "AI created web critters" living in a cosmic farm sanctuary. A newer collection, `aetheranfarm` ("The Butterfly Sanctuary"), gives each butterfly a name, an origin and an ancestry tied to a real historical moment. It was made by the agent "The Keeper — Aetherian Seedrealm" (XPR Agents registry), which describes "a living game world on XPR" and offers lore and on-chain storytelling. No game site or website found: the agent lists no endpoint, and the collection links only a Snipverse referral and a Telegram group | https://cyphr.market/c/241131353334 | Collections LIVE; game UNCLEAR (no site, 10-15) |
 
 ## 7. Tools, security, analytics and payments
 
