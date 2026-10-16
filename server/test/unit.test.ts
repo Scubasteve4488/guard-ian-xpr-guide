@@ -9,6 +9,8 @@ import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, MASK, KEY_MASK } from '../src/privacy.ts';
+import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
+import { DatabaseSync } from 'node:sqlite';
 
 let pass = 0,
 	failN = 0;
@@ -345,6 +347,56 @@ globalThis.fetch = realFetch;
 	t('privacy: private key in output hidden', (await maskText(`key ${key} end`)).includes(KEY_MASK));
 	const r = await maskResult({ content: [{ type: 'text', text: `Creator: ${b}` }], isError: false }, new Set(), new Set());
 	t('privacy: maskResult masks tool content', r.content![0].text === `Creator: ${MASK}` && r.isError === false);
+}
+
+// ── suggest_update (1.7.0): the private suggestion box, tested against real SQLite with the real schema.sql
+{
+	const mem = () => {
+		const d = new DatabaseSync(':memory:');
+		d.exec(readFileSync(new URL('../schema.sql', import.meta.url), 'utf8'));
+		const db: D1Like = {
+			prepare(q: string) {
+				const st = d.prepare(q);
+				let vals: any[] = [];
+				const o: any = {
+					bind: (...v: any[]) => ((vals = v), o),
+					first: async () => (st.get(...vals) as any) ?? null,
+					run: async () => {
+						const r = st.run(...vals);
+						return { meta: { changes: Number(r.changes), last_row_id: Number(r.lastInsertRowid) } };
+					},
+				};
+				return o;
+			},
+		};
+		return { d, db };
+	};
+	const phrase = 'abandon ability able about above absent absorb abstract absurd abuse access accident';
+	t('suggest: recovery-phrase shape caught', looksLikeRecoveryPhrase(phrase) && looksLikeRecoveryPhrase(phrase.toUpperCase()));
+	t('suggest: normal sentence not mistaken for a phrase', !looksLikeRecoveryPhrase('XPR Network makes a block every 0.5 seconds, and a block becomes irreversible after about three minutes.'));
+	const okFact = 'Metal X lists a new XPR/XMD lending market as of this week.';
+	t('suggest: phrase refused, nothing saved', !cleanSuggestion(`my words are ${phrase}`).ok);
+	t('suggest: private key refused', !cleanSuggestion('key PVT_K1_' + '2bfGi9rYsXQSXXTvJbDAPhHLQUojjaNLomdm3cEJ1XTzMqUt3V here please').ok);
+	t('suggest: too short refused', !cleanSuggestion('xpr up').ok);
+	t('suggest: too long refused', !cleanSuggestion('a'.repeat(1501)).ok);
+	t('suggest: http (not https) link refused', !cleanSuggestion(okFact, 'http://example.com/x').ok);
+	t('suggest: link with a password refused', !cleanSuggestion(okFact, 'https://user:pw@example.com/').ok);
+	t('suggest: link spam in the text refused', !cleanSuggestion('See https://a.example https://b.example https://c.example for the new market listing').ok);
+	const em = cleanSuggestion('Contact the team at someone@example.com about the new XMD market.', 'https://metalx.com/');
+	t('suggest: email removed before saving', em.ok && !em.fact.includes('@example.com') && em.fact.includes('[email removed]') && em.source === 'https://metalx.com/');
+	const { d, db } = mem();
+	const cols = (d.prepare('PRAGMA table_info(suggestions)').all() as any[]).map((c) => c.name).sort().join(',');
+	t('suggest: table stores nothing about the sender', cols === 'checked_at,fact,id,note,received_at,source_url,status,text_hash');
+	const now = new Date('2026-10-16T03:00:00Z');
+	const a = await storeSuggestion(db, okFact, 'https://metalx.com/', now, 2);
+	const a2 = await storeSuggestion(db, okFact.toUpperCase(), 'https://metalx.com/', now, 2);
+	const b = await storeSuggestion(db, 'Proton NZ published a new SimpleDEX llms file version today.', null, now, 2);
+	const c = await storeSuggestion(db, 'A third different fact that arrives after the daily cap is reached.', null, now, 2);
+	const e = await storeSuggestion(db, 'The same third fact arriving on the next UTC day after the cap resets.', null, new Date('2026-10-17T01:00:00Z'), 2);
+	t('suggest: stored, then duplicate stored once', a.status === 'stored' && a.id === 1 && a2.status === 'duplicate');
+	t('suggest: daily cap holds, resets next UTC day', b.status === 'stored' && c.status === 'full' && e.status === 'stored');
+	const row = d.prepare('SELECT status, source_url FROM suggestions WHERE id = 1').get() as any;
+	t('suggest: new rows wait as pending', row.status === 'pending' && row.source_url === 'https://metalx.com/');
 }
 
 console.log(`${pass} passed, ${failN} failed`);

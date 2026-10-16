@@ -5,7 +5,7 @@
 AI apps don't know the XPR / Metallicus ecosystem deeply, and they guess. This guide gives your AI an index of the official sources, so it can look facts up instead of making them up. It also gives the rules for answering: sources, dates, and "I haven't verified that" when nothing covers it.
 
 - **Free.** No sign-up.
-- **Read-only.** No wallet, no keys, it signs nothing.
+- **Read-only.** No wallet, no keys, it signs nothing. The one exception is a private suggestion box (`suggest_update`): your AI can send a fact the guide is missing, with your OK. Nothing about you is stored, no one else can read it, and it is added only after it is checked at an official source.
 - **No AI model inside.** Your own Claude, ChatGPT or Grok writes the answer.
 
 ## Connect it

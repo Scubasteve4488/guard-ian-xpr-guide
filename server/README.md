@@ -19,6 +19,7 @@ A free, **read-only** remote MCP server: the live version of the GUARD.IAN XPR G
 | `xpr_token_balances` | Every token an account holds, as symbol + contract + amount (Hyperion) |
 | `xpr_table` | Read any contract table (max 50 rows, paged), e.g. `simplelaunch` / `antisnipe` |
 | `xpr_producers` | The live active block-producer schedule |
+| `suggest_update` | The one write: a private suggestion box for a fact the guide is missing (with the user's OK). Stores only the fact and an optional https link, nothing about the sender (no IP, no account). No tool reads it back. Limits: 3 a minute per connection, 50 a day in total, duplicates stored once, recovery phrases and private keys refused. The daily job checks each one at an official source before anything is added |
 | `xpr_token_check` | "Is this the real token?" Compares symbol + contract against XPR's developer token registry, the chain, Metal X's markets, Alcor's flags and SimpleDEX. It never declares anything safe or a scam |
 
 Every answer includes its source URL and the time it was read.

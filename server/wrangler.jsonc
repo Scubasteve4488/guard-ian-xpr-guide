@@ -36,6 +36,21 @@
 			"namespace_id": "4490",
 			"simple": { "limit": 20, "period": 60 },
 		},
+		// suggest_update only (1.7.0): per caller IP, 3 suggestions a minute. The IP is used for this count only, never stored.
+		{
+			"name": "SUGGEST_LIMITER",
+			"namespace_id": "4491",
+			"simple": { "limit": 3, "period": 60 },
+		},
+	],
+	// The private suggestion box (src/suggest.ts, schema in schema.sql). Builder's ruling 2026-10-16: "build the queue".
+	// https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
+	"d1_databases": [
+		{
+			"binding": "SUGGESTIONS",
+			"database_name": "guard-ian-suggestions",
+			"database_id": "0d3b9337-d0d0-4284-afb5-e932a879ab6b",
+		},
 	],
 	"vars": {
 		"GUIDE_REPO": "Scubasteve4488/guard-ian-xpr-guide",
