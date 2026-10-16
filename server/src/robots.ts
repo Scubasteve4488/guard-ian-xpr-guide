@@ -55,7 +55,7 @@ export function isPathAllowed(rules: RobotsRule[], path: string): boolean {
 /** true = robots.txt lets us read this URL (or the site has no readable robots.txt). Cached 1 hour per host. */
 export async function robotsAllows(url: URL, ctx?: ExecutionContext): Promise<boolean> {
 	try {
-		const r = await politeFetch([`https://${url.host}/robots.txt`], '', { method: 'GET' }, { ttlSec: 3600, ctx, startAt: 0 });
+		const r = await politeFetch([`https://${url.host}/robots.txt`], '', { method: 'GET' }, { ttlSec: 3600, ctx, startAt: 0, noBanOn403: true });
 		if (r.status !== 200) return true;
 		return isPathAllowed(parseRobotsTxt(r.text), url.pathname);
 	} catch {

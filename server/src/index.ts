@@ -34,7 +34,7 @@ interface Env {
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
 }
 
-const VERSION = '1.11.0';
+const VERSION = '1.11.1';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:

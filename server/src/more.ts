@@ -64,7 +64,7 @@ async function getJson(base: string, path: string, ttlSec: number, ctx?: Executi
 	const url = new URL(`${base}${path}`);
 	if (!(await robotsAllows(url, ctx))) throw new UpstreamError(`${url.host}'s robots.txt does not allow automated reading of ${url.pathname}`);
 	const r = await politeFetch([base], path, body === undefined ? { method: 'GET' } : { method: 'POST', body: JSON.stringify(body) }, { ttlSec, ctx });
-	if (r.status !== 200) throw new UpstreamError(`${url.host} answered HTTP ${r.status}`);
+	if (r.status !== 200) throw new UpstreamError(`${url.host} answered HTTP ${r.status}${r.status >= 500 ? ' (a problem on that site\'s own side; try later)' : ''}`);
 	if (r.tooLarge) throw new UpstreamError(`${url.host} sent more than 1 MB, so the answer was not used`);
 	try {
 		return { json: JSON.parse(r.text), source: r.source, readAt: r.readAt };
@@ -120,7 +120,7 @@ export function compactValidators(list: any[], limit: number) {
 	const total = rows.reduce((s, r) => s + r._w, 0n);
 	return {
 		count: rows.length,
-		totalStakeMETAL: fromNano(total.toString()),
+		validatorsOwnStakeMETAL: fromNano(total.toString()), // delegations not included (see view "staking" for the total)
 		top: rows.slice(0, limit).map(({ _w, ...r }) => r),
 	};
 }
@@ -184,20 +184,44 @@ export const DOGEVM = {
 	repo: 'https://github.com/MetalBlockchain/dogecoin-vm',
 	commit: 'cfb9dad (2026-10-13)',
 	site: 'https://metaldoge.com',
-	chainID: '2hFCfzdMmfXBxYgvvdL7BYiJAxdejyn4AksMYUM2eM5gN7Xrjy', // docs/API.md "GET /api/info" example
-	vmID: 'mEUwHwfd8UTHf23UYkQxHvy1n1EGwWieXQnjmtzSryJRZckzu', // README.md:94
-	pegAddress: 'AAvNfukpAa4iTcRJPetxuxX8XxbC5gFqUM', // docs/API.md: the bridge's multisig on Dogecoin
-	published: {
-		status: 'Live on Metal mainnet as a capped alpha with real DOGE (README.md:13)',
-		maxDepositDOGE: '100',
-		maxCirculatingDOGE: '4200',
-		minDepositDOGE: '1',
-		minPegOutDOGE: '2',
-		signersRequired: 2,
-		depositConfirmations: '6 to 20 Dogecoin confirmations depending on amount, never fewer than 6 on mainnet',
-		warning: 'README: the code has not been audited, the chain has one validator, and one operator holds every peg signer key. Keep amounts small.',
-	},
+	// The chain ID, VM ID, bridge address and limits are read live from the official repo's docs (raw GitHub, cached
+	// a day), not typed in here: a typed-in copy goes stale, and the docs' example chain ID turned out not to be the
+	// only DogecoinVM chain on Metal (live read 2026-10-16).
+	raw: 'https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main',
+	warning: 'README @ cfb9dad (2026-10-13): the code has not been audited, the chain has one validator, and one operator holds every peg signer key. Keep amounts small.',
 };
+
+const B58 = /^[1-9A-HJ-NP-Za-km-z]+$/;
+/** Read DogecoinVM's published parameters from its official docs: the "GET /api/info" example in docs/API.md and the
+ *  VM ID sentence in README.md. Returns null fields when a doc is unreadable or its shape changed. */
+export async function dogevmDocs(ctx?: ExecutionContext) {
+	const get = (path: string) => politeFetch([DOGEVM.raw], path, { method: 'GET' }, { ttlSec: 86400, ctx, startAt: 0 });
+	const out: any = { info: null, vmID: null, sources: [] as string[] };
+	try {
+		const api = await get('/docs/API.md');
+		if (api.status === 200) {
+			out.sources.push(api.source);
+			const sec = api.text.split('### `GET /api/info`')[1] ?? '';
+			const m = sec.match(/```json\s*([\s\S]*?)```/);
+			if (m) out.info = JSON.parse(m[1]);
+		}
+	} catch {
+		out.info = null;
+	}
+	try {
+		const rd = await get('/README.md');
+		if (rd.status === 200) {
+			out.sources.push(rd.source);
+			const v = rd.text.match(/VM ID is `([^`]{30,70})`/);
+			if (v && B58.test(v[1])) out.vmID = v[1];
+		}
+	} catch {
+		out.vmID = null;
+	}
+	const peg = out.info?.pegAddress;
+	out.pegAddress = typeof peg === 'string' && /^[A9D]/.test(peg) && B58.test(peg) && peg.length >= 26 && peg.length <= 35 ? peg : null;
+	return out;
+}
 const BLOCKCYPHER = 'https://api.blockcypher.com';
 
 export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
@@ -252,9 +276,8 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 						name: x.name,
 						subnetID: x.subnetID,
 						vmID: x.vmID,
-						...(x.vmID === DOGEVM.vmID ? { known: 'DogecoinVM (VM ID from its README)' } : {}),
 					}));
-					return ok({ network: net, count: chains.length, chains, explorer }, b.source, b.readAt, 'Live list of every blockchain registered on Metal\'s P-Chain. A chain being listed does not mean it is in use.');
+					return ok({ network: net, count: chains.length, chains, explorer }, b.source, b.readAt, 'Live list of every blockchain registered on Metal\'s P-Chain; names describe the VM (dogecoinvm, btcvm, ltcvm; "test" means a test chain). A chain being listed does not mean it is in use.');
 				}
 				const m = await metalRpc(net, '/ext/bc/P', 'platform.getMinStake', { subnetID: PRIMARY_NETWORK }, 300, ctx);
 				const t = await metalRpc(net, '/ext/bc/P', 'platform.getTotalStake', { subnetID: PRIMARY_NETWORK }, 60, ctx);
@@ -345,8 +368,8 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 								total_votes: g.json?.tokenAmount ?? null,
 								quorum_reached_percent: g.json?.quorum ?? null,
 							};
-						} catch {
-							detail = { note: 'The Gov API did not answer, so the title and vote totals are missing.' };
+						} catch (e) {
+							detail = { note: `The Gov API did not answer (${e instanceof UpstreamError ? e.message : 'error'}), so the title and vote totals are missing. Open the proposal link instead.` };
 						}
 					}
 					return ok({ ...row, ...(detail ?? {}) }, sources, r.readAt, 'Live. Votes are totals only; who voted is not listed.');
@@ -463,31 +486,56 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 			annotations: { title: 'DogecoinVM', ...RO },
 		},
 		async () => {
-			const out: any = { published: { ...DOGEVM.published, source: `${DOGEVM.repo} @ ${DOGEVM.commit} (README.md, docs/API.md)` }, chainID: DOGEVM.chainID, site: DOGEVM.site };
-			const sources: string[] = [`${DOGEVM.repo} @ ${DOGEVM.commit}`];
+			const docs = await dogevmDocs(ctx);
+			const i = docs.info ?? {};
+			const out: any = {
+				published: docs.info
+					? {
+							maxDepositDOGE: i.maxDeposit ?? null,
+							minDepositDOGE: i.minDeposit ?? null,
+							maxCirculatingDOGE: i.maxCirculating ?? null,
+							minPegOutDOGE: i.minPegOut ?? null,
+							signersRequired: i.signers?.required ?? null,
+							confirmationTiers: i.confirmationTiers ?? null,
+							bridgeVersion: i.bridgeVersion ?? null,
+							note: 'From the "GET /api/info" example in the official docs/API.md (main branch), not from the live API.',
+						}
+					: 'docs/API.md not readable right now',
+				warning: DOGEVM.warning,
+				site: DOGEVM.site,
+				repo: DOGEVM.repo,
+			};
+			const sources: string[] = [...docs.sources];
 			const notes: string[] = [];
 			let readAt = new Date().toISOString();
 			try {
-				const s = await metalRpc('mainnet', '/ext/bc/P', 'platform.getBlockchainStatus', { blockchainID: DOGEVM.chainID }, 300, ctx);
-				out.metalPChain = { status: s.result?.status ?? null, meaning: 'Registered on Metal mainnet if not "Unknown". The public API node does not validate it, so "Created" is normal.' };
-				sources.push(s.source);
-				readAt = s.readAt;
-			} catch (e) {
-				notes.push(`Metal P-Chain status not read: ${e instanceof UpstreamError ? e.message : 'error'}.`);
-			}
-			try {
-				const b = await getJson(BLOCKCYPHER, `/v1/doge/main/addrs/${DOGEVM.pegAddress}/balance`, 600, ctx);
-				out.bridgeReserveOnDogecoin = {
-					address: DOGEVM.pegAddress,
-					confirmedDOGE: fromNano(b.json?.balance, 8),
-					pendingChangeDOGE: signedDoge(b.json?.unconfirmed_balance),
-					transactions: b.json?.n_tx ?? null,
-					addressFrom: `docs/API.md @ ${DOGEVM.commit}; the bridge can move its reserve (API.md "maintenance"), so a zero here may mean it moved`,
-				};
+				// Every chain on Metal mainnet that runs the DogecoinVM VM (the 2026-10-16 live read found three: two named
+				// "dogecoinvm" and one "dogevmtest"); the docs' example chain ID is checked against them, never assumed.
+				const b = await metalRpc('mainnet', '/ext/bc/P', 'platform.getBlockchains', {}, 300, ctx);
+				const all = b.result?.blockchains ?? [];
+				const chains = all.filter((x: any) => (docs.vmID ? x.vmID === docs.vmID : /doge/i.test(String(x.name))));
+				out.chainsOnMetalMainnet = chains.map((x: any) => ({ id: x.id, name: x.name, subnetID: x.subnetID, isTheChainIdInItsDocs: !!i.chainID && x.id === i.chainID }));
+				out.chainsNote = `Every Metal chain running ${docs.vmID ? 'the DogecoinVM VM (VM ID from its README)' : 'a VM named like Dogecoin (README not readable)'}. Names containing "test" are test chains. Which one metaldoge.com uses today is published only at metaldoge.com/api/info, which is not read (robots.txt).`;
 				sources.push(b.source);
+				readAt = b.readAt;
 			} catch (e) {
-				notes.push(`Dogecoin-side balance not read: ${e instanceof UpstreamError ? e.message : 'error'}.`);
+				notes.push(`Metal P-Chain not read: ${e instanceof UpstreamError ? e.message : 'error'}.`);
 			}
+			if (docs.pegAddress) {
+				try {
+					const b = await getJson(BLOCKCYPHER, `/v1/doge/main/addrs/${docs.pegAddress}/balance`, 3600, ctx);
+					out.bridgeReserveOnDogecoin = {
+						address: docs.pegAddress,
+						confirmedDOGE: fromNano(b.json?.balance, 8),
+						pendingChangeDOGE: signedDoge(b.json?.unconfirmed_balance),
+						transactions: b.json?.n_tx ?? null,
+						addressFrom: 'pegAddress in the official docs/API.md. The README\'s own mainnet payout (Dogecoin tx 8be21486…, 2026-09-23) sent its change to this address. The bridge can move its reserve (API.md "maintenance"), so treat this as the reserve only while the docs still name it',
+					};
+					sources.push(b.source);
+				} catch (e) {
+					notes.push(`Dogecoin-side balance not read: ${e instanceof UpstreamError ? e.message : 'error'} (BlockCypher's free limit is per network address, and this server shares Cloudflare's addresses with many others, so it can be busy). Check it on any Dogecoin explorer: ${docs.pegAddress}.`);
+				}
+			} else notes.push('The bridge address could not be read from the official docs, so the Dogecoin-side balance was not checked.');
 			notes.push('Not read: DogecoinVM\'s own live circulating supply and proof-of-reserves pages (metaldoge.com/api, /rpc), because its robots.txt disallows them for automated tools.');
 			return ok(out, sources, readAt, notes.join(' '));
 		},

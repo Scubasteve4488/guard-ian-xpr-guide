@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table, scopeFor } from '../src/chain.ts';
 import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted } from '../src/sources.ts';
-import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
+import { parseRobotsTxt, isPathAllowed, robotsAllows } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
@@ -11,7 +11,7 @@ import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN } from '
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
-import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID, DOGEVM } from '../src/more.ts';
+import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
 
 let pass = 0,
@@ -429,7 +429,7 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 		],
 		5,
 	);
-	t('more: validators sorted by stake, totals right', cv.count === 2 && cv.top[0].nodeID === 'NodeID-B' && cv.totalStakeMETAL === '7000');
+	t('more: validators sorted by stake, totals right', cv.count === 2 && cv.top[0].nodeID === 'NodeID-B' && cv.validatorsOwnStakeMETAL === '7000');
 	t('more: reward-owner addresses never in validator output', !JSON.stringify(cv).includes('metal1'));
 	t('more: proposal status rules match upstream', proposalStatus({ approve: 'Approved', startTime: 0, endTime: 0 }) === 'Approved' && proposalStatus({ startTime: 9e9, endTime: 9e9 }, 100) === 'Upcoming' && proposalStatus({ startTime: 50, endTime: 200 }, 100) === 'Active' && proposalStatus({ startTime: 1, endTime: 2 }, 100) === 'Ended');
 
@@ -438,10 +438,18 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 	t('more: four tools registered', ['metal_blockchain', 'xpr_governance', 'xpr_testnet', 'dogecoinvm_status'].every((n) => typeof tools[n] === 'function'));
 	const text = (r: any) => r.content[0].text as string;
 	const seen: string[] = [];
+	// Made-up, low-entropy test values in the right shapes (not real IDs or addresses).
+	const FAKE_VM = 'mEUw' + 'abcdefghijk'.repeat(4);
+	const FAKE_CHAIN = 'chain' + 'abcdefghijk'.repeat(4);
+	const FAKE_PEG = 'A' + 'abcdefghijk'.repeat(3);
+	const API_MD = 'x\n### `GET /api/info`\n\nintro\n```json\n' + JSON.stringify({ chainID: FAKE_CHAIN, pegAddress: FAKE_PEG, maxDeposit: '100.00000000', maxCirculating: '4200.00000000', signers: { required: 2 } }) + '\n```\n';
+	const README_MD = 'Its VM ID is `' + FAKE_VM + '` (from the name `dogecoinvm`).';
 	let testnetChain = TESTNET_CHAIN_ID;
 	stub((url, init) => {
 		seen.push(url);
 		if (url.endsWith('/robots.txt')) return new Response('not found', { status: 404 });
+		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main/docs/API.md')) return new Response(API_MD, { status: 200 });
+		if (url.startsWith('https://raw.githubusercontent.com/MetalBlockchain/dogecoin-vm/main/README.md')) return new Response(README_MD, { status: 200 });
 		const body = init?.body ? JSON.parse(init.body) : {};
 		if (url.includes('metalblockchain.org')) {
 			const m = body.method;
@@ -450,7 +458,7 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 				m === 'platform.getCurrentSupply' ? { supply: '666666666000000000', height: '123456' } :
 				m === 'eth_blockNumber' ? '0x10' :
 				m === 'platform.getCurrentValidators' ? { validators: [{ nodeID: 'NodeID-X', weight: '1000000000', validationRewardOwner: { addresses: ['P-metal1secret'] } }] } :
-				m === 'platform.getBlockchains' ? { blockchains: [{ id: DOGEVM.chainID, name: 'dogecoinvm', subnetID: 'S1', vmID: DOGEVM.vmID }] } :
+				m === 'platform.getBlockchains' ? { blockchains: [{ id: FAKE_CHAIN, name: 'dogecoinvm', subnetID: 'S1', vmID: FAKE_VM }, { id: 'other', name: 'dogevmtest', subnetID: 'S2', vmID: FAKE_VM }, { id: 'c', name: 'C-Chain', subnetID: 'P', vmID: 'evm' }] } :
 				m === 'platform.getMinStake' ? { minValidatorStake: '2000000000000', minDelegatorStake: '25000000000' } :
 				m === 'platform.getTotalStake' ? { weight: '9000000000000000' } :
 				m === 'platform.getBlockchainStatus' ? { status: 'Created' } : null;
@@ -477,7 +485,7 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 	const mv = await tools.metal_blockchain({ view: 'validators' });
 	t('more: metal validators hide reward addresses', !mv.isError && text(mv).includes('NodeID-X') && !text(mv).includes('metal1secret'));
 	const mc = await tools.metal_blockchain({ view: 'chains' });
-	t('more: metal chains mark DogecoinVM', text(mc).includes('DogecoinVM (VM ID from its README)'));
+	t('more: metal chains listed by name', text(mc).includes('"name": "dogecoinvm"') && text(mc).includes('"count": 3'));
 	const mk = await tools.metal_blockchain({ view: 'staking' });
 	t('more: metal staking minimums in METAL', text(mk).includes('"minValidatorStakeMETAL": "2000"') && text(mk).includes('"minDelegatorStakeMETAL": "25"'));
 	const gc = await tools.xpr_governance({ view: 'communities' });
@@ -502,12 +510,20 @@ t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR
 	t('more: bad testnet account refused', tbad.isError === true);
 	seen.length = 0;
 	const dv = await tools.dogecoinvm_status({});
-	t('more: DogecoinVM reserve read from the Dogecoin chain', text(dv).includes('"confirmedDOGE": "4200"') && text(dv).includes('"pendingChangeDOGE": "-1"') && text(dv).includes('"status": "Created"'));
+	t('more: DogecoinVM reserve read from the Dogecoin chain', text(dv).includes('"confirmedDOGE": "4200"') && text(dv).includes('"pendingChangeDOGE": "-1"') && text(dv).includes('"isTheChainIdInItsDocs": true') && text(dv).includes('dogevmtest') && !text(dv).includes('C-Chain') && text(dv).includes('"maxCirculatingDOGE": "4200.00000000"') && text(dv).includes(FAKE_PEG));
 	t('more: DogecoinVM never touches metaldoge.com /api or /rpc', !seen.some((u) => u.startsWith('https://metaldoge.com')));
 	globalThis.fetch = realFetch;
 }
 
 t('off switch: named tool off, others on', toolDisabled('xpr_actions', parsePrivateList(' XPR_Actions , xpr_table')) && !toolDisabled('guide_search', parsePrivateList('xpr_actions')));
 t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled('guide_read', parsePrivateList('*')) && !toolDisabled('guide_read', parsePrivateList(undefined)));
+{
+	// A 403 on robots.txt alone must not shut the host out for its real API (2026-10-16, gov.api.xprnetwork.org).
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('blocked', { status: 403 }) : Response.json({ ok: 1 })));
+	const allowed = await robotsAllows(new URL('https://waf.test/api/x'));
+	const after = await politeFetch(['https://waf.test'], '/api/x', {}, { startAt: 0 });
+	t('robots 403 counts as allowed and does not ban the host', allowed === true && !hostCooling('waf.test') && after.status === 200);
+	globalThis.fetch = realFetch;
+}
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

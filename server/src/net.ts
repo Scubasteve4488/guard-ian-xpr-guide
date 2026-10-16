@@ -187,7 +187,7 @@ export async function politeFetch(
 	pool: string[],
 	path: string,
 	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
-	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean } = {},
+	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
 	const key = cacheKey(pool.join('|') + path, init.body);
@@ -229,7 +229,9 @@ export async function politeFetch(
 		}
 		if (res.status === 403) {
 			// rpc-queries.md:63 — 403 means a human banned this traffic. Stop contacting that host (whole isolate) for hours.
-			coolHost(host, BAN_COOLDOWN_MS);
+			// Except a robots.txt read (noBanOn403): some sites' firewalls answer 403 to /robots.txt alone (seen
+			// 2026-10-16 on gov.api.xprnetwork.org, whose API answers normally), and that must not shut out the API.
+			if (!opts.noBanOn403) coolHost(host, BAN_COOLDOWN_MS);
 			lastErr = `${host} returned 403`;
 			continue;
 		}
