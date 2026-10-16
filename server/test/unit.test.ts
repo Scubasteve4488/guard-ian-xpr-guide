@@ -726,8 +726,8 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('loan: market summary in plain words', ms.market === 'LBTC' && ms.underlying === 'XBTC@xtokens' && ms.borrowLimitPctOfCollateral === '70%' && ms.borrowedVariable === '14.28376020 XBTC' && ms.stableLoans === 'off');
 	t('loan: list view leaves out the raw interest model', !('variable_interest_model' in ms) && !JSON.stringify(ms).includes('kink'));
 	const ap = apySummary({ tokenSymbol: 'XBTC', days: 7, avgDepositApy: 0.0123, avgDepositLoanApy: 0.0456, avgBorrowApy: 0.05, avgBorrowLoanApy: 0.01, chartData: [{ date: 'd1', depositApy: 0.01, borrowApy: 0.04 }, { date: 'd2', depositApy: 0.02, borrowApy: 0.06 }] }, 'XBTC', 7);
-	t('loan: APY fractions become percentages', ap.averages.depositApy === '1.23%' && ap.averages.depositApyWithLoanRewards === '4.56%' && ap.averages.borrowApy === '5%');
-	t('loan: APY latest day is the last chart point', ap.latestDay?.date === 'd2' && ap.latestDay?.borrowApy === '6%');
+	t('loan: APY fractions become percentages, interest and LOAN rewards kept apart', ap.averages.depositInterestApy === '1.23%' && ap.averages.depositLoanRewardsApy === '4.56%' && ap.averages.borrowInterestApy === '5%');
+	t('loan: APY latest day is the last chart point', ap.latestDay?.date === 'd2' && ap.latestDay?.borrowInterestApy === '6%');
 	const tv = tvlSummary({ avgDepositTvl: 1000000.4, avgBorrowTvl: 250000, chartData: [] }, 'XMD', 30);
 	t('loan: TVL in whole dollars with utilisation', tv.avgDepositedUsd === 1000000 && tv.avgBorrowedUsd === 250000 && tv.utilizationPct === '25%' && tv.days === 30);
 	t('loan: TVL with nothing deposited has no utilisation (never divides by zero)', tvlSummary({}, 'X', 7).utilizationPct === null);

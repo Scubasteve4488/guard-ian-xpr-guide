@@ -82,14 +82,17 @@ export function apySummary(d: any, token: string, days: number) {
 	return {
 		token: d?.tokenSymbol || token,
 		days: d?.days || days,
+		// Four separate figures, as the API names them. Live 2026-10-16 (XMD, 7 days): avgDepositApy 13.85%,
+		// avgDepositLoanApy 1.27%, so the LOAN figure is NOT a total that includes the interest (upstream's label
+		// "deposit_with_loan" suggests it is). Reported side by side; whether to add them is not documented.
 		averages: {
-			depositApy: p(d?.avgDepositApy),
-			depositApyWithLoanRewards: p(d?.avgDepositLoanApy),
-			borrowApy: p(d?.avgBorrowApy),
+			depositInterestApy: p(d?.avgDepositApy),
+			depositLoanRewardsApy: p(d?.avgDepositLoanApy),
+			borrowInterestApy: p(d?.avgBorrowApy),
 			borrowLoanRewardsApy: p(d?.avgBorrowLoanApy),
 		},
-		latestDay: last ? { date: last.date ?? null, depositApy: p(last.depositApy), borrowApy: p(last.borrowApy) } : null,
-		daily: chart.slice(-7).map((c: any) => ({ date: c.date ?? null, depositApy: p(c.depositApy), borrowApy: p(c.borrowApy) })),
+		latestDay: last ? { date: last.date ?? null, depositInterestApy: p(last.depositApy), borrowInterestApy: p(last.borrowApy) } : null,
+		daily: chart.slice(-7).map((c: any) => ({ date: c.date ?? null, depositInterestApy: p(c.depositApy), borrowInterestApy: p(c.borrowApy) })),
 	};
 }
 
@@ -154,7 +157,7 @@ export function registerLoanTool(register: Register, ctx?: ExecutionContext, gat
 		{
 			title: 'LOAN Protocol (Metal X lending)',
 			description:
-				'LOAN Protocol, the lending market in Metal X (contract lending.loan, mainnet only), in plain numbers. view "markets": every market with its borrow limit (% of collateral), reserve factor, amount borrowed and reserves, live from the chain. "market": one market by its L-token (e.g. LBTC, LXMD, LXPR) or underlying (XBTC), with the raw interest model and LOAN reward settings. "config": liquidation rules (close factor, liquidation bonus, oracle). "apy": average deposit and borrow APY over 7, 30 or 90 days, with and without LOAN rewards, plus the latest day (Metal X API). "tvl": deposited and borrowed value in USD and utilisation (Metal X API). "positions": what a PUBLIC account (contract, exchange, producer, registered agent) supplies and borrows; private people are refused. Read-only.',
+				'LOAN Protocol, the lending market in Metal X (contract lending.loan, mainnet only), in plain numbers. view "markets": every market with its borrow limit (% of collateral), reserve factor, amount borrowed and reserves, live from the chain. "market": one market by its L-token (e.g. LBTC, LXMD, LXPR) or underlying (XBTC), with the raw interest model and LOAN reward settings. "config": liquidation rules (close factor, liquidation bonus, oracle). "apy": average deposit and borrow APY over 7, 30 or 90 days, interest and LOAN-reward APY as separate figures, plus the latest day (Metal X API). "tvl": deposited and borrowed value in USD and utilisation (Metal X API). "positions": what a PUBLIC account (contract, exchange, producer, registered agent) supplies and borrows; private people are refused. Read-only.',
 			inputSchema: z.object({
 				view: z.enum(['markets', 'market', 'config', 'apy', 'tvl', 'positions']).describe('What to read'),
 				market: z.string().max(12).optional().describe('market / apy / tvl: L-token (LBTC) or underlying token (XBTC, XPR, XMD)'),
@@ -246,7 +249,7 @@ export function registerLoanTool(register: Register, ctx?: ExecutionContext, gat
 						r.source,
 						r.readAt,
 						view === 'apy'
-							? 'From the Metal X API (the same source the official XPR Agents lending skill reads). Averages over the period; "with LOAN rewards" adds the LOAN token paid to depositors. Past rates, not a forecast.'
+							? 'From the Metal X API (the same source the official XPR Agents lending skill reads). Averages over the period. Interest and LOAN-reward APYs are separate figures as the API reports them; whether they add up is not documented, so do not add them. Past rates, not a forecast.'
 							: 'From the Metal X API. USD values as Metal X computes them; utilisation = borrowed ÷ deposited.',
 					);
 				}

@@ -156,7 +156,11 @@ export function registerEvmTool(register: Register, ctx?: ExecutionContext) {
 					const code = await evmRpc(network, 'eth_getCode', [addr, 'latest'], 3600, ctx);
 					if (typeof code.result !== 'string' || code.result === '0x') return bad(`${addr} has no contract code on ${n.name}, so it is not a token there.`);
 					const call = (data: string) => evmRpc(network, 'eth_call', [{ to: addr, data }, 'latest'], 300, ctx);
-					const [nm, sy, de, ts] = await Promise.all([call(SEL.name), call(SEL.symbol), call(SEL.decimals), call(SEL.totalSupply)]);
+					// One after another, not in parallel: free public RPCs answer a burst with 429 (seen live 2026-10-16 on Ethereum).
+					const nm = await call(SEL.name);
+					const sy = await call(SEL.symbol);
+					const de = await call(SEL.decimals);
+					const ts = await call(SEL.totalSupply);
 					const dec = hexToBig(de.result);
 					const decimals = dec === null || dec > 36n ? null : Number(dec);
 					return ok(
@@ -187,11 +191,9 @@ export function registerEvmTool(register: Register, ctx?: ExecutionContext) {
 					if (token) {
 						const t = resolveToken(token);
 						if (!t) return bad('The token must be a 0x address or a name the guide records (XPR, MTL).');
-						const [bal, de, sy] = await Promise.all([
-							evmRpc(network, 'eth_call', [{ to: t, data: balanceOfData(who) }, 'latest'], 60, ctx),
-							evmRpc(network, 'eth_call', [{ to: t, data: SEL.decimals }, 'latest'], 3600, ctx),
-							evmRpc(network, 'eth_call', [{ to: t, data: SEL.symbol }, 'latest'], 3600, ctx),
-						]);
+						const bal = await evmRpc(network, 'eth_call', [{ to: t, data: balanceOfData(who) }, 'latest'], 60, ctx);
+						const de = await evmRpc(network, 'eth_call', [{ to: t, data: SEL.decimals }, 'latest'], 3600, ctx);
+						const sy = await evmRpc(network, 'eth_call', [{ to: t, data: SEL.symbol }, 'latest'], 3600, ctx);
 						const dec = hexToBig(de.result);
 						out.token = { address: t, symbol: decodeString(sy.result), balance: dec === null || dec > 36n ? null : units(hexToBig(bal.result), Number(dec)) };
 					}
