@@ -550,21 +550,28 @@ Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (20
 | ⚠ `github.com/metallicus` | **Not the company**: an unrelated personal account | — |
 
 ### Code found on GitHub, not confirmed as a live mainnet product
-These repos mention XPR Network (GitHub search, 10-15). **Code existing is not a product being live:** check each one before relying on it.
+These repos mention XPR Network (GitHub search, 10-15). **Code existing is not a product being live:** check each one before relying on it. "Last commit" = the default branch's newest commit, read 2026-10-16.
 
-| Project | What the code says | Link | Status |
+| Project | What the code says | Link | Status (checked 2026-10-16) |
 |---|---|---|---|
-| madblocks Metal Wallet | Windows wallet for Bitcoin/BTCVM and Dogecoin/DogecoinVM and the bridges between them, by the madblocks producer | https://github.com/Ambrotd/madblocks-Metal-Wallet | CODE (new 2026-10) |
-| Alcor bridge indexer | Indexer for Alcor's bridge (created 2026-10-15) | https://github.com/alcorexchange/alcor-bridge-indexer | CODE |
-| Tetra Grids projects | HUMAN (news boards, TRUE token), The Channel, Pure Liquid DEX (perps on Antelope), Hedgewaters (EASY-backed loans), XPR App Forge, speakEASY | https://github.com/TetraGrids · https://github.com/dougbutner | CODE |
-| Ubitquity XPR tools | Telegram tip bot (UBITQUITY and nDAO defaults), XPR account verifier, token swap tool, UBQTY token. The company site's home page doesn't mention XPR | https://github.com/ubitquity · https://ubitquity.io | CODE / UNCLEAR |
-| GCSC (Global Construction Smart Contract) | Construction-industry DAO, 14 contracts **deployed to XPR testnet only** | https://github.com/Melxisedek75/gcsc-website | TESTNET |
-| ProtonPunkz | Pixel-art NFTs; Polygon first, XPR "secondary" | https://github.com/protonpunkz/ProtonPunkz | CODE / UNCLEAR |
-| Dingleberry ($DINGLE) | Brand assets; the collection "The Dingleberries" trades on CYPHR.Market | https://github.com/dingleberrycoin/dingle-assets | NFTs LIVE; token contract not confirmed |
-| ReLocke | Agentic ABIs, WebAuthn and GraphQL tools for Antelope chains | https://github.com/relocke | CODE |
-| Arena escrow contract | XPR escrow contract for arena match settlements | https://github.com/hashstacking-maker/xpr-escrow-contract | CODE |
-| Saltant tools | XPR Peer Probe (node diagnostics), AntelopeIO tools | https://github.com/Saltant | CODE |
-| chaininfra courses | EVM-to-XPR migration course, key refresh, delegation demo | https://github.com/chaininfra | CODE |
+| madblocks Metal Wallet | Windows wallet for Bitcoin/BTCVM and Dogecoin/DogecoinVM and the bridges between them, by the madblocks producer. Its README says "public beta" and ships Windows releases | https://github.com/Ambrotd/madblocks-Metal-Wallet | PUBLIC BETA per its README (last commit 2026-10-06) |
+| Alcor bridge indexer | Indexer for Alcor's bridge; its README's example settings point at Telos, WAX and Vaulta (EOS) nodes | https://github.com/alcorexchange/alcor-bridge-indexer | CODE (one commit, 2026-10-15) |
+| Tetra Grids app templates | Pure Liquid DEX, Hedgewaters, XPR App Forge, speakEASY, Peoples House, Dayrise Kingdom, EASY-Website: the READMEs call them templates ("Template positioning credits EASY / Flextokens" and say to verify links and claims) | https://github.com/dougbutner | TEMPLATES, not live products (last commits 2026-04-30 → 2026-09-13) |
+| HUMAN (Tetra Grids) | News boards with tips; the code sends tips to `humanpay::tip` | https://github.com/dougbutner/HUMAN-by-Tetra-Grids | CODE: `humanpay` has **no contract on mainnet** (live check 2026-10-16) |
+| The Channel (Tetra Grids) | A protocol whitepaper plus Antelope node source; companion paper "Pure Liquid" by Tetra Grids, LLC | https://github.com/TetraGrids/The-Channel | CODE / PAPER (last commit 2026-09-23) |
+| flex.report (new) | The docs for EASY and the other flex tokens (onboarding, arbitrage, buybacks, launching your own), built with GitBook; the app it points to is flex.town | https://github.com/dougbutner/flex.report · https://flex.report · https://flex.town | DOCS (repo created 2026-10-15; the sites themselves not opened here yet) |
+| ibo.garden (in EASY-Website) | A one-page site for **IBO, a Solana token** | https://github.com/dougbutner/EASY-Website | NOT XPR (lead closed 2026-10-16) |
+| Ubitquity XPR tools | Telegram tip bot (UBITQUITY and nDAO defaults), XPR account verifier, token swap tool, UBQTY token. The company site's home page doesn't mention XPR | https://github.com/ubitquity · https://ubitquity.io | CODE / UNCLEAR (last commits 2026-03-11 → 2026-08-26) |
+| GCSC (Global Construction Smart Contract) | Construction-industry DAO; its README says the contracts are **deployed to XPR testnet only** | https://github.com/Melxisedek75/gcsc-website | TESTNET (last commits 2026-08-15 site, 2026-09-06 contracts) |
+| ProtonPunkz | Pixel-art NFTs; Polygon first, XPR "secondary" | https://github.com/protonpunkz/ProtonPunkz | CODE / UNCLEAR, quiet (last commit 2026-02-08) |
+| Dingleberry ($DINGLE) | Brand assets; the collection "The Dingleberries" trades on CYPHR.Market | https://github.com/dingleberrycoin/dingle-assets | NFTs LIVE; token contract not confirmed (last commit 2026-07-24) |
+| ReLocke | Agentic ABIs, WebAuthn and GraphQL tools for Antelope chains | https://github.com/relocke | CODE (last commit 2026-08-17) |
+| Arena escrow contract | XPR escrow contract for arena match settlements | https://github.com/hashstacking-maker/xpr-escrow-contract | CODE (last commit 2026-09-08) |
+| Saltant tools | XPR Peer Probe (node diagnostics), AntelopeIO tools | https://github.com/Saltant | CODE (Peer Probe 2026-09-08; AntelopeIO-Tools 2025-06-07) |
+| chaininfra courses | EVM-to-XPR migration course, key refresh, delegation demo, Metal validator guide and monitor | https://github.com/chaininfra | CODE / GUIDES (last commits 2025-10-06 → 2026-05-26) |
+| xprdata bench | Benchmarks from the xprdata producer | https://github.com/xprdata/xprdatabench | CODE (last commit 2026-09-29) |
+| RockerOne / SuperstrongBE tools | signbox, xpr_abi_2_ts_types (TypeScript types from an XPR ABI) | https://github.com/SuperstrongBE | CODE (2026-08-13; 2026-02-24) |
+| Dapptoken, RTHC Protocol, ProtonFarming bot | Token-plus-liquidity creator (via Alcor), a protocol repo, an auto-compound farming bot | https://github.com/forkonlyone/Dapptoken · https://github.com/mwasi39-gif/RTHC-Protocol · https://github.com/Panda404NotFound/ProtonFarming | CODE, quiet (last commits 2025-12-13 → 2026-04-23) |
 
 ## 12b. How things work: key facts (read at the official source 2026-10-15)
 - **XPR token economics, from the XPR Network whitepaper v2.0** (undated; https://cdn.metallicus.com/XPR_Network_Whitepaper_v2.0.pdf, read 10-16; quotes are the paper's own words):
