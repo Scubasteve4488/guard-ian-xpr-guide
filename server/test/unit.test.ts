@@ -13,6 +13,7 @@ import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateL
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
+import { u64ToName, tableAccountRefs } from '../src/access.ts';
 
 let pass = 0,
 	failN = 0;
@@ -524,6 +525,30 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 	const after = await politeFetch(['https://waf.test'], '/api/x', {}, { startAt: 0 });
 	t('robots 403 counts as allowed and does not ban the host', allowed === true && !hostCooling('waf.test') && after.status === 200);
 	globalThis.fetch = realFetch;
+}
+// Public tier side doors (2026-10-16).
+{
+	const apiNo = (u: string) => !checkSourceUrl(u).ok && /data-API/.test((checkSourceUrl(u) as any).why);
+	t('source_fetch: Hyperion balances by account refused', apiNo('https://indexer.protonnz.com/v2/state/get_tokens?account=someone'));
+	t('source_fetch: holders list refused', apiNo('https://indexer.protonnz.com/api/tokens/15/holders'));
+	t('source_fetch: Metal X order history refused', apiNo('https://dex.api.mainnet.metalx.com/dex/v1/orders/history?account=someone'));
+	t('source_fetch: AtomicAssets by owner refused', apiNo('https://nft.xprnetwork.org/atomicassets/v1/assets?owner=someone'));
+	t('source_fetch: chain get_account refused', apiNo('https://indexer.protonnz.com/v1/chain/get_account'));
+	t(
+		'source_fetch: aggregate endpoints still read',
+		['https://indexer.protonnz.com/api/stats', 'https://indexer.protonnz.com/api/tokens?fields=compact&limit=1000', 'https://dex.api.mainnet.metalx.com/dex/v1/markets/all', 'https://indexer.xpragents.com/api', 'https://help.xprnetwork.org/api/v2/help_center/en-us/articles.json?per_page=5'].every((u) => checkSourceUrl(u).ok),
+	);
+	t('source_fetch: ordinary pages unaffected', checkSourceUrl('https://simpledex.fun/llms-launches.txt').ok && checkSourceUrl('https://docs.xprnetwork.org/?account=x').ok);
+
+	t('u64ToName reverses nameToU64', ['someone', 'eosio.token', 'a1b2c3', '12345', 'zzzzzzzzzzzz'].every((n) => u64ToName(nameToU64(n)) === n));
+	t('u64ToName: small numbers are not names', u64ToName('15') === null && u64ToName('0') === null);
+	const r1 = tableAccountRefs({ code: 'eosio.token', scope: nameToU64('someone'), scope_type: 'number' });
+	t('table: scope sent as a u64 number is decoded', r1.encoded.includes('someone'));
+	t('table: all-digit name scope is checked as a name', tableAccountRefs({ code: 'eosio.token', scope: '12345' }).direct.includes('12345'));
+	t('table: name-shaped bound without key_type is checked', tableAccountRefs({ code: 'eosio', lower_bound: 'someone', upper_bound: 'someone' }).direct.includes('someone'));
+	t('table: numeric id bound is not a name', tableAccountRefs({ code: 'simplelaunch', lower_bound: '15' }).direct.length === 0);
+	t('table: scope = contract is fine', tableAccountRefs({ code: 'simplelaunch' }).direct.length === 0);
+	t('table: token-id scope is not a name', tableAccountRefs({ code: 'simplelaunch', scope: '14', scope_type: 'number' }).encoded.length === 0 && tableAccountRefs({ code: 'simplelaunch', scope: '14', scope_type: 'number' }).direct.length === 0);
 }
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

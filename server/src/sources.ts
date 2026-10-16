@@ -128,6 +128,8 @@ export function checkSourceUrl(raw: string, links?: GuideLinks): { ok: true; url
 	if (!listed) {
 		return { ok: false, why: `${host} is not linked anywhere in the guide` };
 	}
+	const api = dataApiRefusal(url);
+	if (api) return { ok: false, why: api };
 	if (host === 'github.com' || host === 'raw.githubusercontent.com') {
 		const owner = url.pathname.split('/').filter(Boolean)[0]?.toLowerCase();
 		if (!owner || !(GITHUB_OWNERS.has(owner) || links?.githubOwners.has(owner))) {
@@ -135,6 +137,33 @@ export function checkSourceUrl(raw: string, links?: GuideLinks): { ok: true; url
 		}
 	}
 	return { ok: true, url };
+}
+
+// Public tier, closing the side door (2026-10-16): the guide links data APIs (Hyperion, the SimpleDEX and XPR Agents
+// indexers, Metal X, Alcor, AtomicAssets). Read through this page fetcher, an API call such as
+// /v2/state/get_tokens?account=… or a holders list would skip both the public-account check and the field-level
+// privacy filter the dedicated tools apply. So on an API-shaped path only aggregate, account-free endpoints are read;
+// everything else is refused with a pointer to the dedicated tool. Fails closed: an unknown endpoint is refused.
+const API_PATH = /^\/(api|dex|v1|v2|atomicassets|atomicmarket|atomictools)(\/|$)/i;
+// Hosts whose API paths carry no XPR wallet data (help-center articles, DefiLlama, CoinGecko, GitHub).
+const API_EXEMPT_HOSTS = new Set(['help.xprnetwork.org', 'api.llama.fi', 'defillama.com', 'www.coingecko.com', 'api.coingecko.com', 'github.com', 'raw.githubusercontent.com', 'api.github.com']);
+// Last path word of an aggregate endpoint (totals, lists of markets/tokens/pools, prices, docs).
+const AGGREGATE_ENDPOINTS = new Set(['', 'api', 'v1', 'v2', 'stats', 'pools', 'prices', 'tokens', 'markets', 'all', 'info', 'tickers', 'pairs', 'summary', 'health', 'docs', 'openapi.json', 'swagger.json', 'get_info', 'get_producers', 'get_schedule', 'get_abi']);
+// Query keys that cannot name a person.
+const SAFE_QUERY_KEYS = new Set(['fields', 'limit', 'offset', 'page', 'sort', 'order', 'symbol', 'contract', 'chain', 'network', 'interval', 'lang', 'locale', 'format']);
+
+/** A reason to refuse when the URL is a data-API call that is not an aggregate, account-free endpoint; else null. */
+export function dataApiRefusal(url: URL): string | null {
+	const host = url.hostname.toLowerCase();
+	if (API_EXEMPT_HOSTS.has(host) || !API_PATH.test(url.pathname)) return null;
+	const last = url.pathname.replace(/\/+$/, '').split('/').pop()!.toLowerCase();
+	const badKey = [...url.searchParams.keys()].find((k) => !SAFE_QUERY_KEYS.has(k.toLowerCase()));
+	if (AGGREGATE_ENDPOINTS.has(last) && !badKey) return null;
+	return (
+		`that is a data-API call (${url.pathname}) that can list or profile wallets, and page reading only covers totals, prices and markets. ` +
+		'Use the dedicated tool instead (xpr_account, xpr_token_balances, xpr_actions, xpr_table, simpledex_token, metalx_market, xpr_agents_directory, xpr_nfts): ' +
+		"they apply the public-account check and hide private people's wallet names"
+	);
 }
 
 /** Very small HTML → text: drop script/style/nav noise, keep link targets, collapse whitespace. */

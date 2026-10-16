@@ -37,6 +37,7 @@ import { robotsAllows } from './robots.ts';
 import { makeKeep, maskName } from './history.ts';
 import { table, isAccountName, isTableName, scopeFor } from './chain.ts';
 import { labelUntrusted } from './sources.ts';
+import { tableAccountRefs } from './access.ts';
 
 type Handler = (args: any) => Promise<any>;
 type Register = (name: string, config: unknown, handler: Handler) => unknown;
@@ -229,7 +230,10 @@ export async function dogevmDocs(ctx?: ExecutionContext) {
 }
 const BLOCKCYPHER = 'https://api.blockcypher.com';
 
-export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
+/** Public-tier gate from index.ts: null = go ahead, otherwise the refusal to return (private wallet or too many lookups). */
+export type AccountGate = (name: string) => Promise<Result | null>;
+
+export function registerMoreTools(register: Register, ctx?: ExecutionContext, gate: AccountGate = async () => null) {
 	// ── metal_blockchain
 	register(
 		'metal_blockchain',
@@ -431,6 +435,8 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 				}
 				if (a.view === 'account') {
 					if (!a.account || !isAccountName(a.account)) return bad('account needs a valid XPR account name.');
+					const refused = await gate(a.account);
+					if (refused) return refused;
 					const r = await testnetRpc('/v1/chain/get_account', { account_name: a.account }, 20, ctx);
 					const j = r.json;
 					return ok(
@@ -456,6 +462,12 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 				}
 				if (a.view === 'table') {
 					if (!a.code || !isAccountName(a.code) || !a.table || !isTableName(a.table)) return bad('table needs code and table (valid names).');
+					// Same rule as xpr_table: a table scoped to or keyed on a private wallet is a wallet lookup.
+					const refs = tableAccountRefs({ code: a.code, scope: a.scope, lower_bound: a.lower_bound });
+					for (const n of [...refs.direct, ...refs.encoded]) {
+						const refused = await gate(n);
+						if (refused) return refused;
+					}
 					const body: any = { code: a.code, table: a.table, scope: scopeFor(a.scope ?? a.code), json: true, limit: Math.max(1, Math.min(50, a.limit ?? 20)) };
 					if (a.lower_bound) body.lower_bound = a.lower_bound;
 					const r = await testnetRpc('/v1/chain/get_table_rows', body, 15, ctx);

@@ -2,33 +2,17 @@
 // "Public GUARD.IAN may explain XPR accounts and transactions, but detailed investigation of an individual's wallet
 // should require verified control of that account").
 //
-// Public = system accounts, deployed contracts, block producers, exchange deposit accounts, registered XPR Agents,
-// and accounts the guide itself names. Everyone else counts as a private person: the public connector declines to
+// Public = system accounts, deployed contracts, block producers, exchange deposit accounts and registered XPR Agents
+// (since 2026-10-16 no longer "any account the guide names": that let a guide edit open a person's wallet). Everyone else counts as a private person: the public connector declines to
 // profile them (balances, history, holdings) and gives the explorer link instead, so a person can look for themselves.
 // When unsure, the answer is "private". The records stay public on chain; the connector just doesn't do the profiling.
 
 import { rpc, rpcPool, type Network } from './net.ts';
 import { makeKeep } from './history.ts';
-import { readGuideFile } from './guide.ts';
 
 const cache = new Map<string, { at: number; pub: boolean; why: string }>();
 const TTL_MS = 60 * 60 * 1000;
 const NO_CODE = '1970-01-01T00:00:00.000';
-
-let guideNames: { at: number; names: Set<string> } | null = null;
-async function namesInGuide(repo: string, branch: string, ctx?: ExecutionContext, token?: string): Promise<Set<string>> {
-	if (guideNames && Date.now() - guideNames.at < 10 * 60 * 1000) return guideNames.names;
-	const names = new Set<string>();
-	try {
-		const r = await readGuideFile(repo, branch, 'ECOSYSTEM.md', ctx, token);
-		// Accounts the guide names are written in code spans, e.g. `simplelaunch`, `xmd.token`.
-		for (const m of r.text.matchAll(/`([a-z1-5.]{1,12})`/g)) names.add(m[1]);
-		guideNames = { at: Date.now(), names };
-	} catch {
-		/* fall back to the other checks */
-	}
-	return guideNames?.names ?? names;
-}
 
 async function isRegisteredAgent(name: string, ctx?: ExecutionContext): Promise<boolean> {
 	try {
@@ -63,10 +47,70 @@ export async function isPublicAccount(
 			/* unknown → stays private */
 		}
 		if (!res.pub && opts.net !== 'testnet' && (await isRegisteredAgent(name, ctx))) res = { pub: true, why: 'a registered XPR Agent' };
-		if (!res.pub && (await namesInGuide(opts.repo, opts.branch, ctx, opts.token)).has(name)) res = { pub: true, why: 'an account the guide lists' };
+		// Being named in the guide no longer opens an account (external review 2026-10-16): a guide edit must never open
+		// an ordinary person's wallet. Public = what the chain says it is.
 	}
 	cache.set(key, { at: Date.now(), ...res });
 	return res;
+}
+
+/** The account name a u64 encodes (the reverse of chain.ts nameToU64), or null if it is not a clean account name. */
+export function u64ToName(v: string): string | null {
+	if (!/^\d{1,20}$/.test(v)) return null;
+	let n: bigint;
+	try {
+		n = BigInt(v);
+	} catch {
+		return null;
+	}
+	if (n <= 0n || n >= 1n << 64n) return null;
+	const charset = '.12345abcdefghijklmnopqrstuvwxyz';
+	let s = '';
+	for (let i = 0; i < 12; i++) s += charset[Number((n >> BigInt(64 - 5 * (i + 1))) & 31n)];
+	if (n & 0xfn) return null; // a 13th character: not an ordinary account name
+	s = s.replace(/\.+$/, '');
+	return /^[a-z1-5][a-z1-5.]{0,11}$/.test(s) && !s.includes('..') ? s : null;
+}
+
+/** Does this account exist on chain? Unknown counts as yes, so a failed read cannot open a lookup. */
+export async function accountExists(name: string, net: Network | undefined, ctx?: ExecutionContext): Promise<boolean> {
+	try {
+		await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, undefined, rpcPool(net));
+		return true;
+	} catch (e: any) {
+		return !/unknown key|does not exist|not found|\b500\b/i.test(String(e?.message ?? e));
+	}
+}
+
+/**
+ * The account names a table read would be keyed on (2026-10-16, closing the side doors): the scope (also an all-digit
+ * name, and a scope sent as a number that is the u64 encoding of a name), and the bounds (nodeos reads a name-shaped
+ * bound as a name on a u64 key even without key_type "name"; a long number may be an encoded name).
+ * direct = check as typed; encoded = decoded from a number, check only if that account exists.
+ */
+export function tableAccountRefs(a: { code: string; scope?: string; scope_type?: 'name' | 'number'; lower_bound?: string; upper_bound?: string; key_type?: string }): { direct: string[]; encoded: string[] } {
+	const direct = new Set<string>();
+	const encoded = new Set<string>();
+	const valid = (s: string) => /^[a-z1-5.]{1,12}$/.test(s) && !s.endsWith('.');
+	if (a.scope && a.scope !== a.code) {
+		if (!/^\d+$/.test(a.scope)) direct.add(a.scope);
+		else if (a.scope_type === 'name' || (a.scope_type !== 'number' && a.scope.length <= 12 && !/[06-9]/.test(a.scope))) direct.add(a.scope);
+		else {
+			const d = u64ToName(a.scope);
+			if (d) encoded.add(d);
+		}
+	}
+	for (const b of [a.lower_bound, a.upper_bound]) {
+		if (!b) continue;
+		if (valid(b) && (a.key_type === 'name' || /[a-z.]/.test(b))) direct.add(b);
+		else if (/^\d{13,20}$/.test(b)) {
+			const d = u64ToName(b);
+			if (d) encoded.add(d);
+		}
+	}
+	direct.delete(a.code);
+	encoded.delete(a.code);
+	return { direct: [...direct], encoded: [...encoded] };
 }
 
 export function privateRefusal(name: string, net?: Network) {
