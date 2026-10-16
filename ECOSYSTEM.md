@@ -33,7 +33,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | Metal X Bridge | Brings outside coins (BTC, ETH, XRP, SOL and others) onto XPR as X-tokens. Identity check required (Metal X FAQ) | https://app.metalx.com/bridge | LIVE |
 | Metal Pay | Card on-ramp to buy crypto; XPR in the US, Australia and New Zealand | https://www.metalpay.com · how to buy XPR https://www.metalpay.com/how-to-buy/xpr-network · help https://help.metalpay.com/hc/en-us | LIVE |
 | WebAuth | The official XPR Network wallet: self-custody, biometric signing, staking and voting | https://webauth.com · https://metallicus.com/individuals/webauth | LIVE |
-| Metal Dollar (XMD) | Dollar stablecoin backed by a basket of stablecoins. Metal X's quote currency; expanded to Ethereum in Sept 2026 (Q3 report) | https://metaldollar.com | LIVE |
+| Metal Dollar (XMD) | Dollar stablecoin backed by a basket of stablecoins, minted and redeemed 1:1. Metal X's quote currency. **On Ethereum since 2026-09-26** (official announcement): contract `0xA6707A8A00E94d1834cCdA2856C9Cf948941078d`, with USDC, PYUSD, USDP and RLUSD as its reserve assets there. Read on Ethereum 10-15: name "Metal Dollar", XMD, 6 decimals, supply 142.247121. The two official pages disagree: metaldollar.com/networks (read 10-15) still says the Ethereum contract "should be published" later, while the announcement publishes it. Both are Metallicus pages; the announcement is the newer | https://metaldollar.com · Ethereum announcement https://metaldollar.com/blog/metal-dollar-on-ethereum · Ethereum app https://eth.metaldollar.metalx.com/mint-n-redeem · networks https://metaldollar.com/networks | LIVE |
 | Metal Blockchain | Layer 0 for institutions | https://metalblockchain.org · docs https://docs.metalblockchain.org · explorer https://explorer.metalblockchain.org | LIVE |
 | Metal L2 | Ethereum L2 on the OP Stack; MTL is moving to it as gas ("Homecoming") | https://metall2.com | LIVE |
 | PulseVM | Metallicus engine for running XPR-style contracts on Metal Blockchain. **No cutover date has been announced** | code https://github.com/MetalBlockchain/pulsevm · docs (community, by Paul Grey) https://pulsevm.dev · StandGuard summary https://standguard.net/projects/pulsevm | Code LIVE; network not live |
@@ -163,7 +163,7 @@ Read 2026-10-15. This answers "where does XPR trade and how do I move it safely"
 | Token | What it is | Contract (decimals) | Data page |
 |---|---|---|---|
 | XPR | Native gas-free chain token | `eosio.token` (4) | CoinGecko `proton` / `xpr-network` |
-| XMD | Metal Dollar stablecoin | `xmd.token` (6) | CoinGecko `metal-dollar` |
+| XMD | Metal Dollar stablecoin. On Ethereum it is a separate ERC-20 contract (§1) | `xmd.token` (6) on XPR · `0xA6707A8A00E94d1834cCdA2856C9Cf948941078d` (6) on Ethereum | CoinGecko `metal-dollar` |
 | LOAN | LOAN Protocol governance token | `loan.token` (4) | CoinGecko `proton-loan` |
 | XMT | XPR version of **MTL**, the Metal DAO governance token | `xtokens` (8) | CoinGecko `metal` (MTL) |
 | METAL | Bridged native token of Metal Blockchain. Not MTL, and not Metal X | `xtokens` (8) | CoinGecko `metal-blockchain` |
