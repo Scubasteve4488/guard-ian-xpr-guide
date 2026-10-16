@@ -27,7 +27,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 
 | Name | What it is | Link | Status |
 |---|---|---|---|
-| Metal X | On-chain order-book exchange with swaps, pools, farms, lending, staking, OTC and streaming, gas-free. Run by Metallicus, Inc. | https://metalx.com · app https://app.metalx.com · docs https://docs.metalx.com | LIVE |
+| Metal X | On-chain order-book exchange with swaps, pools, farms, lending, staking, OTC and streaming, gas-free. Run by Metallicus, Inc. **Listing is not open to anyone:** a project asks through Metal X's listing application form, and the team reviews each request; if an asset qualifies, they may ask for more information (official help article "Listing New Assets on Metal X", updated 2026-06-30, read 10-16) | https://metalx.com · app https://app.metalx.com · docs https://docs.metalx.com · listing article https://help.xprnetwork.org/hc/en-us/articles/26569573786391-Listing-New-Assets-on-Metal-X (readable via https://help.xprnetwork.org/api/v2/help_center/en-us/articles/26569573786391.json) | LIVE |
 | Metal X Swap (formerly Proton Swap) | AMM swaps; contract `proton.swaps` | https://app.metalx.com/swap | LIVE. A Sept 2026 incident is covered in Proton NZ's post-mortem (its title says the pools were "100% restored"): https://protonnz.com/blog/proton-swaps-heist |
 | Metal X Lending / LOAN Protocol | Over-collateralised lending and borrowing; LOAN is the governance and rewards token | https://app.metalx.com/lending · https://metallicus.com/loan-protocol · https://xprnetwork.org/loan | LIVE |
 | Metal X Bridge | Brings outside coins (BTC, ETH, XRP, SOL and others) onto XPR as X-tokens. Identity check required (Metal X FAQ) | https://app.metalx.com/bridge | LIVE |
@@ -49,7 +49,7 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | Name | What it is | Link | Run by (as stated) | Status |
 |---|---|---|---|---|
 | Alcor Exchange | Multi-chain DEX (XPR, WAX, Vaulta, Telos), with XPR pools, order books and farms | https://alcor.exchange/v/xpr · https://proton.alcor.exchange | Alcor (own team) | LIVE |
-| SimpleDEX | AMM swaps plus bonding-curve token launches (contracts `simpledex`, `simplelaunch`) | https://simpledex.fun · docs https://simpledex.fun/llms.txt | Proton NZ | LIVE |
+| SimpleDEX | AMM swaps plus bonding-curve token launches (contracts `simpledex`, `simplelaunch`). **Not a Metallicus product:** it is one of Proton NZ's projects, and Proton NZ is a block producer operating through Proton NZ LTD in New Zealand (protonnz.com, read 10-16) | https://simpledex.fun · docs https://simpledex.fun/llms.txt · https://protonnz.com | Proton NZ (block producer; not Metallicus) | LIVE |
 | BlastPad ($BLPAD) | Token launches, airdrops, staking pools | https://blastpad.io | homebloksbp [BP] | LIVE |
 | XPredicting | Prediction market | https://xpredicting.com | homebloksbp [BP] | UNCLEAR |
 | A-DEX | Multi-chain Antelope DEX (swap, analytics, whale signals, a price oracle) with an XPR front end | https://xpr.a-dex.io | A-DEX (producer `bpadex`) | LIVE (read 10-15) |
@@ -90,7 +90,7 @@ Read 2026-10-15. This answers "where does XPR trade and how do I move it safely"
 
 | Name | What it is | Link | Status |
 |---|---|---|---|
-| XPR Agents | On-chain registry for AI agents: identity, reviews, validation and escrowed jobs (contracts `agentcore`, `agentfeed`, `agentvalid`, `agentescrow`) | https://xpragents.com · llms https://xpragents.com/llms.txt · stats https://indexer.xpragents.com/api/stats · code https://github.com/XPRNetwork/xpr-agents | LIVE: 73 agents (68 active), 48 completed jobs, 10-15 |
+| XPR Agents | On-chain registry for AI agents: identity, reviews, validation and escrowed jobs (contracts `agentcore`, `agentfeed`, `agentvalid`, `agentescrow`). **Built by Proton NZ:** listed as one of its live projects on protonnz.com (read 10-16); the code sits in the XPRNetwork GitHub org (MIT) | https://xpragents.com · llms https://xpragents.com/llms.txt · stats https://indexer.xpragents.com/api/stats · code https://github.com/XPRNetwork/xpr-agents | LIVE: 73 agents (68 active), 48 completed jobs, 10-15 |
 | Charlie Bot | Autonomous agent with paid services, machine-payment demos (x402 / MPP on XPR) and the CHARLIE token | https://charliebot.dev · code https://github.com/charliebot87 | LIVE |
 | Guard.IAN (this guide's builder) | Agent that buys into SimpleDEX launches and writes Utility Forge reports | https://standguard.net/ian · https://xpragents.com/agent/safeguard5 | LIVE |
 | Goldminer | Registered agent that says it teaches XPR users "how to mine gold" using flex-token features, or does it for them for a fee (see the flex tokens, §8). Its listed site, goldminer.info, forwards to a page on another host with no XPR content (10-16); its contact is a Telegram group | https://xpragents.com/agent/goldminer | UNCLEAR |
@@ -299,7 +299,7 @@ Recently stopped producing: `xprlabs` (last claim 2026-09-03), `simpleblock` (20
 | XPR Network | Official | X https://x.com/XPRNetwork · Telegram https://t.me/XPRNetwork (admins never DM) · Discord https://discord.gg/G7E8qggYEQ · Reddit https://reddit.com/r/XPRNetwork · news https://xprnetwork.org/news · help https://help.xprnetwork.org |
 | Metallicus | Official | X https://x.com/MetallicusTDBN · https://linkedin.com/company/metallicus · https://youtube.com/@metallicusTDBN · Vimeo https://vimeo.com/metallicus |
 | Metal X | Official | X https://twitter.com/MetalXApp · Reddit https://reddit.com/r/MetalXOfficial |
-| KSTO | Community | https://ksto.world · X https://x.com/Keep_Snipping · Telegram https://t.me/KSTOX · https://snipverse.com/kstoken · summary [KSTO.md](KSTO.md) |
+| KSTO ("Kulture Speaks Truth Onchain", per its FAQ) | Community: events, X Spaces, Snipverse and a vetted-token list | https://ksto.world · X https://x.com/Keep_Snipping · Telegram https://t.me/KSTOX · https://snipverse.com/kstoken · summary [KSTO.md](KSTO.md) |
 | FunkyFVerse | Community (KSTO ecosystem) | X https://x.com/funkyfVerse |
 | Cypher Gang | NFT community and CYPHR ecosystem | https://cyphergang.com · X https://x.com/CypherGangNFT · Telegram https://t.me/CypherGang · CYPHR.Market X https://x.com/CYPHRMARKET · MarketPulse X https://x.com/MarketPulseXPR |
 | Snipverse / Vibrr / Shellbook | Social platforms | sections 3 and 4 |

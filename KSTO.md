@@ -3,6 +3,7 @@
 Summarised in our own words from ksto.world. **All pages read 2026-10-15.** The site's only date is a "2026" copyright line. Check the linked page before quoting anything as current.
 
 ## What KSTO is
+- **KSTO stands for "Kulture Speaks Truth Onchain"** (the FAQ writes it Kulture_Speaks_Truth_Onchain; [FAQ](https://ksto.world/faq_v1.html), read 2026-10-16).
 - KSTO is a community-driven movement built around the **$KSTO** token. It values authenticity and transparency over hype ([About](https://ksto.world/about.html), [FAQ](https://ksto.world/faq_v1.html)).
 - Its mascot is **Snippy the Guardian** ([About](https://ksto.world/about.html)).
 - **Old address:** keepsnipping.com was KSTO's earlier website and has moved to ksto.world (per the guide's builder, a KSTO community member, 2026-10-15). Older SimpleDEX launch records still link the old address.

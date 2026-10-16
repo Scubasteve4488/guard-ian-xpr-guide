@@ -2,6 +2,11 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 7):** Gaps found by exam bundle 2, when both Grok and ChatGPT missed the same facts. Each fix was read at its source today:
+  - **KSTO's name:** "Kulture Speaks Truth Onchain", from its FAQ (KSTO.md and the §14 row).
+  - **SimpleDEX is not a Metallicus product:** Proton NZ runs it through Proton NZ LTD (protonnz.com) (§2).
+  - **XPR Agents is built by Proton NZ:** protonnz.com lists it as a live project (§4).
+  - **How Metal X lists tokens:** projects apply through a form, and the team reviews each request (official help article, updated 2026-06-30) (§1).
 - **2026-10-16 (early, part 6):** From IAN-CODE's laptop research (leads checked at their sources):
   - **Network blocklist:** `eosio.token` blocks listed senders; official contract code merged 10-06 (§12b).
   - **DogecoinVM's own alpha warning:** one operator holds every peg key, unaudited, one validator. Its, BTCVM's and LTCVM's sites added (§1).
