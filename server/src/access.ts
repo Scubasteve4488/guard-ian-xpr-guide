@@ -118,10 +118,13 @@ export function tableAccountRefs(a: { code: string; scope?: string; scope_type?:
  * ('rewrite' → served as /mcp); everything else is 'deny' (404), the landing page included. Without one, the public
  * behaviour stays: '/' shows the landing page, everything else passes.
  */
-export function accessGate(pathname: string, secret?: string): 'pass' | 'rewrite' | 'deny' | 'open-landing' {
+export function accessGate(pathname: string, secret?: string, lock?: string): 'pass' | 'rewrite' | 'deny' | 'open-landing' {
 	const s = (secret ?? '').trim();
-	if (!s) return pathname === '/' || pathname === '' ? 'open-landing' : 'pass';
-	return pathname === `/mcp/${s}` ? 'rewrite' : 'deny';
+	if (s && pathname === `/mcp/${s}`) return 'rewrite';
+	// The public address stays open unless LOCK_PUBLIC is "1" (builder, 2026-10-16: "give the connection back to them,
+	// i need to use it on my phone tomorrow"); the secret address works either way.
+	if (s && (lock ?? '').trim() === '1') return 'deny';
+	return pathname === '/' || pathname === '' ? 'open-landing' : 'pass';
 }
 
 export function privateRefusal(name: string, net?: Network) {

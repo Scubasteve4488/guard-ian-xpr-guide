@@ -33,7 +33,8 @@ interface Env {
 	SUGGESTIONS?: D1Like; // D1 "guard-ian-suggestions": the private suggestion box (suggest.ts)
 	SUGGEST_LIMITER?: Limiter; // per caller IP, for suggest_update only
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
-	ACCESS_PATH?: string; // Worker SECRET, optional: private mode — the connector answers only at /mcp/<ACCESS_PATH>
+	ACCESS_PATH?: string; // Worker SECRET, optional: a private address /mcp/<ACCESS_PATH> that always works
+	LOCK_PUBLIC?: string; // Worker SECRET, optional: "1" closes the public address (/, /mcp) so only the private one works
 	AI?: AiLike; // Workers AI binding (wrangler.jsonc "ai"): used ONLY for toMarkdown on PDFs in source_fetch
 }
 
@@ -42,7 +43,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.14.0';
+const VERSION = '1.14.1';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -771,7 +772,7 @@ export default {
 		if (url.pathname === '/health') return Response.json({ ok: true, name: 'guard-ian-xpr-guide', version: VERSION });
 		// Private mode (builder, 2026-10-16: "private"): with the ACCESS_PATH Worker secret set, the connector answers only
 		// at /mcp/<secret>; everything else (the landing page, plain /mcp) is a 404, so the address alone grants access.
-		const gate = accessGate(url.pathname, env.ACCESS_PATH);
+		const gate = accessGate(url.pathname, env.ACCESS_PATH, env.LOCK_PUBLIC);
 		if (gate === 'deny') return new Response('Not found', { status: 404 });
 		if (gate === 'open-landing') return new Response(LANDING, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
 		if (gate === 'rewrite') {

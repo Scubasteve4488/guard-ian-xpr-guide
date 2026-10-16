@@ -597,8 +597,6 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 }
 // Private mode (2026-10-16).
 t('private mode off: landing at /, /mcp passes', accessGate('/') === 'open-landing' && accessGate('/mcp') === 'pass' && accessGate('/mcp', '  ') === 'pass');
-t('private mode on: only /mcp/<secret> is served', accessGate('/mcp/abcDEF123', 'abcDEF123') === 'rewrite');
-t('private mode on: /mcp, /, a wrong or partial secret are 404', ['/mcp', '/', '/mcp/abc', '/mcp/abcDEF1234', '/mcp/abcDEF123/x', '/x/abcDEF123'].every((p) => accessGate(p, 'abcDEF123') === 'deny'));
 
 // ── PDFs in source_fetch (2026-10-16): converted by the supplied converter, only real PDFs, size-capped
 {
@@ -649,5 +647,8 @@ t('symbol scope never decodes to an account name', u64ToName(symbolScope('ZZZZZZ
 // ── help-center APIs are readable on any linked help center (2026-10-16: help.metalpay.com was refused)
 t('help-center API exempt', dataApiRefusal(new URL('https://help.metalpay.com/api/v2/help_center/en-us/articles.json?per_page=100')) === null);
 t('other Zendesk API paths still refused', dataApiRefusal(new URL('https://help.metalpay.com/api/v2/users.json')) !== null);
+t('secret address works with the public one open or locked', accessGate('/mcp/abcDEF123', 'abcDEF123') === 'rewrite' && accessGate('/mcp/abcDEF123', 'abcDEF123', '1') === 'rewrite');
+t('public address open unless LOCK_PUBLIC is 1', accessGate('/mcp', 'abcDEF123') === 'pass' && accessGate('/', 'abcDEF123') === 'open-landing');
+t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc', '/mcp/abcDEF1234', '/mcp/abcDEF123/x', '/x/abcDEF123'].every((p) => accessGate(p, 'abcDEF123', '1') === 'deny'));
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
