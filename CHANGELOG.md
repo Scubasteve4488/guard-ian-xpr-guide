@@ -2,6 +2,13 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 6):** From IAN-CODE's laptop research (leads checked at their sources):
+  - **Network blocklist:** `eosio.token` blocks listed senders; official contract code merged 10-06 (§12b).
+  - **DogecoinVM's own alpha warning:** one operator holds every peg key, unaudited, one validator. Its, BTCVM's and LTCVM's sites added (§1).
+  - **Where XPR trades** is now three dated sources: the help center's mainnet-deposit list with the exchange accounts, the older 16-place list, and CoinGecko's live markets (§2b).
+  - **Memo-ID warning** for XRP, XLM, HBAR and Stellar USDC (§2b).
+  - **Help center** readable through its public API (§2b).
+  - Updated: VEXgate, PEPE, TRAMP, TIMECAP, Goldminer, and the eosamsterdam, rockeronebp and cerebroai producer rows.
 - **2026-10-16 (early, part 5):** XMD on Ethereum: contract, app and reserve assets taken from Metal Dollar's official announcement (2026-09-26) and read on Ethereum (name "Metal Dollar", 6 decimals, supply 142.247121). The networks page still says the address is not yet published, so both official pages are noted.
 - **2026-10-16 (early, part 4):** Producer table: filled in cryptolions, eosrio, eosusa and rockeronebp from their own sites and the agent registry. eosamsterdam, ledgerwise, cerebro and rockerone's sites are marked "not readable" (blocked in the browser used).
 - **2026-10-16 (early, part 3):** Flex tokens completed: GRAMS@gold.mon3y and WON@w3won read on chain. Taxes come from the project's own docs, plus the warning about the opt-out actions. The Goldminer agent was added to §4 (its site couldn't be read, so UNCLEAR), and its "backed by XPAGX" claim is noted against XPAXG@xtokens, read on chain.
