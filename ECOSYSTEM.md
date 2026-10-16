@@ -244,6 +244,8 @@ There is no official XPRNetwork token-list repo (checked 10-15).
 | Bounties | Open developer bounties | https://github.com/XPRNetwork/bounties |
 
 ### All 37 active block producers, read from the chain
+**"Active" means two different things. Give both numbers when asked how many producers are active:** (1) **21 produce blocks at any moment.** That is the live schedule, from the `xpr_producers` tool. (2) **The registered accounts marked `is_active=1`** in the `eosio` `producers` table: 37 of 104 on 10-15. This count changes, so read it live with `xpr_table` (code `eosio`, scope `eosio`, table `producers`, paging until `more` is false) or say it is the 10-15 figure.
+
 Source: `eosio` `producers` table, read 2026-10-15 21:36 UTC via the GUARD.IAN connector. 104 accounts are registered; 37 have `is_active=1`. The URL is whatever each producer set on chain. The projects column lists only what has been confirmed so far; blank does not mean they run nothing.
 
 | Producer | URL (as set on chain) | Projects confirmed so far |
