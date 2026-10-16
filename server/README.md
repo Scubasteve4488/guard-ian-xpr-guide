@@ -109,5 +109,5 @@ AI apps save a connector's tool list when it is added and don't pick up new tool
 
 **Only once, for apps that added the connector before 1.13.0** (they don't have `guide_tools` yet):
 - **ChatGPT:** Settings → Plugins → GUARD.IAN XPR Guide → **Refresh tools**.
-- **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guard-ian-guide.rangelt88.workers.dev/mcp?v=1.13`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed them all.)
+- **Grok:** Grok keeps the list it first saw for a web address. Plugins → GUARD.IAN XPR Guide → **Disconnect**, then **New Connector** → **Custom**, and add the same address with a new version tag, for example `https://guide.standguard.net/mcp?v=1.13`. The tag changes nothing on the server. (Found 2026-10-16: re-adding the plain address kept the old 9 tools; the tagged address showed them all.)
 - **Claude:** a chat keeps the tool list it started with (seen 2026-10-16: a Claude session started on an earlier server version still listed 16 tools while the server had 27). Start a new chat; on the desktop or phone app, if it still lacks `guide_tools`, remove the connector and add it again.
