@@ -630,6 +630,7 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 		if (url.endsWith('/v1/chain/get_account')) return new Response(JSON.stringify({ account_name: body.account_name, last_code_update: '2023-01-01T00:00:00.000' }), { status: 200 });
 		if (url.endsWith('/v1/chain/get_code_hash')) return hash === null ? new Response('{"error":{"what":"nope"}}', { status: 500 }) : new Response(JSON.stringify({ account_name: body.account_name, code_hash: hash }), { status: 200 });
 		if (url.endsWith('/v1/chain/get_table_rows')) return new Response('{"rows":[],"more":false}', { status: 200 });
+		if (url.endsWith('/v1/chain/get_abi')) return new Response(JSON.stringify({ account_name: body.account_name, abi: body.account_name === 'noabi111111' ? { version: '', actions: [] } : { version: 'eosio::abi/1.1', actions: [{ name: 'act', type: 'act' }] } }), { status: 200 });
 		return new Response('{}', { status: 404 });
 	};
 	const opts = { repo: 'x/y', branch: 'main', producers: [] as string[] };
@@ -639,6 +640,8 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 	t('access: account with code now is a smart contract', (await isPublicAccount('hascodenow1', opts)).why === 'a smart contract');
 	stub(answer(null));
 	t('access: code-hash read failing keeps the date rule', (await isPublicAccount('hashfails11', opts)).pub);
+	stub(answer('ab'.repeat(32)));
+	t('access: code but no ABI actions counts as private', !(await isPublicAccount('noabi111111', opts)).pub);
 	globalThis.fetch = realFetch;
 }
 // Private mode (2026-10-16).

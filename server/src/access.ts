@@ -28,6 +28,18 @@ async function hasCodeNow(name: string, net: Network | undefined, ctx?: Executio
 	}
 }
 
+// A real contract publishes an interface (ABI) with actions; an account with code but no ABI actions is unclear, and
+// unclear counts as private (live check 2026-10-16: a staker's account still counted as a contract after 1.14.3).
+async function hasAbiActions(name: string, net: Network | undefined, ctx?: ExecutionContext): Promise<boolean | null> {
+	try {
+		const r = await rpc('/v1/chain/get_abi', { account_name: name }, 300, ctx, undefined, rpcPool(net));
+		if (!r.json || typeof r.json !== 'object') return null;
+		return Array.isArray(r.json.abi?.actions) && r.json.abi.actions.length > 0;
+	} catch {
+		return null;
+	}
+}
+
 async function isRegisteredAgent(name: string, ctx?: ExecutionContext): Promise<boolean> {
 	try {
 		const r = await rpc('/v1/chain/get_table_rows', { code: 'agentcore', scope: 'agentcore', table: 'agents', json: true, limit: 1, lower_bound: name, upper_bound: name, key_type: 'name' }, 600, ctx);
@@ -56,7 +68,12 @@ export async function isPublicAccount(
 	else {
 		try {
 			const a = await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, undefined, rpcPool(opts.net));
-			if (a.json?.last_code_update && a.json.last_code_update !== NO_CODE && (await hasCodeNow(name, opts.net, ctx)) !== false)
+			if (
+				a.json?.last_code_update &&
+				a.json.last_code_update !== NO_CODE &&
+				(await hasCodeNow(name, opts.net, ctx)) !== false &&
+				(await hasAbiActions(name, opts.net, ctx)) !== false
+			)
 				res = { pub: true, why: 'a smart contract' };
 		} catch {
 			/* unknown → stays private */
