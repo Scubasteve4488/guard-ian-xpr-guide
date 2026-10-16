@@ -36,6 +36,18 @@ export function safeName(name: string): string {
 }
 
 /**
+ * Scope. An all-digit NAME (digits 1-5 only, up to 12) is u64-encoded (rpc-queries.md:222 @ b7d9f1f). A number that
+ * cannot be a name (contains 0 or 6-9, or is longer than 12, e.g. "1785205097907617792") is sent as-is, and so is
+ * anything with scope_type "number" (a token ID such as 14). Expert exam run 1, 2026-10-16 (review L1).
+ */
+export function scopeFor(scope: string, scopeType?: 'name' | 'number'): string {
+	if (!/^\d+$/.test(scope)) return scope;
+	if (scopeType === 'number') return scope;
+	if (scopeType === 'name') return nameToU64(scope);
+	return scope.length > 12 || /[06-9]/.test(scope) ? scope : nameToU64(scope);
+}
+
+/**
  * Table bounds are sent unchanged. SOURCE: XPRNetwork/xpr-network-dev-skill @ b7d9f1f skill/rpc-queries.md:223 —
  * lower_bound / upper_bound: "pass `key_type: "name"` (primary index) so the string is parsed as a name"; and :225
  * "Do not append "." to force name parsing — "333555." throws chain_type_exception on current nodeos … for bounds as
@@ -73,6 +85,8 @@ export async function account(name: string, ctx?: ExecutionContext) {
 		data: {
 			account_name: j.account_name,
 			created: j.created,
+			// When the account's contract code last changed (deploys); 1970-01-01 means no code was ever set.
+			last_code_update: j.last_code_update,
 			core_liquid_balance: j.core_liquid_balance ?? null,
 			ram_quota: j.ram_quota,
 			ram_usage: j.ram_usage,
@@ -102,14 +116,14 @@ export async function tokenBalances(name: string, ctx?: ExecutionContext) {
 }
 
 export async function table(
-	args: { code: string; table: string; scope?: string; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean; key_type?: string },
+	args: { code: string; table: string; scope?: string; scope_type?: 'name' | 'number'; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean; key_type?: string },
 	ctx?: ExecutionContext,
 ) {
 	const limit = Math.max(1, Math.min(50, args.limit ?? 20));
 	const body: any = {
 		code: args.code,
 		table: args.table,
-		scope: safeName(args.scope ?? args.code),
+		scope: scopeFor(args.scope ?? args.code, args.scope_type),
 		json: true,
 		limit,
 	};

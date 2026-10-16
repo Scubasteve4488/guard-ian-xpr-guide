@@ -2,6 +2,13 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (IAN-CODE, builder's go): server 1.6.0 + guide facts, from expert exam run 1** (Claude answering all 40 expert questions through this connector only: 31/40; private exam in GUARD-Project).
+  - **source_fetch reads long pages:** new `find` (jump to a word) and `offset` (read the next part). Three misses came from answers sitting past the 20,000-character cut (RAM pricing, Hyperion's 10,000 cap, the A2A installer default). Repeat reads come from the cache.
+  - **xpr_table numeric scopes:** a number that can't be a name (digits 0 or 6-9, or longer than 12, e.g. a u64 name encoding) is sent as-is; `scope_type` forces name or number.
+  - **xpr_account shows `last_code_update`**, so an AI can see when a contract was last deployed.
+  - **ECOSYSTEM:** the `eosio.token` blocklist is live (code updated 2026-10-12, block 408228360; deployed wasm has "Sender is blocklisted"); SimpleDEX's "Audited Feb & Mar 2026" line (no firm, no report); DogecoinVM credit after 6-20 confirmations, never fewer than 6, remote pause built but not usable yet, DIP-21 (a bare address means the wallet must ask); RAM is a fixed price in `eosio::globalram` with the fee taken out of the payment; a stuck unstake means calling `refundxpr` (PR #10; deployment unverified); the A2A installers wrote `full` until #77; Hyperion's 10,000 and 90-day ascending limits.
+  - **RULES §5:** no liquidation, arbitrage or sniping bots (dev skill loan-protocol.md:372-376: these bots are the main source of chain spam).
+
 - **2026-10-16 (night): info a user shares (builder's question).** RULES §1 now says a fact a user tells the AI is a lead, not a source: thank them, check it at an official page, the repo or the live chain, use it only with that source, never pass it on as fact on their word alone, and point them to the guide's GitHub issues to get it added for everyone. README's "found something wrong" line now also covers "something it's missing". A weekly freshness audit (Sundays 8:53 am Mountain) now re-reads every guide fact older than 7 days at its source and re-dates or fixes it.
 - **2026-10-16 (night): server 1.5.3.** Luminary Vision (`proton-hyperion.luminaryvisn.com`) added to the chain-read rotation, so it matches the latest XPR dev skill's mainnet table (8 endpoints; it had 7). The token registry and the history-server (Hyperion) list were checked against the latest skill on the same night and match.
 - **2026-10-16 (night): server 1.5.2, newest source first (builder's ruling).**

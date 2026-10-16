@@ -1,7 +1,7 @@
 // Unit tests: node --experimental-strip-types test/unit.test.ts  (no network: fetch is stubbed)
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table } from '../src/chain.ts';
+import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table, scopeFor } from '../src/chain.ts';
 import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted } from '../src/sources.ts';
 import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
@@ -301,6 +301,25 @@ t('help article plain text, no script', ha.data.text.includes('Step 1') && ha.da
 let badId = '';
 try { await helpArticle('../x'); } catch (e: any) { badId = e.message; }
 t('help article id validated', /article id/.test(badId));
+
+// ── expert exam run 1 fixes (2026-10-16)
+// scopes: all-digit names encoded, numbers that can't be names sent as-is, scope_type forces
+t('scope: all-digit name encoded', scopeFor('333555') === '1785205097907617792');
+t('scope: u64 / non-name number as-is', scopeFor('1785205097907617792') === '1785205097907617792' && scopeFor('60') === '60');
+t('scope: scope_type number forces raw', scopeFor('14', 'number') === '14' && scopeFor('14') === nameToU64('14'));
+t('scope: names untouched', scopeFor('simplelaunch') === 'simplelaunch');
+// source_fetch: find / offset read past the first 20,000 characters (cache serves the repeat)
+const longDoc = 'intro '.repeat(5000) + 'The globalram table holds the RAM price. ' + 'tail '.repeat(3000);
+stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response(longDoc, { status: 200, headers: { 'content-type': 'text/plain' } })));
+const lks = { hosts: new Set(['simpledex.fun']), githubOwners: new Set<string>() };
+const p1 = await fetchSource('https://simpledex.fun/long.txt', undefined, lks);
+t('long page: first part + next offset', p1.start === 0 && p1.text.length === 20000 && p1.nextOffset === 20000 && p1.total === longDoc.length);
+const pf = await fetchSource('https://simpledex.fun/long.txt', undefined, lks, { find: 'GLOBALRAM' });
+t('find jumps to the match', pf.text.includes('globalram table holds the RAM price') && (pf.matches ?? []).length === 1 && pf.start > 20000);
+const po = await fetchSource('https://simpledex.fun/long.txt', undefined, lks, { offset: 40000 });
+t('offset reads a later part', po.start === 40000 && po.text.startsWith(longDoc.slice(40000, 40020)));
+const pn = await fetchSource('https://simpledex.fun/long.txt', undefined, lks, { find: 'nowhere-xyz' });
+t('find with no match says so', (pn.matches ?? []).length === 0 && pn.start === 0);
 
 globalThis.fetch = realFetch;
 

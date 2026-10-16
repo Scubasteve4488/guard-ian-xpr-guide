@@ -178,7 +178,13 @@ export function labelUntrusted(text: string, source: string): string {
 
 const MAX_REDIRECTS = 3;
 
-export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks) {
+/** Which part of a long page to return (expert exam run 1, 2026-10-16: answers sat past the 20,000-character cut). */
+export interface PageView {
+	offset?: number;
+	find?: string;
+}
+
+export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks, view: PageView = {}) {
 	let target = raw;
 	let r: FetchResult;
 	for (let hop = 0; ; hop++) {
@@ -199,12 +205,32 @@ export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: G
 	}
 	const pageText = r.text.slice(0, 300_000);
 	const looksHtml = /<html|<!doctype html|<body/i.test(pageText.slice(0, 2000));
-	let text = looksHtml ? htmlToText(pageText) : pageText;
-	let truncated = !!r.tooLarge || r.text.length > pageText.length;
-	if (text.length > MAX_CHARS) {
-		text = text.slice(0, MAX_CHARS);
-		truncated = true;
+	const full = looksHtml ? htmlToText(pageText) : pageText;
+	const cutAtSource = !!r.tooLarge || r.text.length > pageText.length;
+	const jsShell = looksHtml && full.length < 300;
+	// Pick the window: around the first match of `find`, else from `offset`. Repeat reads hit the cache, not the site.
+	let start = Math.max(0, Math.min(view.offset ?? 0, full.length));
+	let matches: number[] | undefined;
+	if (view.find) {
+		matches = [];
+		const hay = full.toLowerCase();
+		const needle = view.find.toLowerCase();
+		for (let i = hay.indexOf(needle); i >= 0 && matches.length < 20; i = hay.indexOf(needle, i + needle.length)) matches.push(i);
+		const after = matches.find((m) => m >= start);
+		if (after !== undefined) start = Math.max(0, after - 1500);
 	}
-	const jsShell = looksHtml && text.length < 300;
-	return { text, source: r.source, readAt: r.readAt, truncated, jsShell };
+	const text = full.slice(start, start + MAX_CHARS);
+	const end = start + text.length;
+	return {
+		text,
+		source: r.source,
+		readAt: r.readAt,
+		truncated: end < full.length || cutAtSource,
+		jsShell,
+		start,
+		end,
+		total: full.length,
+		nextOffset: end < full.length ? end : undefined,
+		matches,
+	};
 }
