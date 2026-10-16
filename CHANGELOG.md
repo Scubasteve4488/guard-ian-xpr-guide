@@ -2,6 +2,11 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night, coverage sweep):** Three new sections, each read at the official or named source on 10-16:
+  - **§1a Metallicus, the company:** what it is and its mission; the leadership and advisory board from its team page; MemberPass and the Bonifii/CULedger acquisition; the CrossState credit-union program; TDBN explained; SOC 2 Type I; and all five whitepapers with links.
+  - **§1b XPR Network's official roadmap:** the WebAuth fiat ramp is "In development". The roadmap also lists Biometric Key Recovery, the **A-Chain Upgrade**, Futures Trading, invoicing, ISO 20022 and more, with no dates.
+  - **§2a Who uses what:** Proton NZ's six-month on-chain user census (10 Sep 2026) and its dApp counts per producer, labelled as Proton NZ's own audit.
+  - The SimpleDEX row notes that Proton NZ's Paul Grey is also Metallicus's Business Development Manager (team page).
 - **2026-10-16 (night): server 1.5.1.** `xpr_chain_info` tells the AI to quote the mainnet chain id with the block, and the §1 LOAN row now names its contracts (`lending.loan`, not `lending`). ChatGPT left both out in the re-test.
 - **2026-10-16 (night): server 1.5.1.** `xpr_producers` now says on its own that "active" has two meanings: the 21 in the schedule, and the larger number marked `is_active`. Grok went straight to the tool in a re-test and gave only the 21. The guide note alone didn't reach it.
 - **2026-10-16 (IAN-CODE, builder's go):** Server 1.5.0.

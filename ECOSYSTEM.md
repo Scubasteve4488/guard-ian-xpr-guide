@@ -44,12 +44,63 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | Stablecoin pilot for credit unions | Metallicus's white-label stablecoin programme | https://metallicus.com/institutions/stablecoin-pilot | LIVE |
 | Quarterly reports | CEO's quarterly summaries | https://metallicus.com/news · Q3 2026: https://www.metallicus.com/blog/metallicus---2026-q3-report | LIVE |
 
+### 1a. Metallicus, the company (its own pages, read 2026-10-16)
+- **What it is:** Metallicus says it "builds infrastructure for real-time money movement" for financial institutions, developers and individuals. It is the company behind Metal Pay, Metal Dollar, WebAuth, Metal X, XPR Network, Metal Blockchain and Metal L2. Mission statement: "To empower global access to traditional banking and digital assets." The team works fully remote. Sources: https://metallicus.com/llms.txt · https://metallicus.com/company
+- **Leadership (team page):** https://metallicus.com/company/meet-the-team
+  - Marshall Hayner, Co-Founder & CEO. The page says he built the first Facebook Bitcoin wallet and sits on the Dogecoin Foundation board.
+  - Glenn Mariën, Co-Founder & CTO. Creator of Dogechain.info.
+  - Irina Berkon, CFO.
+  - Karen McHenry, VP of Product.
+  - Maura Wilder, VP of Engineering.
+  - John Ainsworth, General Manager. Former President and CEO of Bonifii, which Metallicus acquired.
+  - Ozgur Baykara, Head of Regulatory Compliance.
+  - Frank Mazza, Director of Blockchain for Institutions & Fintechs.
+  - Paul Grey, Business Development Manager. He also runs Proton NZ (§2, §10).
+  - **Advisory board:** Mark Carawan (former Citigroup Chief Compliance Officer), Sergio Rodriguera Jr (former AI consultant to the Federal Reserve Bank of Boston) and Marc F. Joseph (former Managing Counsel at BNY Mellon).
+- **For banks and credit unions:**
+  - Metal Pay Enterprise and Metal Pay Connect: digital-asset infrastructure and embedded Metal Pay.
+  - Metal Identity.
+  - An Innovation Program and the Stablecoin Pilot (§1).
+  - **MemberPass®:** biometric identity built for credit unions. The page says CULedger (Bonifii) was acquired by Metallicus. https://metallicus.com/memberpass
+  - **CrossState program:** "Innovation Program 2.0" with the CrossState Credit Union Association. It offers education, a stablecoin sandbox and pilots for member credit unions. https://metallicus.com/crossstate
+  - Product index: https://metallicus.com/llms.txt
+- **TDBN** = "The Digital Banking Network": Metallicus's name for its network of financial institutions. Metal L2 connects Ethereum-based chains to it (whitepapers page).
+- **Recent official news (newsroom):** SOC 2 Type I assessment completed (Aug 18, 2026). 2026 Q2 report (Jul 6, 2026). "Full-stack digital-dollar infrastructure for banks and credit unions" (Jun 23, 2026). https://metallicus.com/news
+- **Whitepapers** (https://metallicus.com/company/whitepapers):
+  - **XPR Network v2.0**, which calls it "a layer 1 delegated proof-of-stake (DPoS) blockchain": https://cdn.metallicus.com/XPR_Network_Whitepaper_v2.0.pdf
+  - **Metal DAO v1.0**: founded 2017, run by MTL holders. https://cdn.metallicus.com/Metal_DAO_Whitepaper_v1.0.pdf
+  - **Metal Dollar v1.1**: basket of USDC, PYUSD and USDP, governed by the Metal DAO. https://cdn.metallicus.com/Metal_Dollar_Whitepaper_v1.1.pdf
+  - **Metal L2 v1.0**: OP Stack. https://cdn.metallicus.com/Metal_L2_Whitepaper_v1.0.pdf
+  - **Metal Blockchain v1.2**: layer 0. https://cdn.metallicus.com/Metal_Blockchain_Whitepaper_v1.2.pdf
+
+### 1b. XPR Network's official roadmap ("2025 and beyond", read 2026-10-16)
+Source: https://xprnetwork.org/roadmap. The page gives no dates.
+- **Only one item shows a status:** "WebAuth – Fiat Ramp", **"In development"**. It is a card on-ramp inside WebAuth, starting in the US, Australia and New Zealand.
+- **The other items carry only a "CORE DEV" label, with no status:**
+  - WebAuth: Portfolio View, UX improvements, in-app DeFi features, a new wallet connection flow.
+  - **Biometric Key Recovery.**
+  - **A-Chain Upgrade.**
+  - AI Tools.
+  - **Futures Trading.**
+  - More trading pairs on Metal X.
+  - A new block explorer.
+  - Stablecoin POCs.
+  - XPR Network Invoicing.
+  - Expanded fiat ramps.
+  - An ISO 20022 compliance demo.
+  - An Ethereum NFT bridge.
+  - "The New Home of XPR Network".
+  - The governance dashboard.
+- **One bounty item:** WooKey (WebAuth for WooCommerce).
+- **"A-Chain" is on the official roadmap, with no date.** That makes this the official source for the name. For the PulseVM side, see §1 PulseVM and §12b.
+- **An older official page** (governance docs, "last updated 3 years ago") claims 4,000 transactions per second, and describes WebAuth, Metal X, lending and the original "XPR Network Market" NFT market. https://gov.docs.xprnetwork.org/xpr-network/xpr-network-and-ecosystem
+
 ## 2. DEXs, launchpads and DeFi
 
 | Name | What it is | Link | Run by (as stated) | Status |
 |---|---|---|---|---|
 | Alcor Exchange | Multi-chain DEX (XPR, WAX, Vaulta, Telos), with XPR pools, order books and farms | https://alcor.exchange/v/xpr · https://proton.alcor.exchange | Alcor (own team) | LIVE |
-| SimpleDEX | AMM swaps plus bonding-curve token launches (contracts `simpledex`, `simplelaunch`). **Not a Metallicus product:** it is one of Proton NZ's projects, and Proton NZ is a block producer operating through Proton NZ LTD in New Zealand (protonnz.com, read 10-16) | https://simpledex.fun · docs https://simpledex.fun/llms.txt · https://protonnz.com | Proton NZ (block producer; not Metallicus) | LIVE |
+| SimpleDEX | AMM swaps plus bonding-curve token launches (contracts `simpledex`, `simplelaunch`). **Not a Metallicus product:** it is one of Proton NZ's projects, and Proton NZ is a block producer operating through Proton NZ LTD in New Zealand (protonnz.com, read 10-16). Proton NZ's Paul Grey is also listed on Metallicus's team page as its Business Development Manager (read 10-16) | https://simpledex.fun · docs https://simpledex.fun/llms.txt · https://protonnz.com | Proton NZ (block producer; not Metallicus) | LIVE |
 | BlastPad ($BLPAD) | Token launches, airdrops, staking pools | https://blastpad.io | homebloksbp [BP] | LIVE |
 | XPredicting | Prediction market | https://xpredicting.com | homebloksbp [BP] | UNCLEAR |
 | A-DEX | Multi-chain Antelope DEX (swap, analytics, whale signals, a price oracle) with an XPR front end | https://xpr.a-dex.io | A-DEX (producer `bpadex`) | LIVE (read 10-15) |
@@ -57,6 +108,28 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
 | MarketPulse | On-chain UP/DOWN prediction rounds on XPR/USD, BTC/USD and ETH/USD, staked in XPR, settled by an on-chain price oracle after 24 h. Fee 10% of winnings (3% for Cypher Gang NFT holders) goes to buying back and burning CYPHR. The site says the contract was audited by Bloxprod BP and calls itself experimental. **Its own risk notice (read 10-16): "You may lose the XPR you stake"; predictions are final (no cancelling or switching sides); draws and one-sided rounds are refunded.** Daily rounds lock at 16:00 UTC | https://cyphergang.com/predictions · X @MarketPulseXPR | Cypher Gang | LIVE (read 10-15) |
 
 DefiLlama tracks three XPR protocols (read 10-15): Metal X about $49.3M, Alcor about $432K, SimpleDEX about $180K TVL. Source: https://defillama.com/chain/xpr-network. Figures move; cite the page and the time.
+
+### 2a. Who actually uses what (Proton NZ's on-chain census, snapshot 10 Sep 2026)
+From Proton NZ's post "The State of XPR Network Block Producers" (8 Sep 2026), https://www.protonnz.com/blog/state-of-xpr-block-producers. **Proton NZ ranks its own projects in this post**, which it discloses. The table counts the distinct accounts that used each dApp's contract over the six months to 10 Sep 2026: a full census of 10.9 million actions.
+
+| dApp | Run by (producer account) | Distinct users, 6 months |
+|---|---|---|
+| Metal X swaps | `cafe` (Metallicus) | 5,638 |
+| Vibrr | `homebloksbp` | 4,553 |
+| LOAN lending | `cafe` | 4,196 |
+| Metal X order book | `cafe` | 2,366 |
+| Chain Runner Game | `protonnz` | 1,725 |
+| Snipverse | `snipverse` | 854 |
+| SimpleDEX | `protonnz` | 755 |
+| BlastPad | `homebloksbp` | 715 |
+| XPR Casino | `protonind` | 85 |
+| XPR Agents | `protonnz` | 30 |
+
+- The same post counted shipped XPR dApps per producer: `protonnz` 12; `cafe` and `homebloksbp` 5 each; `alvosec` 4; `protonind` 3; `madblocks`, `rockeronebp`, `bloxprod`, `xprdata` and `chaininfra` 2 each. It says 18 of the 36 producers other than Proton NZ ship at least one.
+- **Read-only tools** (trackers, tax tools, alert bots) don't show up in contract counts.
+- Its GeneroX example: 33 on-chain actions, yet about US$59,000 in donations from 68 people. Counts aren't value.
+- **Announced but not working on 8 Sep:** cindronet's WezaPay and ledgerwise's tools subdomain.
+- ChainInfra's arcade game is named "Blockchain Pop" (match-3, daily XPR prizes, arcade.chaininfra.net), and its vote-delegation tool is at vote.chaininfra.net.
 
 ## 2b. Getting XPR: where it trades, wallets, moving it
 
