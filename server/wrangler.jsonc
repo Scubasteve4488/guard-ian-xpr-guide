@@ -42,6 +42,12 @@
 			"namespace_id": "4491",
 			"simple": { "limit": 3, "period": 60 },
 		},
+		// Public tier (2026-10-16): account, balance, history and holdings lookups get a tighter per-caller budget.
+		{
+			"name": "WALLET_LIMITER",
+			"namespace_id": "4492",
+			"simple": { "limit": 20, "period": 60 },
+		},
 	],
 	// The private suggestion box (src/suggest.ts, schema in schema.sql). Builder's ruling 2026-10-16: "build the queue".
 	// https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases

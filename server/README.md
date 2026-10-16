@@ -1,6 +1,6 @@
 # GUARD.IAN XPR Guide: server
 
-A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.8.2 as of 2026-10-16).
+A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.11.0 as of 2026-10-16).
 
 **Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which the daily job checks at an official source or the live chain before anything is added.
 
@@ -33,6 +33,13 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | `xpr_governance` | gov.xprnetwork.org from the on-chain `gov` contract (a port of the official XPR Agents governance skill's reads): communities with strategy, fee and quorum; recent proposals; one proposal with title, text and vote totals from the Gov API; global counts. Voters are not listed; authors and admins are hidden |
 | `xpr_testnet` | XPR Network TESTNET: chain status (checks the testnet chain id), one account, one table, and the SimpleDEX testnet indexer (stats, tokens, newest, pools, graduations) |
 | `dogecoinvm_status` | DogecoinVM: its published alpha limits and warnings (official repo), whether its chain is registered on Metal, and the DOGE in the bridge's multisig on the Dogecoin chain (BlockCypher). Its /api and /rpc pages are not read: its robots.txt disallows them |
+| `simpledex_tokens` / `simpledex_token` / `simpledex_market` | SimpleDEX indexer (Proton NZ): launches, one token (info, holders, trades), totals, pools, graduations |
+| `metalx_market` | Metal X API: markets, order-book depth, recent trades, candles, 24h stats |
+| `xpr_agents_directory` | XPR Agents indexer: stats, agents, search, jobs |
+| `xpr_nfts` | AtomicAssets API: collections, templates, assets, listings |
+| `metal_vm_info` | BTCVM / LTCVM public wallet info |
+
+**Public tier (1.11.0):** account, balance, history, table-by-account and NFTs-by-owner lookups work only for public accounts (system, contracts, block producers, exchanges, registered agents, accounts the guide lists). A private person's wallet is declined with an explorer link; a verified own-wallet option (WebAuth sign-in) is planned. Holder, trader, voter and owner accounts in other results show as `[private account]`; hidden in answers is not private on chain. The history, transaction, block, ABI, table, account and chain-status tools also take `network: "testnet"`. Wallet-type tools: 20 calls/min per caller.
 
 `source_fetch` reads long pages in parts (`find` a word, or `offset`). The history, transaction, block, ABI and account tools add an explorer.xprnetwork.org link (the explorer itself builds its pages in the browser, so the tools read the same data from Hyperion and the chain).
 

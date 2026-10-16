@@ -103,7 +103,13 @@ export function setUpstreamLimiters(chain?: Limiter, host?: Limiter) {
 	chainLimiter = chain;
 	hostLimiter = host;
 }
-const CHAIN_HOSTS = new Set([...RPC_ENDPOINTS, ...HYPERION_ENDPOINTS].map((u) => new URL(u).host));
+// Testnet (rpc-queries.md:22-28; Hyperion found live 2026-10-16, see NEW-SOURCES-ENDPOINTS §7).
+export const TESTNET_RPC_ENDPOINTS = ['https://tn1.protonnz.com', 'https://api-xprnetwork-test.saltant.io'];
+export const TESTNET_HYPERION_ENDPOINTS = ['https://hyp-xprtest.api.testnet.metalx.com'];
+export type Network = 'mainnet' | 'testnet';
+export const rpcPool = (n?: Network) => (n === 'testnet' ? TESTNET_RPC_ENDPOINTS : RPC_ENDPOINTS);
+export const hyperionPool = (n?: Network) => (n === 'testnet' ? TESTNET_HYPERION_ENDPOINTS : HYPERION_ENDPOINTS);
+const CHAIN_HOSTS = new Set([...RPC_ENDPOINTS, ...HYPERION_ENDPOINTS, ...TESTNET_RPC_ENDPOINTS, ...TESTNET_HYPERION_ENDPOINTS].map((u) => new URL(u).host));
 // GitHub serves the guide's own files and runs its own published limits; it is not a community operator.
 const UNMETERED_HOSTS = new Set(['raw.githubusercontent.com', 'api.github.com']);
 async function withinBudget(host: string): Promise<boolean> {
@@ -253,8 +259,8 @@ export async function politeFetch(
 }
 
 /** POST a JSON body to an XPR RPC path (e.g. /v1/chain/get_info) and parse the JSON answer. */
-export async function rpc(path: string, body: unknown, ttlSec: number, ctx?: ExecutionContext, startAt?: number) {
-	const r = await politeFetch(RPC_ENDPOINTS, path, { method: 'POST', body: JSON.stringify(body ?? {}) }, { ttlSec, ctx, startAt: startAt === undefined ? undefined : startAt % RPC_ENDPOINTS.length });
+export async function rpc(path: string, body: unknown, ttlSec: number, ctx?: ExecutionContext, startAt?: number, pool: string[] = RPC_ENDPOINTS) {
+	const r = await politeFetch(pool, path, { method: 'POST', body: JSON.stringify(body ?? {}) }, { ttlSec, ctx, startAt: startAt === undefined ? undefined : startAt % pool.length });
 	let json: any;
 	try {
 		json = JSON.parse(r.text);

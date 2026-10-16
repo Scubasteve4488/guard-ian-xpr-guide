@@ -6,11 +6,13 @@
 // SOURCE: XPRNetwork/xpr-network-dev-skill @ b7d9f1f skill/rpc-queries.md:49-56 (Hyperion etiquette: cap page-scroll,
 // cache historical pages), hyperion-operations-caveats.md §9-10 (10,000 offset cap; asc window 90 days).
 
-import { politeFetch, rpc, HYPERION_ENDPOINTS, UpstreamError } from './net.ts';
+import { politeFetch, rpc, HYPERION_ENDPOINTS, UpstreamError, rpcPool, hyperionPool, type Network } from './net.ts';
 
 export const EXPLORER = 'https://explorer.xprnetwork.org';
-export const explorerTx = (id: string) => `${EXPLORER}/transaction/${id}`;
-export const explorerAccount = (name: string) => `${EXPLORER}/account/${name}`;
+export const TESTNET_EXPLORER = 'https://testnet.explorer.xprnetwork.org';
+const ex = (n?: Network) => (n === 'testnet' ? TESTNET_EXPLORER : EXPLORER);
+export const explorerTx = (id: string, n?: Network) => `${ex(n)}/transaction/${id}`;
+export const explorerAccount = (name: string, n?: Network) => `${ex(n)}/account/${name}`;
 
 const MAX_DATA_CHARS = 600;
 const clip = (v: unknown) => {
@@ -30,10 +32,12 @@ const PUBLIC_ACCOUNTS = new Set([
 	'metalpay.com', 'kucoindotxpr', 'bithumbxprr1', 'gatedeposit', 'hitbtcxprins', 'coinex2zmoon', 'webauth', 'protonnz',
 ]);
 // A field counts as "a person" when its NAME contains one of these words (to_account, new_owner, bidder, ram_payer…).
-const PERSON_KEY = /(^|_)(from|to|payer|owner|account|acct|user|buyer|seller|creator|receiver|voter|actor|proposer|executer|executor|approver|claimer|client|agent|holder|trader|recipient|sender|name|bidder|winner|player|member|signer|referrer|beneficiary|delegator|producer|validator|staker|minter|maker|taker|caller|requester|arbitrator)s?($|_)/i;
+const PERSON_KEY = /(^|_)(from|to|payer|owner|account|acct|user|buyer|seller|creator|receiver|voter|actor|proposer|executer|executor|approver|claimer|client|agent|holder|trader|recipient|sender|name|bidder|winner|player|member|signer|referrer|beneficiary|delegator|producer|validator|staker|minter|maker|taker|caller|requester|arbitrator|author|admin|controller|seller_user|bid_user|ask_user)s?($|_)/i;
 export const PRIVATE = '[private account]';
 const NAME = /^[a-z1-5.]{1,12}$/;
 const MAX_DEPTH = 6;
+// Field names that hold project identifiers, not people (an NFT collection, schema or market name).
+const NOT_PERSON = new Set(['collection_name', 'schema_name', 'market_name', 'symbol_name', 'token_name', 'pool_name', 'community_name', 'contract']);
 export const NESTED_HIDDEN = '[nested data hidden]';
 
 export function makeKeep(extra: string[] = [], producers: string[] = []): Set<string> {
@@ -53,13 +57,13 @@ export function maskData(v: any, keep: Set<string>, depth = 0, personal = false)
 	if (depth >= MAX_DEPTH) return NESTED_HIDDEN;
 	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1, personal));
 	const out: any = {};
-	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, personal || PERSON_KEY.test(k));
+	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, !NOT_PERSON.has(k) && (personal || PERSON_KEY.test(k)));
 	return out;
 }
 const auths = (list: any[], keep: Set<string>) => (list ?? []).map((x: any) => `${maskName(x.actor, keep)}@${x.permission}`);
 
 let producerCache: { at: number; names: string[] } | null = null;
-async function producerNames(ctx?: ExecutionContext): Promise<string[]> {
+export async function producerNames(ctx?: ExecutionContext): Promise<string[]> {
 	if (producerCache && Date.now() - producerCache.at < 10 * 60 * 1000) return producerCache.names;
 	try {
 		const r = await rpc('/v1/chain/get_producer_schedule', {}, 600, ctx);
@@ -80,16 +84,17 @@ export function isIsoTime(s: string): boolean {
 }
 
 export async function actions(
-	args: { account: string; filter?: string; limit?: number; sort?: 'desc' | 'asc'; after?: string; before?: string },
+	args: { account: string; filter?: string; limit?: number; sort?: 'desc' | 'asc'; after?: string; before?: string; network?: Network },
 	ctx?: ExecutionContext,
 ) {
+	const net = args.network;
 	const limit = Math.max(1, Math.min(25, args.limit ?? 10));
 	const q = new URLSearchParams({ account: args.account, limit: String(limit), sort: args.sort ?? 'desc' });
 	if (args.filter) q.set('filter', args.filter);
 	if (args.after) q.set('after', args.after);
 	if (args.before) q.set('before', args.before);
 	const keep = makeKeep([args.account], await producerNames(ctx));
-	const r = await politeFetch(HYPERION_ENDPOINTS, `/v2/history/get_actions?${q}`, { method: 'GET' }, { ttlSec: 30, ctx });
+	const r = await politeFetch(hyperionPool(net), `/v2/history/get_actions?${q}`, { method: 'GET' }, { ttlSec: 30, ctx });
 	if (r.status >= 400) throw new UpstreamError(`Hyperion returned HTTP ${r.status}`);
 	let j: any;
 	try {
@@ -104,7 +109,7 @@ export async function actions(
 		action: `${a.act?.account}::${a.act?.name}`,
 		authorization: auths(a.act?.authorization, keep),
 		data: clip(maskData(a.act?.data, keep)),
-		explorer: a.trx_id ? explorerTx(a.trx_id) : undefined,
+		explorer: a.trx_id ? explorerTx(a.trx_id, net) : undefined,
 	}));
 	return {
 		data: { total: j.total?.value ?? j.total ?? null, returned: rows.length, actions: rows },
@@ -113,9 +118,9 @@ export async function actions(
 	};
 }
 
-export async function transaction(id: string, ctx?: ExecutionContext, typed: string[] = []) {
+export async function transaction(id: string, ctx?: ExecutionContext, typed: string[] = [], net?: Network) {
 	const keep = makeKeep(typed, await producerNames(ctx));
-	const r = await politeFetch(HYPERION_ENDPOINTS, `/v2/history/get_transaction?id=${encodeURIComponent(id)}`, { method: 'GET' }, { ttlSec: 3600, ctx });
+	const r = await politeFetch(hyperionPool(net), `/v2/history/get_transaction?id=${encodeURIComponent(id)}`, { method: 'GET' }, { ttlSec: 3600, ctx });
 	if (r.status >= 400) throw new UpstreamError(`Hyperion returned HTTP ${r.status}`);
 	let j: any;
 	try {
@@ -132,16 +137,16 @@ export async function transaction(id: string, ctx?: ExecutionContext, typed: str
 	if (!acts.length) throw new UpstreamError('no transaction with that id was found by this Hyperion node');
 	const first = j.actions[0];
 	return {
-		data: { trx_id: id, time: first?.timestamp ?? first?.['@timestamp'], block: first?.block_num, executed: j.executed, actions: acts, explorer: explorerTx(id) },
+		data: { trx_id: id, time: first?.timestamp ?? first?.['@timestamp'], block: first?.block_num, executed: j.executed, actions: acts, explorer: explorerTx(id, net) },
 		source: r.source,
 		readAt: r.readAt,
 	};
 }
 
 /** One block: its time stamp, producer and the actions in it, in order (the first legal block of a launch, who bought first). */
-export async function block(num: number, ctx?: ExecutionContext, typed: string[] = []) {
+export async function block(num: number, ctx?: ExecutionContext, typed: string[] = [], net?: Network) {
 	const keep = makeKeep(typed, await producerNames(ctx));
-	const r = await rpc('/v1/chain/get_block', { block_num_or_id: num }, 3600, ctx);
+	const r = await rpc('/v1/chain/get_block', { block_num_or_id: num }, 3600, ctx, undefined, rpcPool(net));
 	const b = r.json;
 	const rows: any[] = [];
 	for (const t of b.transactions ?? []) {
@@ -157,15 +162,15 @@ export async function block(num: number, ctx?: ExecutionContext, typed: string[]
 		}
 	}
 	return {
-		data: { block: b.block_num, timestamp: b.timestamp, producer: b.producer, schedule_version: b.schedule_version, transactions: (b.transactions ?? []).length, actions_in_order: rows, explorer: `${EXPLORER}/block/${b.block_num}` },
+		data: { block: b.block_num, timestamp: b.timestamp, producer: b.producer, schedule_version: b.schedule_version, transactions: (b.transactions ?? []).length, actions_in_order: rows, explorer: `${ex(net)}/block/${b.block_num}` },
 		source: r.source,
 		readAt: r.readAt,
 	};
 }
 
 /** A contract's interface: its actions, tables, and (for one action) the fields in order, with base structs resolved. */
-export async function abi(contract: string, action?: string, ctx?: ExecutionContext) {
-	const r = await rpc('/v1/chain/get_abi', { account_name: contract }, 3600, ctx);
+export async function abi(contract: string, action?: string, ctx?: ExecutionContext, net?: Network) {
+	const r = await rpc('/v1/chain/get_abi', { account_name: contract }, 3600, ctx, undefined, rpcPool(net));
 	const a = r.json?.abi;
 	if (!a) throw new UpstreamError(`${contract} has no contract (no ABI)`);
 	const structs = new Map<string, any>((a.structs ?? []).map((s: any) => [s.name, s]));
@@ -180,7 +185,7 @@ export async function abi(contract: string, action?: string, ctx?: ExecutionCont
 		version: a.version,
 		actions: actionsList,
 		tables: (a.tables ?? []).map((t: any) => ({ name: t.name, row_type: t.type, index: t.index_type })),
-		explorer: explorerAccount(contract),
+		explorer: explorerAccount(contract, net),
 	};
 	if (action) {
 		const act = (a.actions ?? []).find((x: any) => x.name === action);

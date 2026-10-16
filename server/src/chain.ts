@@ -2,7 +2,7 @@
 // SOURCE: XPRNetwork/xpr-network-dev-skill @ a1d455e skill/rpc-queries.md:181-256 (get_table_rows parameters; the
 // all-numeric account-name bug and its nameToU64 fix, copied as published) and :66-73 (poll/caching defaults).
 
-import { rpc, politeFetch, HYPERION_ENDPOINTS, RPC_ENDPOINTS, UpstreamError } from './net.ts';
+import { rpc, politeFetch, HYPERION_ENDPOINTS, RPC_ENDPOINTS, UpstreamError, rpcPool, type Network } from './net.ts';
 
 /** Antelope account / contract name: 1–12 chars of a-z, 1-5 and '.', not ending in '.'. */
 export function isAccountName(s: string): boolean {
@@ -62,8 +62,8 @@ export function boundFor(value: string, _keyType?: string): string {
 // TTLs, per rpc-queries.md:68-69: chain_id forever-ish, most state 10 s+.
 const TTL = { info: 5, account: 20, table: 15, producers: 60, currency: 60, tokens: 30 };
 
-export async function chainInfo(ctx?: ExecutionContext) {
-	const r = await rpc('/v1/chain/get_info', {}, TTL.info, ctx);
+export async function chainInfo(ctx?: ExecutionContext, net?: Network) {
+	const r = await rpc('/v1/chain/get_info', {}, TTL.info, ctx, undefined, rpcPool(net));
 	const j = r.json;
 	return {
 		data: {
@@ -78,8 +78,8 @@ export async function chainInfo(ctx?: ExecutionContext) {
 	};
 }
 
-export async function account(name: string, ctx?: ExecutionContext) {
-	const r = await rpc('/v1/chain/get_account', { account_name: name }, TTL.account, ctx);
+export async function account(name: string, ctx?: ExecutionContext, net?: Network) {
+	const r = await rpc('/v1/chain/get_account', { account_name: name }, TTL.account, ctx, undefined, rpcPool(net));
 	const j = r.json;
 	return {
 		data: {
@@ -118,7 +118,9 @@ export async function tokenBalances(name: string, ctx?: ExecutionContext) {
 export async function table(
 	args: { code: string; table: string; scope?: string; scope_type?: 'name' | 'number'; limit?: number; lower_bound?: string; upper_bound?: string; reverse?: boolean; key_type?: string },
 	ctx?: ExecutionContext,
+	net?: Network,
 ) {
+	const pool = rpcPool(net);
 	const limit = Math.max(1, Math.min(50, args.limit ?? 20));
 	const body: any = {
 		code: args.code,
@@ -131,13 +133,13 @@ export async function table(
 	if (args.lower_bound) body.lower_bound = boundFor(args.lower_bound, args.key_type);
 	if (args.upper_bound) body.upper_bound = boundFor(args.upper_bound, args.key_type);
 	if (args.reverse) body.reverse = true;
-	let r = await rpc('/v1/chain/get_table_rows', body, TTL.table, ctx);
+	let r = await rpc('/v1/chain/get_table_rows', body, TTL.table, ctx, undefined, pool);
 	// Stuck page (seen 2026-10-15 on one node: lower_bound 84 → 1 row, more=true, next_key "84"). Following it would
 	// loop forever, so ask a different node once (rpc-queries.md best practice 5, "Multiple endpoints").
 	const stuck = (x: typeof r) => !!x.json.more && !!args.lower_bound && String(x.json.next_key ?? '') === String(body.lower_bound);
 	if (stuck(r)) {
-		const used = RPC_ENDPOINTS.findIndex((e) => r.source.startsWith(e));
-		r = await rpc('/v1/chain/get_table_rows', body, 0, ctx, used >= 0 ? used + 1 : undefined);
+		const used = pool.findIndex((e) => r.source.startsWith(e));
+		r = await rpc('/v1/chain/get_table_rows', body, 0, ctx, used >= 0 ? used + 1 : undefined, pool);
 	}
 	return {
 		data: { rows: r.json.rows ?? [], more: !!r.json.more, next_key: r.json.next_key ?? null, limit, ...(stuck(r) ? { stuck: true } : {}) },
