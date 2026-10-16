@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night): server 1.5.3.** Luminary Vision (`proton-hyperion.luminaryvisn.com`) added to the chain-read rotation, so it matches the latest XPR dev skill's mainnet table (8 endpoints; it had 7). The token registry and the history-server (Hyperion) list were checked against the latest skill on the same night and match.
 - **2026-10-16 (night): server 1.5.2, newest source first (builder's ruling).**
   - RULES §1 and built-in rule 3 now say: lead with the newest source, label older ones with their date, and read live whenever possible.
   - **§12b finality, corrected:** fast inclusion is sub-second (0.5 s blocks; dev skill says "~2 second first-block confirmation"). Irreversibility is about 3 minutes today: the current dev skill says "full LIB finality ~3 minutes", and live reads on 10-16 showed LIB 327–332 blocks (2.7–2.8 min) behind head.

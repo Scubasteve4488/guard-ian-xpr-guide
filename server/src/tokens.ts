@@ -1,7 +1,8 @@
 // tokens.ts: "is this the real token?" — facts from several independent sources, side by side. It never declares a
 // token safe or a scam; it reports what each source says and what nothing here can verify.
 //
-// SOURCE (registry): XPRNetwork/xpr-network-dev-skill @ a1d455e skill/resources.md:216-278 "Token Contract Registry"
+// SOURCE (registry): XPRNetwork/xpr-network-dev-skill skill/resources.md "Token Contract Registry". Copied at a1d455e;
+// re-checked identical to main on 2026-10-16 (the daily job compares it with main every run and reports any drift).
 // ("Verified live (May 2026) via get_currency_stats"). FOOBAR is listed there as test-only (resources.md:276-278).
 
 import { currencyStats } from './chain.ts';
@@ -15,7 +16,7 @@ export interface RegistryEntry {
 }
 
 export const REGISTRY_SOURCE =
-	'https://github.com/XPRNetwork/xpr-network-dev-skill/blob/a1d455e905a3a5051967a56989d83e6f32636da0/skill/resources.md#token-contract-registry';
+	'https://github.com/XPRNetwork/xpr-network-dev-skill/blob/main/skill/resources.md#token-contract-registry';
 
 export const REGISTRY: RegistryEntry[] = [
 	{ symbol: 'XPR', contract: 'eosio.token', precision: 4, what: 'Native gas/staking token (issuer eosio)' },

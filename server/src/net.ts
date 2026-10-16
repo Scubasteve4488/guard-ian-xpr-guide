@@ -7,13 +7,16 @@
 
 export const USER_AGENT = 'XPRAgent/guard-ian-guide 1.0 (+https://github.com/Scubasteve4488/guard-ian-xpr-guide)';
 
-// SOURCE: rpc-queries.md:11-20 (mainnet table, RPC column) and :79-88 (Hyperion-serving list), @ a1d455e.
+// SOURCE: XPRNetwork/xpr-network-dev-skill @ main (read 2026-10-16) skill/rpc-queries.md "### Mainnet" table (RPC column,
+// 8 endpoints) and the "Hyperion endpoints" list; same table in skill/resources.md "RPC Endpoints". Luminary Vision added
+// 2026-10-16: upstream marks it RPC ✓ and the server had left it out of the RPC rotation (builder's yes).
 export const RPC_ENDPOINTS = [
 	'https://proton.eosusa.io',
 	'https://proton.protonuk.io',
 	'https://proton-api.eosiomadrid.io',
 	'https://api-xprnetwork-main.saltant.io',
 	'https://xpr-mainnet-api.bloxprod.io',
+	'https://proton-hyperion.luminaryvisn.com',
 	'https://api.protonnz.com',
 	'https://proton.cryptolions.io',
 ];

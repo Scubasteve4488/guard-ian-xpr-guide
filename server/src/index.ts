@@ -23,7 +23,7 @@ interface Env {
 	PRIVATE_ACCOUNTS?: string; // Worker secret, optional: extra comma-separated account names to hide (privacy.ts)
 }
 
-const VERSION = '1.5.2';
+const VERSION = '1.5.3';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:
