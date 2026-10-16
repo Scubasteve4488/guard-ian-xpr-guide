@@ -29,9 +29,12 @@ const PUBLIC_ACCOUNTS = new Set([
 	'agentcore', 'agentescrow', 'agentvalid', 'agentfeed', 'atomicassets', 'atomicmarket', 'oracles', 'proton.wrap',
 	'metalpay.com', 'kucoindotxpr', 'bithumbxprr1', 'gatedeposit', 'hitbtcxprins', 'coinex2zmoon', 'webauth', 'protonnz',
 ]);
-const PERSON_FIELDS = new Set(['from', 'to', 'payer', 'owner', 'account', 'user', 'buyer', 'seller', 'creator', 'receiver', 'voter', 'actor', 'proposer', 'executer', 'approver', 'claimer', 'client', 'agent', 'holder', 'trader', 'recipient', 'sender', 'name']);
+// A field counts as "a person" when its NAME contains one of these words (to_account, new_owner, bidder, ram_payer…).
+const PERSON_KEY = /(^|_)(from|to|payer|owner|account|acct|user|buyer|seller|creator|receiver|voter|actor|proposer|executer|executor|approver|claimer|client|agent|holder|trader|recipient|sender|name|bidder|winner|player|member|signer|referrer|beneficiary|delegator|producer|validator|staker|minter|maker|taker|caller|requester|arbitrator)s?($|_)/i;
 export const PRIVATE = '[private account]';
 const NAME = /^[a-z1-5.]{1,12}$/;
+const MAX_DEPTH = 6;
+export const NESTED_HIDDEN = '[nested data hidden]';
 
 export function makeKeep(extra: string[] = [], producers: string[] = []): Set<string> {
 	return new Set([...PUBLIC_ACCOUNTS, ...producers, ...extra.filter(Boolean)]);
@@ -39,15 +42,18 @@ export function makeKeep(extra: string[] = [], producers: string[] = []): Set<st
 export function maskName(n: string, keep: Set<string>): string {
 	return keep.has(n) ? n : PRIVATE;
 }
-export function maskData(v: any, keep: Set<string>, depth = 0): any {
-	if (depth > 4 || v == null || typeof v !== 'object') return v;
-	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1));
+/**
+ * Fail closed (review 2026-10-16): anything deeper than MAX_DEPTH is replaced, never passed through unchecked.
+ * Under a person-like key, every name-shaped string is checked, however it is nested (arrays, {actor, permission}…).
+ */
+export function maskData(v: any, keep: Set<string>, depth = 0, personal = false): any {
+	if (v == null) return v;
+	if (typeof v === 'string') return personal && NAME.test(v) ? maskName(v, keep) : v;
+	if (typeof v !== 'object') return v;
+	if (depth >= MAX_DEPTH) return NESTED_HIDDEN;
+	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1, personal));
 	const out: any = {};
-	for (const [k, x] of Object.entries(v)) {
-		if (PERSON_FIELDS.has(k) && typeof x === 'string' && NAME.test(x)) out[k] = maskName(x, keep);
-		else if (PERSON_FIELDS.has(k) && Array.isArray(x)) out[k] = x.map((y) => (typeof y === 'string' && NAME.test(y) ? maskName(y, keep) : maskData(y, keep, depth + 1)));
-		else out[k] = maskData(x, keep, depth + 1);
-	}
+	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, personal || PERSON_KEY.test(k));
 	return out;
 }
 const auths = (list: any[], keep: Set<string>) => (list ?? []).map((x: any) => `${maskName(x.actor, keep)}@${x.permission}`);

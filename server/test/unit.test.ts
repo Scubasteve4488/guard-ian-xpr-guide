@@ -7,7 +7,7 @@ import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
-import { maskData, makeKeep, maskName, isFilter, PRIVATE } from '../src/history.ts';
+import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN } from '../src/history.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
@@ -407,6 +407,15 @@ t('history: person masked, contract kept', md.from === PRIVATE && md.to === 'sim
 t('history: typed account kept, nested person masked', md.inner.owner === 'typedacct' && md.inner.buyer === PRIVATE);
 t('history: producer kept', maskName('storexbp', keepH) === 'storexbp' && maskName('randomguy', keepH) === PRIVATE);
 t('history: filter syntax', isFilter('simplelaunch:setantisnp') && isFilter('eosio.token:*') && !isFilter('bad filter'));
+
+// ── history privacy, adversarial (review 2026-10-16)
+const deep = maskData({ a: { b: { c: { d: { e: { f: { g: { from: 'hiddenguy1' } } } } } } } }, keepH);
+t('history: past max depth is hidden, not passed', !JSON.stringify(deep).includes('hiddenguy1') && JSON.stringify(deep).includes(NESTED_HIDDEN));
+const odd = maskData({ to_account: 'personone', ram_payer: 'persontwo', new_owner: 'person3', bidders: ['person4', 'simplelaunch'], auth: { actor: 'person5', permission: 'active' } }, keepH);
+t('history: person-like key variants masked', odd.to_account === PRIVATE && odd.ram_payer === PRIVATE && odd.new_owner === PRIVATE && odd.bidders[0] === PRIVATE && odd.bidders[1] === 'simplelaunch' && odd.auth.actor === PRIVATE && odd.auth.permission === 'active');
+const nested = maskData({ items: [{ buyer: 'personsix', qty: '1.0000 XPR' }, { owner: { account: 'personseven' } }] }, keepH);
+t('history: arrays of objects masked', nested.items[0].buyer === PRIVATE && nested.items[0].qty === '1.0000 XPR' && nested.items[1].owner.account === PRIVATE);
+t('history: non-person fields untouched', maskData({ memo: 'hello', symbol: 'XPR', quantity: '5.0000 XPR' }, keepH).memo === 'hello');
 
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
