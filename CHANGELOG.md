@@ -2,6 +2,9 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night): server 1.5.2, newest source first (builder's ruling).**
+  - RULES §1 and built-in rule 3 now say: lead with the newest source, label older ones with their date, and read live whenever possible.
+  - **§12b finality, corrected:** fast inclusion is sub-second (0.5 s blocks; dev skill says "~2 second first-block confirmation"). Irreversibility is about 3 minutes today: the current dev skill says "full LIB finality ~3 minutes", and live reads on 10-16 showed LIB 327–332 blocks (2.7–2.8 min) behind head.
 - **2026-10-16 (night, sweep part 3):** The Metal Blockchain and Metal L2 rows now carry facts from Metallicus's developer pages: subnets, up to 4,500 TPS per subnet and PoS validators for Metal Blockchain; Superchain/OP Stack and bridging for Metal L2. They also link each chain's explorer, docs and whitepaper. §12b flags a disagreement on finality: the whitepaper v2.0 says 3 minutes, the developer page says sub-second.
 - **2026-10-16 (night, sweep part 2):** §1a gains a dated Metallicus timeline built from its newsroom headlines (2022 to 2026). §12b gains XPR token economics from the whitepaper v2.0, with verbatim quotes on supply, Phoenix, 4% inflation and its split, burns, consensus, the Consortium and audits. It also has the live supply read on 10-16 (32.6B XPR, no max), and marks the whitepaper's 5-member Consortium as out of date.
 - **2026-10-16 (night, coverage sweep):** Three new sections, each read at the official or named source on 10-16:

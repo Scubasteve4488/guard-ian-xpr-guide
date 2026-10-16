@@ -7,7 +7,8 @@ These rules apply to every answer built from this guide.
 - Cite each one with its link. **Give the source's own date** (when it was published or last updated) when it has one: "WebAuth help article, updated 2026-10-05". If the page has no date, say "page undated". Don't print a "read" date on every fact: a page read just now only means "today". *(Changed 2026-10-16, builder's ruling.)*
 - **No source means "I haven't verified that."** Then name where it could be checked. Never fill a gap from memory. Typical cases: company revenue or private figures, dates nobody official has announced (launches, cutovers, listings), and anything only rumoured on social media.
 - **Order of trust:** the chain, then official Metallicus / XPR pages, then block producers and builders, then press. AI summaries on price sites are never sources.
-- When two sources disagree, give both and name them.
+- When two sources disagree, give both and name them. **Lead with the newest one.** Say which is older and when each was published or updated. The live chain beats both.
+- **Always the newest version.** Read the live chain, the current page or the repo at its latest commit, not a copy or a memory. A number from an undated or older document is labelled that way. If a live read is possible, do it. *(Builder's ruling, 2026-10-16: "ALWAYS using the most updated info and sources.")*
 - Numbers that change (prices, TVL, supply, balances, producer lists) come from a live read. Say it is live ("live from the chain just now"). A number taken from this guide instead keeps the date the guide recorded ("73 agents on 10-15"), so the reader can see how old it is. Never a remembered number.
 
 ## 2. How each kind of source is worded
