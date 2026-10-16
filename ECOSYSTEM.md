@@ -73,6 +73,24 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
   - **Metal L2 v1.0**: OP Stack. https://cdn.metallicus.com/Metal_L2_Whitepaper_v1.0.pdf
   - **Metal Blockchain v1.2**: layer 0. https://cdn.metallicus.com/Metal_Blockchain_Whitepaper_v1.2.pdf
 
+- **Timeline from the newsroom headlines** (https://metallicus.com/news, read 10-16; each line is the headline and its date):
+  - **2022:** "(Re) Introducing Metallicus" (Aug 3). Advisory board introduced (Aug 4). LunarCrush expands to XPR Network (Aug 29). Metal Pay API launched (Sep 20). **Metal Blockchain mainnet live (Oct 18).** Checkout.com partnership (Dec 15).
+  - **2023:** partnership with Swiss market maker flovtec (May 15). Metal Blockchain, WebAuth and the Metal Pay API on Temenos Exchange (Sep 7). Metal Blockchain joins the Jack Henry Vendor Integration Program (Sep 12). Card and ACH processing with Fiserv technology (Oct 4).
+  - **2024:**
+    - Vibrant, FAIRWINDS and Meritrust credit unions join Metal Blockchain's Banking Innovation Program (Mar–May).
+    - Metal Blockchain joins the U.S. Faster Payments Council (Oct 2).
+    - Metallicus supports the FedNow® Service (Oct 22).
+    - **Metallicus acquires Bonifii, "Connecting 70+ Credit Unions" (Dec 21).**
+  - **2025:**
+    - Payfinia partnership (Feb 25). MD|DC Credit Union Association joins the innovation program (May 7).
+    - **Stablecoin Pilot Program for credit unions launched (Jun 16).** Daland CUSO partnership (Aug 5).
+    - First platform partner in Velera's Digital Asset Lab (Aug 20).
+    - **St. Cloud Financial Credit Union "to Launch First Credit Union Stablecoin" (Sep 16).**
+    - Cornerstone League partnership (Oct 9). InvestiFi alliance (Nov 3).
+    - One Nevada (Nov 25) and Arizona Financial (Dec 4) credit unions join the stablecoin pilot.
+  - **2026:** FedNow Request for Payment (RFP) certification (Feb 27). **CrossState pilot with 50 credit unions (May 14).** Digital-dollar infrastructure update (Jun 23). **SOC 2 Type I completed (Aug 18).** Q3 report (Oct 5).
+  - Quarterly reports run from 2023 Q1 to 2026 Q3.
+
 ### 1b. XPR Network's official roadmap ("2025 and beyond", read 2026-10-16)
 Source: https://xprnetwork.org/roadmap. The page gives no dates.
 - **Only one item shows a status:** "WebAuth – Fiat Ramp", **"In development"**. It is a card on-ramp inside WebAuth, starting in the US, Australia and New Zealand.
@@ -423,6 +441,14 @@ These repos mention XPR Network (GitHub search, 10-15). **Code existing is not a
 | chaininfra courses | EVM-to-XPR migration course, key refresh, delegation demo | https://github.com/chaininfra | CODE |
 
 ## 12b. How things work: key facts (read at the official source 2026-10-15)
+- **XPR token economics, from the XPR Network whitepaper v2.0** (undated; https://cdn.metallicus.com/XPR_Network_Whitepaper_v2.0.pdf, read 10-16; quotes are the paper's own words):
+  - **Supply:** "Initial total supply: 10,000,000,000 XPR". "Max supply: ∞ (4% inflation per year that can be adjusted by BP vote)". **Live on chain 10-16: 32,600,054,991 XPR issued, no max set** (`eosio.token`).
+  - **Phoenix Proposal (§5):** "14 billion non circulating tokens will be added", bringing non-circulating supply to 28 billion. The split: block producers 500M, community 2B, marketing 1.5B, "Core Developer (Metallicus): 10 billion XPR", each "to be put into circulation within 3 years".
+  - **Inflation (§5.1):** "The block reward is set at 4% per annum, awarded on a 1/365 ratio, daily". The split is 1% block producers, 1% accounts that stake and vote, 1% the governing consortium, 1% yield farming. **Whether those rates still apply today is not checked here.**
+  - **Burns (§3.3, §5.2):** XPR spent on network resources by businesses and developers is burned. "For every NFT minted, 10% of the XPR used is burned". "0.1% of all fees generated from XPR Network Swap are burned". Burns happen at the end of each quarter.
+  - **Consensus (§3.6–3.8):** dPoS. A block "exactly every 0.5 seconds". "21 active Block Producers" plus "24 Block Producers on standby". A 2/3 + 1 producer majority gives "3-minute finality". "over 4,000 transactions per second (TPS)".
+  - **Consortium (§3.10):** "5 independent members", voted in unanimously by current members, 2-year terms. **Out of date:** today's Consortium page lists 6 members (§10).
+  - **Audits named (§8.3):** Kudelski Security (voluntary assessment), PeckShield (Swap and Yield Farming), Blockmancer (LOAN staking).
 Live numbers can change: read the chain or the linked page before stating one, and give the time read.
 
 **Zero gas fees and who pays:** users pay no gas. They get free CPU, NET and RAM for normal use. Block producers provide the capacity and are paid in XPR from inflation (21 active producers plus standby). Power users and dApps can buy RAM or rent CPU/NET at https://resources.xprnetwork.org, and dApps can stake resources for their users. Source: https://xprnetwork.org/blog/how-xpr-network-achieves-zero-gas-fees

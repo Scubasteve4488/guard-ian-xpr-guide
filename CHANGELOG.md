@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night, sweep part 2):** §1a gains a dated Metallicus timeline built from its newsroom headlines (2022 to 2026). §12b gains XPR token economics from the whitepaper v2.0, with verbatim quotes on supply, Phoenix, 4% inflation and its split, burns, consensus, the Consortium and audits. It also has the live supply read on 10-16 (32.6B XPR, no max), and marks the whitepaper's 5-member Consortium as out of date.
 - **2026-10-16 (night, coverage sweep):** Three new sections, each read at the official or named source on 10-16:
   - **§1a Metallicus, the company:** what it is and its mission; the leadership and advisory board from its team page; MemberPass and the Bonifii/CULedger acquisition; the CrossState credit-union program; TDBN explained; SOC 2 Type I; and all five whitepapers with links.
   - **§1b XPR Network's official roadmap:** the WebAuth fiat ramp is "In development". The roadmap also lists Biometric Key Recovery, the **A-Chain Upgrade**, Futures Trading, invoicing, ISO 20022 and more, with no dates.
