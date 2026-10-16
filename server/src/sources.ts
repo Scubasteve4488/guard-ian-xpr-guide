@@ -1,8 +1,9 @@
 // sources.ts: fetch ONE page from an official or catalogued source, so any AI client can read it even when its own
 // web access is limited. Allow-listed (no open proxy), HTTPS only, robots.txt respected, size-capped, cached.
 //
-// The allow-list keeps itself current (operator ruling 2026-10-15, "Yes definitely"): any https host linked anywhere
-// in the guide's own files (llms.txt, ECOSYSTEM.md, SOURCES.md, ...) is allowed, read live from the guide repo. So
+// The allow-list keeps itself current (operator ruling 2026-10-15, "Yes definitely"): any https host linked in the
+// guide's source catalogues (llms.txt, ECOSYSTEM.md, SOURCES.md, KSTO.md; since 2026-10-16 not CHANGELOG, README or
+// RULES) is allowed, read live from the guide repo. So
 // when the daily update adds a project, its site becomes readable within 5 minutes, with no code change.
 // The static lists below are the floor that still works if GitHub cannot be reached.
 // Same idea as GitMCP's fetch_generic_url_content ("retrieve referenced urls ... mentioned in previously fetched
@@ -33,6 +34,9 @@ export const ALLOWED_HOSTS = new Set([
 
 // GitHub is huge: only these owners (plus any owner the guide links to) are sources.
 const GITHUB_OWNERS = new Set(['xprnetwork', 'metalblockchain', 'paulgnz', 'charliebot87', 'scubasteve4488', 'antelopeio', 'eoscafe']);
+
+// GitHub path words that are site sections, not accounts (security review M5).
+const GITHUB_NON_OWNERS = new Set(['advisories', 'orgs', 'search', 'topics', 'sponsors', 'settings', 'features', 'marketplace', 'collections', 'explore', 'trending', 'about', 'pricing', 'login', 'users', 'apps', 'enterprise', 'security', 'site', 'events', 'readme', 'codespaces', 'notifications', 'issues', 'pulls']);
 
 // Never fetched, even when the guide links them: social and log-in sites (pages need a browser or an account, and
 // their terms forbid scraping). The AI should give the person the link to open themselves.
@@ -76,11 +80,13 @@ export function extractLinks(text: string, into: GuideLinks = { hosts: new Set()
 		into.hosts.add(norm(host));
 		if (host === 'github.com' || host === 'raw.githubusercontent.com') {
 			const owner = u.pathname.split('/').filter(Boolean)[0]?.toLowerCase();
-			if (owner) into.githubOwners.add(owner);
+			if (owner && !GITHUB_NON_OWNERS.has(owner)) into.githubOwners.add(owner);
 		}
 	}
 	return into;
 }
+
+const LINK_FILES = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'KSTO.md'] as const satisfies readonly (typeof GUIDE_FILES)[number][];
 
 let memo: { at: number; links: GuideLinks } | null = null;
 const MEMO_MS = 5 * 60 * 1000;
@@ -88,7 +94,9 @@ const MEMO_MS = 5 * 60 * 1000;
 /** The hosts and GitHub owners linked anywhere in the guide, read live (5-minute cache). Empty if GitHub fails. */
 export async function guideLinks(repo: string, branch: string, ctx?: ExecutionContext, token?: string): Promise<GuideLinks> {
 	if (memo && Date.now() - memo.at < MEMO_MS) return memo.links;
-	const reads = await Promise.allSettled(GUIDE_FILES.map((f) => readGuideFile(repo, branch, f, ctx, token)));
+	// Security review M5 (2026-10-16): links count only from the source catalogues, never from CHANGELOG/README/RULES, so
+	// a changelog note or a quoted warning link cannot widen what this public fetcher reaches.
+	const reads = await Promise.allSettled(LINK_FILES.map((f) => readGuideFile(repo, branch, f, ctx, token)));
 	const links: GuideLinks = { hosts: new Set(), githubOwners: new Set() };
 	let anyOk = false;
 	for (const r of reads) {
@@ -185,9 +193,14 @@ export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: G
 		target = new URL(r.location, chk.url).toString();
 	}
 	if (r.status >= 400) throw new UpstreamError(`${new URL(r.source).host} returned HTTP ${r.status}`);
-	const looksHtml = /<html|<!doctype html|<body/i.test(r.text.slice(0, 2000));
-	let text = looksHtml ? htmlToText(r.text) : r.text;
-	let truncated = false;
+	// Security review M3: text pages only, and cut before the HTML clean-up so one page cannot burn the CPU budget.
+	if (r.contentType && !/^(text\/|application\/(json|xml|javascript|[\w.+-]+\+(json|xml)))/i.test(r.contentType)) {
+		throw new UpstreamError(`${new URL(r.source).host} returned ${r.contentType.split(';')[0]}, not a text page`);
+	}
+	const pageText = r.text.slice(0, 300_000);
+	const looksHtml = /<html|<!doctype html|<body/i.test(pageText.slice(0, 2000));
+	let text = looksHtml ? htmlToText(pageText) : pageText;
+	let truncated = !!r.tooLarge || r.text.length > pageText.length;
 	if (text.length > MAX_CHARS) {
 		text = text.slice(0, MAX_CHARS);
 		truncated = true;

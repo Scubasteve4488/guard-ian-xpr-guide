@@ -34,7 +34,7 @@ How to use this guide (read RULES.md first):
 ## XPR Network developer skill (official, XPRNetwork/xpr-network-dev-skill)
 - [SKILL.md: index of all modules](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/SKILL.md)
 - [agent-bootstrap.md: building an agent on XPR](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/agent-bootstrap.md)
-- [simpledex.md: SimpleDEX launches, AMM, graduation](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/simpledex.md)
+- [simpledex.md: SimpleDEX launches, AMM, graduation](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/simpledex.md). For launch timing and graduation, read llms-launches.txt or the live simplelaunch tables (antisnipe, gradparams) instead: as read 2026-10-16 this module still gives the old 60 s creator window and no graduation cooldown, while the chain says 120 s and a 300 s cooldown.
 - [rpc-queries.md: RPC, Hyperion, pagination, endpoint etiquette](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/rpc-queries.md)
 - [accounts-permissions.md: accounts, keys, permissions, multisig](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/accounts-permissions.md)
 - [webauth-identity.md: WebAuth wallet and identity](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/webauth-identity.md)

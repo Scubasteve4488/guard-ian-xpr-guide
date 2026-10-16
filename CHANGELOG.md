@@ -2,6 +2,12 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (IAN-CODE, builder's go):** Server 1.5.0.
+  1. **Official help center readable.** New tools `xpr_help_search` and `xpr_help_article` read help.xprnetwork.org (Metallicus Client Services) through Zendesk's public Help Center API, because the HTML pages sit behind a Cloudflare browser check. robots.txt allows these endpoints. Every result carries the article's own "updated" date. Shared 20/min budget, 6 h cache.
+  2. **Page size capped** (review M3): bodies stop at 1 MB, HTML is cut to 300 KB before clean-up, and non-text pages are refused.
+  3. **Fetch list tightened** (review M5): auto-allowed links now come only from llms.txt, ECOSYSTEM.md, SOURCES.md and KSTO.md, not CHANGELOG, README or RULES. GitHub section words such as advisories or orgs no longer count as owners.
+  - llms.txt: the simpledex.md link now warns that the module still says 60 s and has no graduation cooldown, and points to llms-launches.txt and the live tables.
+
 - **2026-10-16 (night): server 1.4.0, privacy and dates (builder's rulings, 2026-10-15 20:24 CT, with IAN-CODE's review)**
   - **Wallet names stay private.** Every tool result now passes through a privacy filter (`server/src/privacy.ts`). It hides:
     - private people's accounts the AI comes across: a "Creator:" line on a community page, and creator/buyer/seller/holder fields in SimpleDEX data;

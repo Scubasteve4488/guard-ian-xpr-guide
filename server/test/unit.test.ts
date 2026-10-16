@@ -6,6 +6,7 @@ import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource
 import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
+import { helpSearch, helpArticle } from '../src/help.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, MASK, KEY_MASK } from '../src/privacy.ts';
 
@@ -270,6 +271,36 @@ const fake = await tokenCheck('XMD', 'xtokens');
 t('metal x: mixed sides do not match', fake.facts.some((f) => f.includes('does not include XMD@xtokens')));
 const real = await tokenCheck('XMD', 'xmd.token');
 t('metal x: same-side match still found', real.facts.some((f) => f.startsWith('Metal X lists XMD@xmd.token in 1 market')));
+
+// ── security review M5: GitHub section words are not owners
+const ghLinks = extractLinks('see https://github.com/advisories/GHSA-x and https://github.com/orgs/foo/x and https://github.com/MetalBlockchain/pulsevm');
+t('github non-owner words ignored', !ghLinks.githubOwners.has("advisories") && !ghLinks.githubOwners.has("orgs") && ghLinks.githubOwners.has("metalblockchain"));
+
+// ── security review M3: bodies capped at 1 MB, non-text refused
+stub(() => new Response('x'.repeat(1_500_000), { status: 200, headers: { 'content-type': 'text/plain' } }));
+const big = await politeFetch(['https://h.test'], '/big', {}, { startAt: 0, ttlSec: 30 });
+t('body capped at 1 MB', big.text.length === 1_000_000 && big.tooLarge === true);
+calls.length = 0;
+await politeFetch(['https://h.test'], '/big', {}, { startAt: 0, ttlSec: 30 });
+t('oversized body not cached', calls.length === 1);
+stub(() => new Response('PNGDATA', { status: 200, headers: { 'content-type': 'image/png' } }));
+let nonText = '';
+try { await fetchSource('https://simpledex.fun/logo.png', undefined, { hosts: new Set(), githubOwners: new Set() }); } catch (e: any) { nonText = e.message; }
+t('non-text page refused', /not a text page/.test(nonText) || /robots/.test(nonText));
+
+// ── help center via Zendesk public API
+stub((url) => {
+	if (url.includes('/articles/search.json')) return Response.json({ count: 1, results: [{ id: 30861793921687, title: 'Memo ID', html_url: 'https://help.xprnetwork.org/hc/en-us/articles/30861793921687', updated_at: '2026-06-22T10:00:00Z', snippet: 'Certain <em>memo</em> rules' }] });
+	if (url.includes('/en-us/articles/4409647374487.json')) return Response.json({ article: { title: 'Restore', html_url: 'https://help.xprnetwork.org/hc/en-us/articles/4409647374487', updated_at: '2026-10-05T00:00:00Z', body: '<p>Step 1</p><script>evil()</script><p>Step 2</p>' } });
+	return new Response('nope', { status: 404 });
+});
+const hs = await helpSearch('memo');
+t('help search returns link + own date', hs.data.results[0].url.endsWith('30861793921687') && hs.data.results[0].updated === '2026-06-22' && !hs.data.results[0].extract.includes('<em>'));
+const ha = await helpArticle('4409647374487');
+t('help article plain text, no script', ha.data.text.includes('Step 1') && ha.data.text.includes('Step 2') && !ha.data.text.includes('evil') && ha.data.updated === '2026-10-05');
+let badId = '';
+try { await helpArticle('../x'); } catch (e: any) { badId = e.message; }
+t('help article id validated', /article id/.test(badId));
 
 globalThis.fetch = realFetch;
 

@@ -27,6 +27,27 @@ export const HYPERION_ENDPOINTS = [
 ];
 
 const MAX_ATTEMPTS = 3;
+// Security review M3: never buffer an unbounded body. Stop reading at 1 MB and cancel the rest.
+const MAX_BODY_BYTES = 1_000_000;
+async function readCapped(res: Response): Promise<{ text: string; tooLarge: boolean }> {
+	if (!res.body) return { text: '', tooLarge: false };
+	const reader = res.body.getReader();
+	const dec = new TextDecoder();
+	let text = '';
+	let n = 0;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) return { text: text + dec.decode(), tooLarge: false };
+		n += value.byteLength;
+		if (n > MAX_BODY_BYTES) {
+			const keep = value.byteLength - (n - MAX_BODY_BYTES);
+			text += dec.decode(value.subarray(0, Math.max(0, keep)));
+			await reader.cancel().catch(() => {});
+			return { text, tooLarge: true };
+		}
+		text += dec.decode(value, { stream: true });
+	}
+}
 const MAX_BACKOFF_MS = 1500;
 const TIMEOUT_MS = 8000;
 
@@ -35,6 +56,8 @@ export class UpstreamError extends Error {}
 export interface FetchResult {
 	status: number;
 	text: string;
+	contentType?: string;
+	tooLarge?: boolean; // the body passed MAX_BODY_BYTES and was cut there
 	source: string; // the exact URL that answered
 	cached: boolean;
 	readAt: string; // ISO time the upstream answered (or the cached copy was stored)
@@ -218,9 +241,9 @@ export async function politeFetch(
 			lastErr = `${new URL(url).host} redirected (not followed)`;
 			continue;
 		}
-		const text = await res.text();
-		const out: FetchResult = { status: res.status, text, source: url, cached: false, readAt: new Date().toISOString() };
-		if (res.ok && ttl > 0) await cachePut(key, out, ttl, opts.ctx);
+		const { text, tooLarge } = await readCapped(res);
+		const out: FetchResult = { status: res.status, text, source: url, cached: false, readAt: new Date().toISOString(), contentType: res.headers.get('content-type') || undefined, ...(tooLarge ? { tooLarge } : {}) };
+		if (res.ok && ttl > 0 && !tooLarge) await cachePut(key, out, ttl, opts.ctx);
 		return out;
 	}
 	throw new UpstreamError(lastErr);
