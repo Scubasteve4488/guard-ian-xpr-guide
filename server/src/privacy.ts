@@ -76,8 +76,11 @@ export function containsPrivateKey(args: unknown): boolean {
 export async function maskText(text: string, exempt: Set<string> = new Set(), extra: Set<string> = new Set()): Promise<string> {
 	const keep = (name: string) => exempt.has(name.toLowerCase().replace(/^@/, ''));
 	let out = text.replace(PRIVATE_KEY, KEY_MASK);
-	out = out.replace(JSON_PERSON, (all, pre, name, post) => (keep(name) ? all : `${pre}${MASK}${post}`));
-	out = out.replace(LABEL_PERSON, (all, label, sep, name) => (keep(name) ? all : `${label}${sep}${MASK}`));
+	// 1.16.0 (builder 2026-10-16, option (a)): creator / buyer / seller / holder names in data and page text are shown.
+	// The two patterns stay defined for reference but are no longer applied. The builder's own account below still is.
+	void JSON_PERSON;
+	void LABEL_PERSON;
+	void keep;
 	// The builder's account and any extra listed names, wherever they appear.
 	// A sentence-ending dot is not part of the name.
 	const norm = (m: string) => m.replace(/^@/, '').replace(/\.+$/, '').toLowerCase();

@@ -43,21 +43,27 @@ export const NESTED_HIDDEN = '[nested data hidden]';
 export function makeKeep(extra: string[] = [], producers: string[] = []): Set<string> {
 	return new Set([...PUBLIC_ACCOUNTS, ...producers, ...extra.filter(Boolean)]);
 }
-export function maskName(n: string, keep: Set<string>): string {
-	return keep.has(n) ? n : PRIVATE;
+// 1.16.0 (builder 2026-10-16, option (a): "wallet names ... They're not private"): account names in lists, tables,
+// history, blocks and indexer data are shown. Still hidden: every name on the network blocklist (table rows and the
+// blocklist contract's own actions: naming a listed account reads as a label) and, in every result, the builder's
+// own account (privacy.ts). Looking into ONE ordinary wallet (balances, history, holdings) stays limited to public
+// accounts by the gates in index.ts; that part is unchanged.
+const NAMES_SHOWN = true;
+export function maskName(n: string, keep: Set<string>, strict = false): string {
+	return (!strict && NAMES_SHOWN) || keep.has(n) ? n : PRIVATE;
 }
 /**
  * Fail closed (review 2026-10-16): anything deeper than MAX_DEPTH is replaced, never passed through unchecked.
  * Under a person-like key, every name-shaped string is checked, however it is nested (arrays, {actor, permission}…).
  */
-export function maskData(v: any, keep: Set<string>, depth = 0, personal = false): any {
+export function maskData(v: any, keep: Set<string>, depth = 0, personal = false, strict = false): any {
 	if (v == null) return v;
-	if (typeof v === 'string') return personal && NAME.test(v) ? maskName(v, keep) : v;
+	if (typeof v === 'string') return personal && NAME.test(v) ? maskName(v, keep, strict) : v;
 	if (typeof v !== 'object') return v;
 	if (depth >= MAX_DEPTH) return NESTED_HIDDEN;
-	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1, personal));
+	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1, personal, strict));
 	const out: any = {};
-	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, !NOT_PERSON.has(k) && (personal || PERSON_KEY.test(k)));
+	for (const [k, x] of Object.entries(v)) out[k] = maskData(x, keep, depth + 1, !NOT_PERSON.has(k) && (personal || PERSON_KEY.test(k)), strict);
 	return out;
 }
 /** Every name-shaped string maskData would hide (same walk, same person keys), so a caller can check a few first. */
@@ -107,21 +113,18 @@ export async function maskRows(
 	isPub: (name: string) => Promise<boolean>,
 	max = TABLE_PUBLIC_CHECKS,
 ): Promise<{ rows: any[]; hidden: number }> {
+	// 1.16.0: names in table rows are shown; only an all-private table (the blocklist) is masked, every name in it.
+	if (!ALWAYS_PRIVATE_TABLES.has(`${code}/${table}`)) return { rows: rows ?? [], hidden: 0 };
+	void isPub;
+	void max;
 	const field = PUBLIC_ROW_FIELDS[`${code}/${table}`];
 	if (field) for (const r of rows ?? []) if (r && typeof r[field] === 'string' && NAME.test(r[field])) keep.add(r[field]);
 	const unknown = [...personNames(rows)].filter((n) => !keep.has(n)).sort();
-	if (ALWAYS_PRIVATE_TABLES.has(`${code}/${table}`)) max = 0;
-	for (const n of unknown.slice(0, max)) {
-		try {
-			if (await isPub(n)) keep.add(n);
-		} catch {
-			/* unknown -> private */
-		}
-	}
-	const hidden = unknown.filter((n) => !keep.has(n)).length;
-	return { rows: maskData(rows ?? [], keep), hidden };
+	return { rows: maskData(rows ?? [], keep, 0, false, true), hidden: unknown.length };
 }
-const auths = (list: any[], keep: Set<string>) => (list ?? []).map((x: any) => `${maskName(x.actor, keep)}@${x.permission}`);
+const auths = (list: any[], keep: Set<string>, strict = false) => (list ?? []).map((x: any) => `${maskName(x.actor, keep, strict)}@${x.permission}`);
+/** The blocklist contract's own actions name listed accounts: masked strictly (1.16.0). */
+const isBlocklistAct = (contract: unknown) => contract === 'blocklist';
 
 let producerCache: { at: number; names: string[] } | null = null;
 export async function producerNames(ctx?: ExecutionContext): Promise<string[]> {
@@ -168,8 +171,8 @@ export async function actions(
 		block: a.block_num,
 		trx_id: a.trx_id,
 		action: `${a.act?.account}::${a.act?.name}`,
-		authorization: auths(a.act?.authorization, keep),
-		data: clip(maskData(a.act?.data, keep)),
+		authorization: auths(a.act?.authorization, keep, isBlocklistAct(a.act?.account)),
+		data: clip(maskData(a.act?.data, keep, 0, false, isBlocklistAct(a.act?.account))),
 		explorer: a.trx_id ? explorerTx(a.trx_id, net) : undefined,
 	}));
 	return {
@@ -191,8 +194,8 @@ export async function transaction(id: string, ctx?: ExecutionContext, typed: str
 	}
 	const acts = (j.actions ?? []).slice(0, 40).map((a: any) => ({
 		action: `${a.act?.account}::${a.act?.name}`,
-		authorization: auths(a.act?.authorization, keep),
-		data: clip(maskData(a.act?.data, keep)),
+		authorization: auths(a.act?.authorization, keep, isBlocklistAct(a.act?.account)),
+		data: clip(maskData(a.act?.data, keep, 0, false, isBlocklistAct(a.act?.account))),
 		inline: a.creator_action_ordinal ? a.creator_action_ordinal > 0 : undefined,
 	}));
 	if (!acts.length) throw new UpstreamError('no transaction with that id was found by this Hyperion node');
@@ -217,8 +220,8 @@ export async function block(num: number, ctx?: ExecutionContext, typed: string[]
 			rows.push({
 				trx_id: trx.id,
 				action: `${a.account}::${a.name}`,
-				authorization: auths(a.authorization, keep),
-				data: clip(maskData(a.data, keep)),
+				authorization: auths(a.authorization, keep, isBlocklistAct(a.account)),
+				data: clip(maskData(a.data, keep, 0, false, isBlocklistAct(a.account))),
 			});
 		}
 	}
