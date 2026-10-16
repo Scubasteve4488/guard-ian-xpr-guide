@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (night): info a user shares (builder's question).** RULES §1 now says a fact a user tells the AI is a lead, not a source: thank them, check it at an official page, the repo or the live chain, use it only with that source, never pass it on as fact on their word alone, and point them to the guide's GitHub issues to get it added for everyone. README's "found something wrong" line now also covers "something it's missing". A weekly freshness audit (Sundays 8:53 am Mountain) now re-reads every guide fact older than 7 days at its source and re-dates or fixes it.
 - **2026-10-16 (night): server 1.5.3.** Luminary Vision (`proton-hyperion.luminaryvisn.com`) added to the chain-read rotation, so it matches the latest XPR dev skill's mainnet table (8 endpoints; it had 7). The token registry and the history-server (Hyperion) list were checked against the latest skill on the same night and match.
 - **2026-10-16 (night): server 1.5.2, newest source first (builder's ruling).**
   - RULES §1 and built-in rule 3 now say: lead with the newest source, label older ones with their date, and read live whenever possible.

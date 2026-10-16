@@ -48,4 +48,4 @@ Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX lau
 - **Built on:** XPR Network's developer skill and docs, Metallicus's published sources, Proton NZ's SimpleDEX docs and indexers, [GitMCP](https://github.com/idosal/git-mcp), and Cloudflare's [remote MCP template](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless).
 
 ## Disclosure
-@Scubasteve4488 holds XPR and the GUARD token. **Not affiliated with, or endorsed by, Metallicus or XPR Network.** Nothing here is financial advice. Found something wrong? Open an issue with the source, and it gets fixed and dated.
+@Scubasteve4488 holds XPR and the GUARD token. **Not affiliated with, or endorsed by, Metallicus or XPR Network.** Nothing here is financial advice. Found something wrong, or something it's missing? Open an issue with the source link, and it gets checked at that source, then fixed or added, and dated.
