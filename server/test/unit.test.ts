@@ -16,6 +16,8 @@ import { DatabaseSync } from 'node:sqlite';
 import { u64ToName, tableAccountRefs, accessGate, isPublicAccount } from '../src/access.ts';
 import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
 import { z } from 'zod';
+import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
+import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 
 let pass = 0,
 	failN = 0;
@@ -702,5 +704,159 @@ t('other Zendesk API paths still refused', dataApiRefusal(new URL('https://help.
 t('secret address works with the public one open or locked', accessGate('/mcp/abcDEF123', 'abcDEF123') === 'rewrite' && accessGate('/mcp/abcDEF123', 'abcDEF123', '1') === 'rewrite');
 t('public address open unless LOCK_PUBLIC is 1', accessGate('/mcp', 'abcDEF123') === 'pass' && accessGate('/', 'abcDEF123') === 'open-landing');
 t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc', '/mcp/abcDEF1234', '/mcp/abcDEF123/x', '/x/abcDEF123'].every((p) => accessGate(p, 'abcDEF123', '1') === 'deny'));
+
+// ── 1.15.0: LOAN Protocol (port of xpr-agents lending read tools) ──────────────────────────────────────────────
+{
+	const MKT = {
+		share_symbol: { sym: '8,LBTC', contract: 'shares.loan' },
+		underlying_symbol: { sym: '8,XBTC', contract: 'xtokens' },
+		collateral_factor: '0.69999999999999996',
+		reserve_factor: '0.20000000000000001',
+		total_variable_borrows: { quantity: '14.28376020 XBTC', contract: 'xtokens' },
+		total_stable_borrows: { quantity: '0.00000000 XBTC', contract: 'xtokens' },
+		total_reserves: { quantity: '0.09655393 XBTC', contract: 'xtokens' },
+		stable_loans_enabled: 0,
+		oracle_feed_index: 4,
+		variable_accrual_time: '2026-10-16T16:48:42.000',
+		variable_interest_model: { kink: '0.65' },
+	};
+	t('loan: extSym parses "8,LBTC"', JSON.stringify(extSym(MKT.share_symbol)) === JSON.stringify({ precision: 8, symbol: 'LBTC', contract: 'shares.loan' }) && extSym({ sym: 'bad' }) === null);
+	t('loan: pct turns 0.69999999999999996 into 70%', pct('0.69999999999999996') === '70%' && pct('0.2') === '20%' && pct('x') === null);
+	const ms = marketSummary(MKT);
+	t('loan: market summary in plain words', ms.market === 'LBTC' && ms.underlying === 'XBTC@xtokens' && ms.borrowLimitPctOfCollateral === '70%' && ms.borrowedVariable === '14.28376020 XBTC' && ms.stableLoans === 'off');
+	t('loan: list view leaves out the raw interest model', !('variable_interest_model' in ms) && !JSON.stringify(ms).includes('kink'));
+	const ap = apySummary({ tokenSymbol: 'XBTC', days: 7, avgDepositApy: 0.0123, avgDepositLoanApy: 0.0456, avgBorrowApy: 0.05, avgBorrowLoanApy: 0.01, chartData: [{ date: 'd1', depositApy: 0.01, borrowApy: 0.04 }, { date: 'd2', depositApy: 0.02, borrowApy: 0.06 }] }, 'XBTC', 7);
+	t('loan: APY fractions become percentages', ap.averages.depositApy === '1.23%' && ap.averages.depositApyWithLoanRewards === '4.56%' && ap.averages.borrowApy === '5%');
+	t('loan: APY latest day is the last chart point', ap.latestDay?.date === 'd2' && ap.latestDay?.borrowApy === '6%');
+	const tv = tvlSummary({ avgDepositTvl: 1000000.4, avgBorrowTvl: 250000, chartData: [] }, 'XMD', 30);
+	t('loan: TVL in whole dollars with utilisation', tv.avgDepositedUsd === 1000000 && tv.avgBorrowedUsd === 250000 && tv.utilizationPct === '25%' && tv.days === 30);
+	t('loan: TVL with nothing deposited has no utilisation (never divides by zero)', tvlSummary({}, 'X', 7).utilizationPct === null);
+	const pos = positionsSummary(
+		[{ tokens: [{ key: { sym: '8,LBTC', contract: 'shares.loan' }, value: 150000000 }] }],
+		[{ tokens: [{ key: { sym: '6,XMD', contract: 'xmd.token' }, value: { variable_principal: 2500000, stable_principal: 0 } }] }],
+	);
+	t('loan: positions in units', pos.supplied[0].balance === '1.50000000 LBTC' && pos.borrowed[0].variablePrincipal === '2.500000 XMD' && pos.borrowed[0].underlying === 'XMD@xmd.token');
+
+	// the tool end to end with a stubbed chain and API
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	const reg = (n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined);
+	let gated = '';
+	registerLoanTool(reg, undefined, async (name) => (name === 'personwallet' ? ((gated = name), { isError: true, content: [{ type: 'text' as const, text: 'private' }] }) : null));
+	let apiUrl = '';
+	stub((url, init) => {
+		if (url.endsWith('/robots.txt')) return new Response('nf', { status: 404 });
+		if (url.endsWith('/v1/chain/get_table_rows')) {
+			const b = JSON.parse(init.body);
+			if (b.table === 'markets') return Response.json({ rows: [MKT], more: false });
+			if (b.table === 'globals.cfg') return Response.json({ rows: [{ oracle_contract: 'oracles', close_factor: '0.5', liquidation_incentive: '0.1', reward_symbol: { sym: '4,LOAN', contract: 'loan.token' } }], more: false });
+			if (b.table === 'rewards.cfg') return Response.json({ rows: [], more: false });
+			if (b.table === 'shares' || b.table === 'borrows') return Response.json({ rows: [], more: false });
+		}
+		if (url.startsWith('https://identity.api.prod.metalx.com/v1/loan/stats/')) {
+			apiUrl = url;
+			return Response.json({ tokenSymbol: 'XBTC', days: 30, avgDepositApy: 0.01, chartData: [] });
+		}
+		return new Response('nope', { status: 404 });
+	});
+	const lm = await tools.loan_protocol({ view: 'markets' });
+	t('loan tool: markets view lists LBTC with 70%', !lm.isError && lm.content[0].text.includes('"market": "LBTC"') && lm.content[0].text.includes('70%'));
+	const lc = await tools.loan_protocol({ view: 'config' });
+	t('loan tool: config view gives close factor and bonus', lc.content[0].text.includes('"closeFactorPct": "50%"') && lc.content[0].text.includes('"liquidationBonusPct": "10%"'));
+	const la = await tools.loan_protocol({ view: 'apy', market: 'LBTC', days: 30 });
+	t('loan tool: an L-token is mapped to its underlying from the chain (LBTC → XBTC)', apiUrl.includes('token_symbol=XBTC') && apiUrl.includes('days=30') && !la.isError);
+	const lmk = await tools.loan_protocol({ view: 'market', market: 'XBTC' });
+	t('loan tool: market by underlying works and shows the raw model', lmk.content[0].text.includes('interestModelVariable') && lmk.content[0].text.includes('"market": "LBTC"'));
+	const lnf = await tools.loan_protocol({ view: 'market', market: 'NOPE' });
+	t('loan tool: unknown market lists the real ones', lnf.isError && lnf.content[0].text.includes('LBTC'));
+	const lp = await tools.loan_protocol({ view: 'positions', account: 'personwallet' });
+	t('loan tool: a private person\'s positions are refused by the gate', lp.isError && gated === 'personwallet');
+	const lb = await tools.loan_protocol({ view: 'positions', account: 'Bad Name' });
+	t('loan tool: a bad account name is refused before any read', lb.isError && lb.content[0].text.includes('valid XPR account'));
+	globalThis.fetch = realFetch;
+}
+
+// ── 1.15.0: Metal L2 / Ethereum / BNB reader ───────────────────────────────────────────────────────────────────
+{
+	const enc = (str: string) => {
+		const hex = Buffer.from(str, 'utf8').toString('hex');
+		return '0x' + (32).toString(16).padStart(64, '0') + str.length.toString(16).padStart(64, '0') + hex.padEnd(Math.ceil(hex.length / 64) * 64 || 64, '0');
+	};
+	t('evm: ABI string decodes', decodeString(enc('Proton')) === 'Proton' && decodeString(enc('XPR')) === 'XPR');
+	t('evm: bytes32 string decodes (older tokens)', decodeString('0x' + Buffer.from('MKR').toString('hex').padEnd(64, '0')) === 'MKR');
+	t('evm: junk is not a string', decodeString('0x12') === null && decodeString(42) === null);
+	t('evm: units without floating point', units(100000000000000n, 4) === '10000000000' && units(15n, 1) === '1.5' && units(null, 4) === null);
+	t('evm: hex parsing', hexToBig('0x6d6') === 1750n && hexToBig('0x') === 0n && hexToBig('nope') === null);
+	t('evm: address check', isAddress(KNOWN_TOKENS.XPR.ethereum!) && !isAddress('0x123') && !isAddress('safeguard5'));
+	t('evm: balanceOf data is selector + padded address', balanceOfData('0xAbC0000000000000000000000000000000000001') === '0x70a08231000000000000000000000000abc0000000000000000000000000000000000001');
+
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	const reg = (n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined);
+	registerEvmTool(reg);
+	const XPR_ETH = KNOWN_TOKENS.XPR.ethereum!;
+	const PERSON = '0x1111111111111111111111111111111111111111';
+	const BRIDGE = '0x2222222222222222222222222222222222222222';
+	let chainIdReply = '0x1';
+	stub((url, init) => {
+		const b = JSON.parse(init?.body ?? '{}');
+		const reply = (result: unknown) => Response.json({ jsonrpc: '2.0', id: 1, result });
+		if (b.method === 'eth_chainId') return reply(url.includes('metall2') ? '0x6d6' : url.includes('bsc') ? '0x38' : chainIdReply);
+		if (b.method === 'eth_getBlockByNumber') return reply({ number: '0x10', timestamp: '0x6510f000' });
+		if (b.method === 'eth_getCode') return reply(b.params[0] === PERSON ? '0x' : '0x6080');
+		if (b.method === 'eth_getBalance') return reply('0xde0b6b3a7640000');
+		if (b.method === 'eth_call') {
+			const d = b.params[0].data as string;
+			if (d === '0x06fdde03') return reply(enc('Proton'));
+			if (d === '0x95d89b41') return reply(enc('XPR'));
+			if (d === '0x313ce567') return reply('0x' + (4).toString(16).padStart(64, '0'));
+			if (d === '0x18160ddd') return reply('0x' + (100000000000000n).toString(16).padStart(64, '0'));
+			if (d.startsWith('0x70a08231')) return reply('0x' + (123450000n).toString(16).padStart(64, '0'));
+		}
+		return new Response('nope', { status: 404 });
+	});
+	const st = await tools.evm_chains({ network: 'metal_l2', view: 'status' });
+	t('evm tool: Metal L2 status with chain 1750 checked', !st.isError && st.content[0].text.includes('"chainId": 1750') && st.content[0].text.includes('"latestBlock": 16'));
+	const tk = await tools.evm_chains({ network: 'ethereum', view: 'token', token: 'XPR' });
+	t('evm tool: XPR on Ethereum by name: Proton / XPR / 4 / 10B', tk.content[0].text.includes('"name": "Proton"') && tk.content[0].text.includes('"symbol": "XPR"') && tk.content[0].text.includes('"totalSupply": "10000000000"') && tk.content[0].text.includes(XPR_ETH));
+	t('evm tool: says the ERC-20 is not native XPR', tk.content[0].text.includes('not native XPR'));
+	const pw = await tools.evm_chains({ network: 'ethereum', view: 'balance', address: PERSON });
+	t('evm tool: a plain wallet (no code) is refused as a person', pw.isError && pw.content[0].text.includes('belongs to a person'));
+	const bb = await tools.evm_chains({ network: 'ethereum', view: 'balance', address: BRIDGE, token: 'XPR' });
+	t('evm tool: a contract balance with a token', !bb.isError && bb.content[0].text.includes('"ETH": "1"') && bb.content[0].text.includes('"balance": "12345"'));
+	chainIdReply = '0x5';
+	__resetNetState();
+	const wrong = await tools.evm_chains({ network: 'ethereum', view: 'status' });
+	t('evm tool: an endpoint on the wrong chain is refused, nothing reported', wrong.isError && wrong.content[0].text.includes('not 1'));
+	const unk = await tools.evm_chains({ network: 'metal_l2', view: 'token', token: 'XPR' });
+	t('evm tool: a name with no recorded address on that chain is refused, not guessed', unk.isError);
+	globalThis.fetch = realFetch;
+}
+
+// ── 1.15.0: pages that build themselves in the browser ───────────────────────────────────────────────────────────
+{
+	const lkb = extractLinks('https://cyphergang.com/ https://simpledex.fun/');
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return url.includes('blocked') ? new Response('User-agent: *\nDisallow: /\n', { status: 200 }) : new Response('nf', { status: 404 });
+		if (url === 'https://cyphergang.com/market') return new Response('<html><body><div id="root"></div><script src="/app.js"></script></body></html>', { status: 200 });
+		if (url === 'https://simpledex.fun/full') return new Response('<html><body><p>' + 'plain readable text '.repeat(40) + '</p></body></html>', { status: 200 });
+		return new Response('nope', { status: 404 });
+	});
+	let renders = 0;
+	const render = async (u: string) => (renders++, `# Cypher Market\n\nRendered text for ${u}`);
+	const a = await fetchSource('https://cyphergang.com/market', undefined, lkb, {}, undefined, render);
+	t('browser: a JS-only page is loaded in the browser and its text returned', a.rendered === true && a.jsShell === false && a.text.includes('Rendered text for https://cyphergang.com/market'));
+	renders = 0;
+	const b = await fetchSource('https://simpledex.fun/full', undefined, lkb, {}, undefined, render);
+	t('browser: a normal page is not sent to the browser', renders === 0 && !b.rendered && b.text.includes('plain readable text'));
+	const c = await fetchSource('https://cyphergang.com/market', undefined, lkb, {}, undefined, async () => {
+		throw new (await import('../src/net.ts')).UpstreamError('the free browser time for today is used up');
+	});
+	t('browser: used-up daily time falls back to the plain page and says why', c.jsShell === true && !c.rendered && String(c.renderNote).includes('used up'));
+	const d = await fetchSource('https://cyphergang.com/market', undefined, lkb);
+	t('browser: without the binding nothing changes (jsShell reported)', d.jsShell === true && !d.rendered);
+	let blocked = '';
+	try { await fetchSource('https://blocked.cyphergang.com/x', undefined, extractLinks('https://blocked.cyphergang.com/'), {}, undefined, render); } catch (e: any) { blocked = e.message; }
+	t('browser: robots.txt is checked before any browser load', blocked.includes('robots.txt'));
+	globalThis.fetch = realFetch;
+}
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

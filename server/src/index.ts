@@ -19,6 +19,8 @@ import { simpledexTokens, simpledexToken, simpledexMarket, metalxMarket, agentsD
 import { maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled } from './privacy.ts';
 import { cleanSuggestion, storeSuggestion, DAILY_CAP, type D1Like } from './suggest.ts';
 import { registerMoreTools } from './more.ts';
+import { registerLoanTool } from './loan.ts';
+import { registerEvmTool } from './evm.ts';
 import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
 interface Env {
@@ -36,6 +38,15 @@ interface Env {
 	ACCESS_PATH?: string; // Worker SECRET, optional: a private address /mcp/<ACCESS_PATH> that always works
 	LOCK_PUBLIC?: string; // Worker SECRET, optional: "1" closes the public address (/, /mcp) so only the private one works
 	AI?: AiLike; // Workers AI binding (wrangler.jsonc "ai"): used ONLY for toMarkdown on PDFs in source_fetch
+	BROWSER?: BrowserLike; // Browser Run binding (wrangler.jsonc "browser"): used ONLY by source_fetch for pages that build in the browser
+	BROWSER_LIMITER?: Limiter; // shared: one browser page every 10 s (Workers Free Quick Actions limit)
+}
+
+// Cloudflare Browser Run Quick Actions from a Worker binding (developers.cloudflare.com/browser-run/quick-actions/
+// markdown-endpoint/, read 2026-10-16): env.BROWSER.quickAction("markdown", { url }) → JSON { success, result }.
+// Workers Free: 10 browser-minutes a day, then 429 until the next UTC day, never billed (browser-run/limits/).
+interface BrowserLike {
+	quickAction(action: string, options: Record<string, unknown>): Promise<Response>;
 }
 
 // Cloudflare Workers AI Markdown Conversion (developers.cloudflare.com/workers-ai/features/markdown-conversion/usage/binding/).
@@ -43,7 +54,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.14.5';
+const VERSION = '1.15.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -102,6 +113,35 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	// method (developers.cloudflare.com/workers-ai/features/markdown-conversion/). Only PDFs are sent (net.ts checks the
 	// "%PDF-" signature), metadata left out (conversion-options: pdf.metadata). On the Free plan Workers AI never bills: past
 	// the daily free allowance a call fails (workers-ai/platform/pricing, "N/A - Upgrade to Workers Paid").
+	// Pages that build themselves in the browser (1.15.0, builder 2026-10-16 "Fix all the stuff it doesnt do"): loaded in
+	// Cloudflare Browser Run through the Worker binding's markdown Quick Action. Cached 6 hours; one page every 10 s;
+	// on the Free plan a used-up day returns 429 and nothing is billed. fetchSource has already checked the allow-list
+	// and robots.txt for this exact URL before this runs.
+	const renderPage = env.BROWSER
+		? async (url: string) => {
+				const store = (globalThis as any).caches?.default;
+				const key = new Request(`https://render-cache.invalid/${encodeURIComponent(url)}`);
+				const hit = store ? await store.match(key) : null;
+				if (hit) return await hit.text();
+				if (env.BROWSER_LIMITER) {
+					let allowed = true;
+					try {
+						allowed = (await env.BROWSER_LIMITER.limit({ key: 'browser' })).success;
+					} catch {
+						allowed = true;
+					}
+					if (!allowed) throw new UpstreamError('the browser is busy (one page every 10 seconds); try again in a few seconds');
+				}
+				const res = await env.BROWSER!.quickAction('markdown', { url, gotoOptions: { waitUntil: 'networkidle2', timeout: 25000 } });
+				if (res.status === 429) throw new UpstreamError("the free browser time for today is used up (it resets at midnight UTC), so only the plain page was read");
+				if (!res.ok) throw new UpstreamError(`the browser could not load the page (HTTP ${res.status})`);
+				const j: any = await res.json().catch(() => null);
+				if (!j?.success || typeof j.result !== 'string') throw new UpstreamError('the browser returned no readable text');
+				const text = j.result.slice(0, 300_000);
+				if (store) ctx?.waitUntil(store.put(key, new Response(text, { headers: { 'Cache-Control': 'max-age=21600', 'Content-Type': 'text/markdown' } })));
+				return text;
+			}
+		: undefined;
 	const pdfToText = env.AI
 		? async (bytes: Uint8Array) => {
 				const r = await env.AI!.toMarkdown({ name: 'document.pdf', blob: new Blob([bytes], { type: 'application/pdf' }) }, { conversionOptions: { pdf: { metadata: false } } });
@@ -187,18 +227,19 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		{
 			title: 'Fetch an official source page',
 			description:
-				'Fetch one page or PDF from any site the guide links to (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, ecosystem projects, block producers, catalogued GitHub orgs, data APIs, press and regulators), e.g. an official whitepaper PDF. The list updates itself from the guide. Returns readable text (HTML stripped; a PDF is converted to text, up to 10 MB), 20,000 characters at a time: for a long page use `find` to jump to the part about a word, or `offset` to read the next part. Follows up to 3 redirects that stay on listed sites and respects robots.txt. Sites the guide does not link to, and social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn), are refused.',
+				'Fetch one page or PDF from any site the guide links to (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, ecosystem projects, block producers, catalogued GitHub orgs, data APIs, press and regulators), e.g. an official whitepaper PDF. The list updates itself from the guide. Returns readable text (HTML stripped; a PDF is converted to text, up to 10 MB; a page that builds itself in the browser is loaded in a real browser), 20,000 characters at a time: for a long page use `find` to jump to the part about a word, or `offset` to read the next part. Follows up to 3 redirects that stay on listed sites and respects robots.txt. Sites the guide does not link to, and social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn), are refused.',
 			inputSchema: z.object({
 				url: z.string().url().max(500).describe('https URL taken from the guide, e.g. https://simpledex.fun/llms-launches.txt'),
 				find: z.string().min(2).max(100).optional().describe('Jump to the first place this word or phrase appears (case-insensitive), e.g. "globalram" or "max_asc_window_days"'),
 				offset: z.number().int().min(0).max(300000).optional().describe('Start reading at this character (use the offset given in the previous note to read the next part)'),
+				render: z.boolean().optional().describe('true: load the page in a real browser first. Done automatically when a page builds itself in the browser; a limited daily allowance'),
 			}),
 			annotations: { title: 'Fetch a source page', ...RO },
 		},
-		async ({ url, find, offset }) => {
+		async ({ url, find, offset, render }) => {
 			try {
 				const links = await guideLinks(repo, branch, ctx, env.GITHUB_TOKEN);
-				const r = await fetchSource(url, ctx, links, { find, offset }, pdfToText);
+				const r = await fetchSource(url, ctx, links, { find, offset, render }, pdfToText, renderPage);
 				const where = `Showing characters ${r.start}-${r.end} of ${r.total}.`;
 				const found = find
 					? r.matches && r.matches.length
@@ -209,7 +250,9 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 					r.total > 20000 || offset || find ? where : '',
 					found,
 					r.nextOffset !== undefined ? `More text follows: call again with offset=${r.nextOffset}, or use find to jump to a word.` : '',
-					r.jsShell ? 'This page builds itself in the browser, so little text was readable. Use another source or a live API.' : '',
+					r.rendered ? 'This page builds itself in the browser, so it was loaded in a real browser (Cloudflare Browser Run) and its text is shown.' : '',
+					r.jsShell ? `This page builds itself in the browser, so little text was readable${r.renderNote ? ` (browser: ${r.renderNote})` : ''}. Use another source or a live API.` : '',
+					!r.jsShell && !r.rendered && r.renderNote ? `Browser load not used: ${r.renderNote}.` : '',
 				]
 					.filter(Boolean)
 					.join(' ');
@@ -705,6 +748,14 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		if (!(await walletBudget())) return slowDown() as any;
 		return (await publicCheck(name, 'testnet')).pub ? null : (privateRefusal(name, 'testnet') as any);
 	});
+
+	// 1.15.0 (builder 2026-10-16 "Fix all the stuff it doesnt do"): LOAN Protocol in plain numbers (port of the official
+	// xpr-agents lending skill's read tools) and live Metal L2 / Ethereum / BNB reads. Same privacy wrapper.
+	registerLoanTool((n, c, h) => (server as any).registerTool(n, c, h), ctx, async (name) => {
+		if (!(await walletBudget())) return slowDown() as any;
+		return (await publicCheck(name)).pub ? null : (privateRefusal(name) as any);
+	});
+	registerEvmTool((n, c, h) => (server as any).registerTool(n, c, h), ctx);
 
 	// The one tool that writes: a private suggestion box (suggest.ts). Never read back to users; nothing about the sender
 	// is stored; the daily job checks each suggestion at an official source before anything reaches the guide.

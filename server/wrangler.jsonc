@@ -48,7 +48,18 @@
 			"namespace_id": "4492",
 			"simple": { "limit": 20, "period": 60 },
 		},
+		{
+			// 1.15.0: Browser Run Quick Actions on Workers Free allow 1 request every 10 s (browser-run/limits/).
+			"name": "BROWSER_LIMITER",
+			"namespace_id": "4493",
+			"simple": { "limit": 1, "period": 10 },
+		},
 	],
+	// 1.15.0: Cloudflare Browser Run, used only by source_fetch for pages that build themselves in the browser.
+	// Workers Free: 10 browser-minutes a day, then 429 until the next UTC day; never billed (browser-run/limits/).
+	"browser": {
+		"binding": "BROWSER",
+	},
 	// The private suggestion box (src/suggest.ts, schema in schema.sql). Builder's ruling 2026-10-16: "build the queue".
 	// https://developers.cloudflare.com/workers/wrangler/configuration/#d1-databases
 	"d1_databases": [

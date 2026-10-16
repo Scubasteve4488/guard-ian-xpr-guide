@@ -214,12 +214,16 @@ const MAX_REDIRECTS = 3;
 export interface PageView {
 	offset?: number;
 	find?: string;
+	render?: boolean; // 1.15.0: load the page in a real browser even if its plain HTML has text
 }
+
+/** Loads a page in Cloudflare Browser Run and returns its text as Markdown. Supplied by index.ts; absent in tests/local. */
+export type RenderPage = (url: string) => Promise<string>;
 
 /** Turns a PDF's bytes into text. Supplied by index.ts from Cloudflare's Workers AI toMarkdown; absent in tests/local. */
 export type PdfToText = (bytes: Uint8Array) => Promise<string>;
 
-export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks, view: PageView = {}, pdfToText?: PdfToText) {
+export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks, view: PageView = {}, pdfToText?: PdfToText, render?: RenderPage) {
 	let target = raw;
 	let r: FetchResult;
 	for (let hop = 0; ; hop++) {
@@ -241,9 +245,25 @@ export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: G
 	}
 	const pageText = r.text.slice(0, 300_000);
 	const looksHtml = /<html|<!doctype html|<body/i.test(pageText.slice(0, 2000));
-	const full = looksHtml ? htmlToText(pageText) : pageText;
+	let full = looksHtml ? htmlToText(pageText) : pageText;
 	const cutAtSource = !!r.tooLarge || r.text.length > pageText.length;
-	const jsShell = looksHtml && full.length < 300;
+	const thin = looksHtml && full.length < 300;
+	// 1.15.0: a page that builds itself in the browser is loaded in a real one (Cloudflare Browser Run), only after the
+	// same allow-list and robots.txt checks as above, and only when its plain HTML is nearly empty or render is asked for.
+	let rendered = false;
+	let renderNote: string | undefined;
+	if (render && looksHtml && (thin || view.render)) {
+		try {
+			const md = await render(r.source);
+			if (md && md.trim().length > full.length) {
+				full = md.slice(0, 300_000);
+				rendered = true;
+			} else renderNote = 'the browser found no more text than the plain page';
+		} catch (e) {
+			renderNote = e instanceof UpstreamError ? e.message : 'the browser could not load the page';
+		}
+	}
+	const jsShell = thin && !rendered;
 	// Pick the window: around the first match of `find`, else from `offset`. Repeat reads hit the cache, not the site.
 	let start = Math.max(0, Math.min(view.offset ?? 0, full.length));
 	let matches: number[] | undefined;
@@ -263,6 +283,8 @@ export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: G
 		readAt: r.readAt,
 		truncated: end < full.length || cutAtSource,
 		jsShell,
+		rendered,
+		renderNote,
 		start,
 		end,
 		total: full.length,

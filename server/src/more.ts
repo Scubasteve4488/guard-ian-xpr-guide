@@ -62,7 +62,7 @@ function bad(msg: string): Result {
 }
 
 /** GET/POST JSON from a non-RPC host, after its robots.txt allows the path. */
-async function getJson(base: string, path: string, ttlSec: number, ctx?: ExecutionContext, body?: unknown) {
+export async function getJson(base: string, path: string, ttlSec: number, ctx?: ExecutionContext, body?: unknown) {
 	const url = new URL(`${base}${path}`);
 	if (!(await robotsAllows(url, ctx))) throw new UpstreamError(`${url.host}'s robots.txt does not allow automated reading of ${url.pathname}`);
 	const r = await politeFetch([base], path, body === undefined ? { method: 'GET' } : { method: 'POST', body: JSON.stringify(body) }, { ttlSec, ctx });
