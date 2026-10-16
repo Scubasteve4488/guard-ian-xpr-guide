@@ -36,13 +36,15 @@ export function safeName(name: string): string {
 }
 
 /**
- * Table bounds. SOURCE: rpc-queries.md "Fix depends on which parameter is numeric": scope → u64 encoding, but
- * lower_bound / upper_bound → append "." (safeBoundsName), and only when the key is an account NAME.
- * Fixed 2026-10-15: bounds used to go through safeName, so a numeric ID made only of digits 1-5 (5, 14, 115…)
- * was re-encoded as a name and the read came back empty (simplelaunch curves 14 and 15, measured).
+ * Table bounds are sent unchanged. SOURCE: XPRNetwork/xpr-network-dev-skill @ b7d9f1f skill/rpc-queries.md:223 —
+ * lower_bound / upper_bound: "pass `key_type: "name"` (primary index) so the string is parsed as a name"; and :225
+ * "Do not append "." to force name parsing — "333555." throws chain_type_exception on current nodeos … for bounds as
+ * well as scope." So an all-digit NAME goes as-is with key_type "name" (the tool's enum already passes it through),
+ * and a numeric ID stays a number (the 2026-10-15 fix: simplelaunch curves 14 and 15).
+ * Fixed 2026-10-16 (security review M4): 1.2.1 appended ".", which the source says throws.
  */
-export function boundFor(value: string, keyType?: string): string {
-	return keyType === 'name' && /^\d+$/.test(value) ? value + '.' : value;
+export function boundFor(value: string, _keyType?: string): string {
+	return value;
 }
 
 // TTLs, per rpc-queries.md:68-69: chain_id forever-ish, most state 10 s+.

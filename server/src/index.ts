@@ -9,16 +9,18 @@ import { GUIDE_FILES, readGuideFile, splitSections, searchSections, type GuideFi
 import { fetchSource, guideLinks, labelUntrusted } from './sources.ts';
 import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol } from './chain.ts';
 import { tokenCheck } from './tokens.ts';
-import { UpstreamError } from './net.ts';
+import { UpstreamError, setUpstreamLimiters, type Limiter } from './net.ts';
 
 interface Env {
 	GUIDE_REPO: string;
 	GUIDE_BRANCH: string;
 	GITHUB_TOKEN?: string; // Worker secret, only if the guide repo is private (read-only, one repo)
-	RATE_LIMITER?: { limit(o: { key: string }): Promise<{ success: boolean }> };
+	RATE_LIMITER?: Limiter; // per caller IP
+	CHAIN_LIMITER?: Limiter; // shared: all XPR RPC + Hyperion reads together
+	HOST_LIMITER?: Limiter; // shared: per target host for every other site
 }
 
-const VERSION = '1.2.1';
+const VERSION = '1.3.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 How to answer with it:
@@ -286,6 +288,9 @@ export default {
 			const { success } = await env.RATE_LIMITER.limit({ key: ip });
 			if (!success) return new Response('Rate limit: 60 requests per minute. Please slow down.', { status: 429, headers: { 'retry-after': '60' } });
 		}
+		// Never get banned: shared per-target budgets (net.ts). Without the bindings, refuse rather than serve unmetered.
+		if (!env.CHAIN_LIMITER || !env.HOST_LIMITER) return new Response('Server misconfigured: upstream rate limits missing.', { status: 503 });
+		setUpstreamLimiters(env.CHAIN_LIMITER, env.HOST_LIMITER);
 		const handler = createMcpHandler(() => createServer(env, ctx));
 		return handler(request, env, ctx);
 	},

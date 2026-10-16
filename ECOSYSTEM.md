@@ -363,7 +363,7 @@ Live numbers can change: read the chain or the linked page before stating one, a
 - **Token and fees:** 1,000,000,000 max supply per token, 80% on the bonding curve and 20% for the DEX pool. Buy fee 1% and sell fee 1%; the creator gets 50% of fees and the treasury 50%. **Creators get no token allocation.**
 - **Creation fee:** 20,000 XPR (live: `simplelaunch` table `fees`).
 - **Anti-snipe windows:** creator-only for the first **120 seconds** (changed from 60 on 2026-10-15; live: `simplelaunch` table `antisnipe`, field `creatorOnlyPeriodSec`). Then 5 minutes capped at 5,000 XPR per buy, then open. The doc's field notes still say "default 60"; the chain read 120 on 10-15. The chain wins.
-- **Graduation:** at 50,000 XPR on the curve, after a 5-minute cooldown; anyone can trigger it. It creates a pool seeded with the XPR and the 20%. Buyers then `claim`.
+- **Graduation:** at 50,000 XPR on the curve, after a 5-minute cooldown; anyone can trigger it. It creates a pool seeded with the XPR and the 20%. Buyers then `claim`. **Measured by GUARD.IAN, not stated in the official docs:** if sells drop the curve back under 50,000 XPR during the cooldown, the countdown starts over (the token's `simplelaunch::gradready` row is cleared and set again on the next crossing; seen on mainnet launches since 2026-09-15). Read `gradready` live before quoting a graduation time.
 - **Supply after graduation:** unsold curve tokens are never minted and there is no admin mint, so most graduated tokens circulate 700–750M, not 1B. Burns go to `token.burn`.
 
 **LOAN lending.** Source: https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/loan-protocol.md

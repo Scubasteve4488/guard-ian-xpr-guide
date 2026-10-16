@@ -83,10 +83,10 @@ export async function tokenCheck(symbol: string, contract: string, ctx?: Executi
 	if (metalx.ok) {
 		sources.push(metalx.value.source);
 		const list: any[] = Array.isArray(metalx.value.json) ? metalx.value.json : metalx.value.json?.data ?? [];
-		const hits = list.filter((m) => {
-			const s = JSON.stringify(m);
-			return s.includes(`"${symbol}"`) && s.includes(`"${contract}"`);
-		});
+		// Match symbol AND contract on the SAME side of a market (security review M6). Field names read live
+		// 2026-10-16 from dex.api.mainnet.metalx.com/dex/v1/markets/all: bid_token / ask_token = { code, contract, … }.
+		const sideIs = (s: any) => !!s && s.code === symbol && s.contract === contract;
+		const hits = list.filter((m) => sideIs(m?.bid_token) || sideIs(m?.ask_token));
 		facts.push(
 			hits.length
 				? `Metal X lists ${symbol}@${contract} in ${hits.length} market(s)${hits[0]?.symbol ? `, e.g. ${hits[0].symbol}` : ''}.`

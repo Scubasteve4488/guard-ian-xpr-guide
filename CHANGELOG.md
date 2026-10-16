@@ -3,6 +3,12 @@
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
 - **2026-10-16 (early, part 10):** RULES: the no-private-information rule now also covers pages and chain rows the AI reads live. Community token lists and SimpleDEX launch records show creator accounts, and one AI repeated one in exam bundle 8. When the creator is a person, the AI says "created by a community member".
+- **2026-10-16 (IAN-CODE, builder's yes):** Server 1.3.0, from IAN-CODE's security review (`guard-project/docs/xpr-guide/CONNECTOR-SECURITY-REVIEW-2026-10-16.md`):
+  1. **Never get banned.** A host that answers 403 is not contacted again for 6 hours; 429/503 hosts wait out Retry-After (2-60 s); when every host is cooling down, nothing is sent. New shared budgets per TARGET, not per caller (`CHAIN_LIMITER` 60/min for all XPR RPC + Hyperion reads together, `HOST_LIMITER` 20/min per other site), so changing a URL or a table bound cannot multiply traffic to anyone; they fail closed. A memory cache backs up the Cache API. Source: XPR dev skill `rpc-queries.md` Endpoint Etiquette (@ b7d9f1f, lines 62-70).
+  2. **xpr_table bounds sent unchanged.** 1.2.1 appended "." to all-digit names; `rpc-queries.md:225` says that throws `chain_type_exception`. Now the name goes as-is with `key_type: "name"` (`:223`).
+  3. **xpr_token_check / Metal X** matches symbol and contract on the same side of a market (`bid_token`/`ask_token`, read live 10-16), so XMD@xtokens no longer "matches" an XBTC/XMD market.
+  - ECOSYSTEM §12b graduation: the cooldown restart is now stated, labelled as GUARD.IAN's own measurement.
+
 - **2026-10-16 (early, part 9):** From exam bundle 5:
   - **MarketPulse risk notice:** the row now carries the site's own words, read in a browser 10-16: "You may lose the XPR you stake". It also says predictions are final, draws and one-sided rounds are refunded, and rounds lock daily at 16:00 UTC.
   - **NFT list warning:** "anyone can mint any name, check the creator" now opens the row instead of closing it. Both AIs had left it out.

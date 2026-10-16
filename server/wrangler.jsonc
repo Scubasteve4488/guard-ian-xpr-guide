@@ -23,6 +23,19 @@
 			"namespace_id": "4488",
 			"simple": { "limit": 60, "period": 60 },
 		},
+		// Never get banned (2026-10-16): budgets per TARGET, shared by every caller, so cache-busting cannot multiply
+		// traffic to anyone. All XPR RPC + Hyperion reads share one key (about 7 hosts, so under ~9 requests/min/host
+		// per location). rpc-queries.md:68 "10 seconds or more is plenty" for most state.
+		{
+			"name": "CHAIN_LIMITER",
+			"namespace_id": "4489",
+			"simple": { "limit": 60, "period": 60 },
+		},
+		{
+			"name": "HOST_LIMITER",
+			"namespace_id": "4490",
+			"simple": { "limit": 20, "period": 60 },
+		},
 	],
 	"vars": {
 		"GUIDE_REPO": "Scubasteve4488/guard-ian-xpr-guide",

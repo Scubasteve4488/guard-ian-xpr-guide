@@ -43,6 +43,76 @@ export interface FetchResult {
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
+// ── Never get banned (2026-10-16, operator: "we should never be banned"; security review M1, M2, L5, L7).
+// SOURCE: rpc-queries.md:62-64 @ b7d9f1f — 429/503: "back off exponentially (2s → 4s → 8s, cap ~60s), switch endpoint …
+// Honor Retry-After"; 403: "added to the operator's manual ban list … Don't keep retrying — that confirms you're a bot."
+// :70 "Rotate between endpoints"; :68-69 "Cache aggressively".
+// 1. A host that answered 403 is not contacted again by this isolate for BAN_COOLDOWN_MS; 429/503 for Retry-After
+//    (min 2 s, max 60 s). If every host in a pool is cooling down, the call fails WITHOUT sending anything.
+// 2. A shared budget per TARGET (not per caller): all XPR RPC + Hyperion calls share one key, every other host its own.
+//    Cache-busting tricks (?a=1, ?a=2 … or a new lower_bound each call) therefore cannot multiply traffic to anyone.
+// 3. An in-isolate memory cache backs up the Cache API, which may do nothing on *.workers.dev (review L7).
+const BAN_COOLDOWN_MS = 6 * 60 * 60 * 1000;
+const coolUntil = new Map<string, number>(); // host → epoch ms
+export function hostCooling(host: string, now = Date.now()): boolean {
+	const t = coolUntil.get(host);
+	if (t === undefined) return false;
+	if (t <= now) {
+		coolUntil.delete(host);
+		return false;
+	}
+	return true;
+}
+function coolHost(host: string, ms: number) {
+	coolUntil.set(host, Math.max(coolUntil.get(host) ?? 0, Date.now() + ms));
+}
+
+export interface Limiter {
+	limit(o: { key: string }): Promise<{ success: boolean }>;
+}
+let chainLimiter: Limiter | undefined;
+let hostLimiter: Limiter | undefined;
+/** Set once per request from the Worker env (bindings CHAIN_LIMITER / HOST_LIMITER in wrangler.jsonc). */
+export function setUpstreamLimiters(chain?: Limiter, host?: Limiter) {
+	chainLimiter = chain;
+	hostLimiter = host;
+}
+const CHAIN_HOSTS = new Set([...RPC_ENDPOINTS, ...HYPERION_ENDPOINTS].map((u) => new URL(u).host));
+// GitHub serves the guide's own files and runs its own published limits; it is not a community operator.
+const UNMETERED_HOSTS = new Set(['raw.githubusercontent.com', 'api.github.com']);
+async function withinBudget(host: string): Promise<boolean> {
+	if (UNMETERED_HOSTS.has(host)) return true;
+	const lim = CHAIN_HOSTS.has(host) ? chainLimiter : hostLimiter;
+	if (!lim) return true;
+	try {
+		return (await lim.limit({ key: CHAIN_HOSTS.has(host) ? 'xpr-chain' : host })).success;
+	} catch {
+		return false; // fail closed: never send when the budget can't be checked
+	}
+}
+
+const MEM_MAX = 300;
+const mem = new Map<string, { until: number; value: FetchResult }>();
+function memGet(k: string): FetchResult | null {
+	const e = mem.get(k);
+	if (!e) return null;
+	if (e.until <= Date.now()) {
+		mem.delete(k);
+		return null;
+	}
+	return { ...e.value, cached: true };
+}
+function memPut(k: string, value: FetchResult, ttlSec: number) {
+	if (ttlSec <= 0) return;
+	if (mem.size >= MEM_MAX) mem.delete(mem.keys().next().value as string);
+	mem.set(k, { until: Date.now() + ttlSec * 1000, value });
+}
+/** Tests only: forget cooldowns and the memory cache. */
+export function __resetNetState() {
+	coolUntil.clear();
+	mem.clear();
+}
+
 function cacheKey(url: string, body?: string): Request {
 	// POST bodies are folded into a synthetic GET key so the Cache API can store them.
 	const k = body ? `${url}#${body}` : url;
@@ -50,6 +120,8 @@ function cacheKey(url: string, body?: string): Request {
 }
 
 async function cacheGet(key: Request): Promise<FetchResult | null> {
+	const m = memGet(key.url);
+	if (m) return m;
 	try {
 		const hit = await (globalThis as any).caches?.default?.match(key);
 		if (!hit) return null;
@@ -60,6 +132,7 @@ async function cacheGet(key: Request): Promise<FetchResult | null> {
 }
 
 async function cachePut(key: Request, value: FetchResult, ttlSec: number, ctx?: ExecutionContext) {
+	memPut(key.url, value, ttlSec);
 	try {
 		const c = (globalThis as any).caches?.default;
 		if (!c || ttlSec <= 0) return;
@@ -91,10 +164,19 @@ export async function politeFetch(
 		if (hit) return hit;
 	}
 	const start = opts.startAt ?? Math.floor(Math.random() * pool.length);
+	// Rotation order from `start`, minus every host that is cooling down (banned or rate-limited).
+	const order = pool.map((_, i) => pool[(start + i) % pool.length]).filter((b) => !hostCooling(new URL(`${b}${path}`).host));
+	if (!order.length) throw new UpstreamError('every endpoint for this read is cooling down after a ban or rate-limit answer, so nothing was sent; try again later');
 	let lastErr = 'no endpoint answered';
-	for (let attempt = 0; attempt < Math.min(MAX_ATTEMPTS, pool.length); attempt++) {
-		const base = pool[(start + attempt) % pool.length];
+	for (let attempt = 0; attempt < Math.min(MAX_ATTEMPTS, order.length); attempt++) {
+		const base = order[attempt];
 		const url = `${base}${path}`;
+		const host = new URL(url).host;
+		if (!(await withinBudget(host))) {
+			throw new UpstreamError(
+				`the shared budget for ${CHAIN_HOSTS.has(host) ? 'XPR chain reads' : host} is used up for this minute, so nothing was sent (it protects the people who run these servers); try again in a minute`,
+			);
+		}
 		let res: Response;
 		try {
 			res = await fetch(url, {
@@ -114,14 +196,17 @@ export async function politeFetch(
 			continue;
 		}
 		if (res.status === 403) {
-			// rpc-queries.md:63 — 403 means a human banned this traffic. Do not retry it on that host.
-			lastErr = `${new URL(url).host} returned 403`;
+			// rpc-queries.md:63 — 403 means a human banned this traffic. Stop contacting that host (whole isolate) for hours.
+			coolHost(host, BAN_COOLDOWN_MS);
+			lastErr = `${host} returned 403`;
 			continue;
 		}
 		if (res.status === 429 || res.status === 503) {
+			// rpc-queries.md:62,64 — honour Retry-After (2 s floor, 60 s cap) for every later request, then switch host.
 			const ra = parseInt(res.headers.get('Retry-After') || '0', 10);
-			lastErr = `${new URL(url).host} returned ${res.status}`;
-			await sleep(Math.min(MAX_BACKOFF_MS, ra > 0 ? ra * 1000 : 400 * 2 ** attempt));
+			coolHost(host, Math.min(60_000, Math.max(2_000, ra > 0 ? ra * 1000 : 2_000 * 2 ** attempt)));
+			lastErr = `${host} returned ${res.status}`;
+			await sleep(Math.min(MAX_BACKOFF_MS, 400 * 2 ** attempt));
 			continue;
 		}
 		if (res.status >= 300 && res.status < 400) {

@@ -5,7 +5,7 @@ import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource
 import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
-import { politeFetch } from '../src/net.ts';
+import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 
 let pass = 0,
 	failN = 0;
@@ -95,6 +95,7 @@ t('registry other contract', registryLookup('XBTC', 'fakexbtc').exact === null &
 const realFetch = globalThis.fetch;
 const calls: string[] = [];
 function stub(handler: (url: string, init?: any) => Response) {
+	__resetNetState();
 	globalThis.fetch = (async (input: any, init?: any) => {
 		const url = typeof input === 'string' ? input : input.url;
 		calls.push(url);
@@ -176,7 +177,8 @@ t('a project added to the guide becomes fetchable', gl.hosts.has('brand-new-proj
 
 // ── table bounds and stuck paging (fixed 2026-10-15)
 t('numeric ID bound stays a number', boundFor('15') === '15' && boundFor('115') === '115' && boundFor('84') === '84');
-t('all-digit name bound gets upstream "." fix', boundFor('333555', 'name') === '333555.' && boundFor('simplelaunch', 'name') === 'simplelaunch');
+// rpc-queries.md:223,225 @ b7d9f1f: send the name as-is with key_type "name"; never append "." (throws).
+t('all-digit name bound sent unchanged (no ".")', boundFor('333555', 'name') === '333555' && boundFor('simplelaunch', 'name') === 'simplelaunch');
 let tableBodies: any[] = [];
 stub((url, init) => {
 	const b = JSON.parse(init?.body ?? '{}');
@@ -202,6 +204,68 @@ stub((url, init) => {
 });
 const st2 = await table({ code: 'simplelaunch', table: 'community', lower_bound: '84', limit: 49 });
 t('stuck twice is reported, not looped', nCalls === 2 && (st2.data as any).stuck === true);
+
+// ── never get banned (2026-10-16)
+// a 403 host is skipped by the NEXT call too (review M2)
+stub((url) => (url.startsWith('https://a.test') ? new Response('banned', { status: 403 }) : new Response('{"ok":1}', { status: 200 })));
+await politeFetch(['https://a.test', 'https://b.test'], '/x', {}, { startAt: 0 });
+calls.length = 0;
+await politeFetch(['https://a.test', 'https://b.test'], '/x2', {}, { startAt: 0 });
+t('403 host not contacted again', hostCooling('a.test') && calls.length === 1 && calls[0].startsWith('https://b.test'));
+// every host cooling: fail without sending anything
+calls.length = 0;
+let threw = '';
+try { await politeFetch(['https://a.test'], '/x3', {}, { startAt: 0 }); } catch (e: any) { threw = e.message; }
+t('all hosts cooling: nothing sent', calls.length === 0 && /cooling down/.test(threw));
+// 429 cools the host for later calls
+stub((url) => (url.startsWith('https://d.test') ? new Response('slow', { status: 429, headers: { 'Retry-After': '30' } }) : new Response('{}', { status: 200 })));
+await politeFetch(['https://d.test', 'https://e.test'], '/q', {}, { startAt: 0 });
+t('429 host cooling afterwards', hostCooling('d.test'));
+// shared per-target budget (review M1): cache-busting cannot multiply traffic
+stub(() => new Response('{"rows":[],"more":false}', { status: 200 }));
+const keys: string[] = [];
+let budget = 2;
+const fakeLim = { limit: async (o: { key: string }) => { keys.push(o.key); return { success: budget-- > 0 }; } };
+setUpstreamLimiters(fakeLim, fakeLim);
+calls.length = 0;
+refused = '';
+for (const lb of ['1', '2', '3']) {
+	try { await table({ code: 'simplelaunch', table: 'curves', lower_bound: lb }); } catch (e: any) { refused = e.message; }
+}
+t('chain reads share one budget key', keys.every((k) => k === 'xpr-chain') && keys.length === 3);
+t('over budget: refused, nothing sent', calls.length === 2 && /budget/.test(refused));
+budget = 0;
+calls.length = 0;
+refused = '';
+try { await politeFetch(['https://ksto.world/?a=1'], '', {}, { startAt: 0 }); } catch (e: any) { refused = e.message; }
+t('other hosts metered per host', keys[keys.length - 1] === 'ksto.world' && calls.length === 0 && /budget/.test(refused));
+keys.length = 0;
+await politeFetch(['https://raw.githubusercontent.com/x/y/main/llms.txt'], '', {}, { startAt: 0 });
+t('guide reads from GitHub not metered', keys.length === 0);
+const throwing = { limit: async () => { throw new Error('binding down'); } };
+setUpstreamLimiters(throwing, throwing);
+calls.length = 0;
+refused = '';
+try { await politeFetch(['https://f.test'], '/z', {}, { startAt: 0 }); } catch (e: any) { refused = e.message; }
+t('limiter error fails closed', calls.length === 0 && /budget/.test(refused));
+setUpstreamLimiters(undefined, undefined);
+// memory cache: a repeat read inside its TTL sends nothing
+stub(() => new Response('{"v":1}', { status: 200 }));
+await politeFetch(['https://g.test'], '/c', {}, { startAt: 0, ttlSec: 30 });
+calls.length = 0;
+const again = await politeFetch(['https://g.test'], '/c', {}, { startAt: 0, ttlSec: 30 });
+t('repeat read served from cache', calls.length === 0 && again.cached === true);
+
+// ── token check M6: XMD@xtokens must NOT match an XBTC/XMD market (symbol and contract on different sides)
+stub((url) => {
+	if (url.endsWith('/v1/chain/get_currency_stats')) return Response.json({});
+	if (url.includes('metalx.com')) return Response.json({ data: [{ symbol: 'XBTC_XMD', bid_token: { code: 'XBTC', contract: 'xtokens' }, ask_token: { code: 'XMD', contract: 'xmd.token' } }] });
+	return new Response('nope', { status: 404 });
+});
+const fake = await tokenCheck('XMD', 'xtokens');
+t('metal x: mixed sides do not match', fake.facts.some((f) => f.includes('does not include XMD@xtokens')));
+const real = await tokenCheck('XMD', 'xmd.token');
+t('metal x: same-side match still found', real.facts.some((f) => f.startsWith('Metal X lists XMD@xmd.token in 1 market')));
 
 globalThis.fetch = realFetch;
 console.log(`${pass} passed, ${failN} failed`);
