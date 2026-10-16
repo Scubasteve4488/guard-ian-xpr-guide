@@ -7,7 +7,7 @@ import { parseRobotsTxt, isPathAllowed, robotsAllows } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
-import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN, personNames, maskRows, TABLE_PUBLIC_CHECKS } from '../src/history.ts';
+import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN, personNames, maskRows, TABLE_PUBLIC_CHECKS, cursorName, isAlwaysPrivateTable } from '../src/history.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling, looksLikePdf } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
@@ -857,6 +857,16 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	try { await fetchSource('https://blocked.cyphergang.com/x', undefined, extractLinks('https://blocked.cyphergang.com/'), {}, undefined, render); } catch (e: any) { blocked = e.message; }
 	t('browser: robots.txt is checked before any browser load', blocked.includes('robots.txt'));
 	globalThis.fetch = realFetch;
+}
+
+// ── 1.15.2: a page cursor can carry a hidden name (live 2026-10-16, blocklist::blocklist)
+{
+	const enc = nameToU64('somebodyxyz');
+	t('cursor: a u64 next_key decodes to the account name it stands for', cursorName(enc, u64ToName) === 'somebodyxyz');
+	t('cursor: a name next_key is read as the name', cursorName('somebodyxyz', u64ToName) === 'somebodyxyz');
+	t('cursor: ordinary numeric ids and empty keys are not names', cursorName('84', u64ToName) === null && cursorName('', u64ToName) === null && cursorName(null, u64ToName) === null);
+	t('cursor: the live blocklist cursor of 2026-10-16 decodes to a name (so it must be hidden)', cursorName('3953343095625482240', u64ToName) !== null);
+	t('always-private: only the blocklist table', isAlwaysPrivateTable('blocklist', 'blocklist') && !isAlwaysPrivateTable('eosio', 'producers') && !isAlwaysPrivateTable('blocklist', 'config'));
 }
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

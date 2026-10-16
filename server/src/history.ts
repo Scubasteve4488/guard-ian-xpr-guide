@@ -81,6 +81,15 @@ const PUBLIC_ROW_FIELDS: Record<string, string> = { 'eosio/producers': 'owner', 
 // Tables whose names are never shown, whatever the account is (RULES: accounts on a blocklist stay private; naming one
 // would read as a label). Live check 2026-10-16: one listed account passed the contract check and was shown.
 const ALWAYS_PRIVATE_TABLES = new Set(['blocklist/blocklist']);
+/** Tables whose every name is private (1.14.5). 1.15.2: they are read only from the start, without bounds. */
+export const isAlwaysPrivateTable = (code: string, table: string) => ALWAYS_PRIVATE_TABLES.has(`${code}/${table}`);
+/** The account name a page cursor (next_key) stands for, as text or as its u64 number; null if it is not one. */
+export function cursorName(nextKey: unknown, u64ToName: (v: string) => string | null): string | null {
+	const k = String(nextKey ?? '');
+	if (!k) return null;
+	if (/^[a-z1-5][a-z1-5.]{0,11}$/.test(k) && !/^\d+$/.test(k)) return k;
+	return u64ToName(k);
+}
 /** How many unknown names one table read may check on chain before the rest are hidden unchecked (rate budget). */
 export const TABLE_PUBLIC_CHECKS = 5;
 
