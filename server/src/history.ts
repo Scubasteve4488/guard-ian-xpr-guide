@@ -18,6 +18,53 @@ const clip = (v: unknown) => {
 	return s.length > MAX_DATA_CHARS ? s.slice(0, MAX_DATA_CHARS) + '…(cut)' : s;
 };
 
+// Privacy (builder's ruling 2026-10-16; RULES §3, INSTRUCTIONS rule 7): history and block reads show WHO signed and
+// who sent to whom. Keep system, contract, exchange and block-producer accounts and any account the caller typed;
+// hide everyone else as "[private account]". Conservative: a contract not on this list is hidden too.
+const PUBLIC_ACCOUNTS = new Set([
+	'eosio', 'eosio.token', 'eosio.msig', 'eosio.ram', 'eosio.ramfee', 'eosio.stake', 'eosio.bpay', 'eosio.vpay', 'eosio.names',
+	'eosio.saving', 'eosio.rex', 'eosio.wrap', 'eosio.proton', 'stake.proton', 'eosio.null', 'eosio.prods',
+	'simplelaunch', 'simpledex', 'simpletoken', 'simplesetup', 'simpleguard', 'dex.protonnz', 'simlaunchv2', 'simpledexv2',
+	'xtokens', 'xmd.token', 'xmd.treasury', 'loan.token', 'lending.loan', 'shares.loan', 'dex', 'proton.swaps', 'blocklist',
+	'agentcore', 'agentescrow', 'agentvalid', 'agentfeed', 'atomicassets', 'atomicmarket', 'oracles', 'proton.wrap',
+	'metalpay.com', 'kucoindotxpr', 'bithumbxprr1', 'gatedeposit', 'hitbtcxprins', 'coinex2zmoon', 'webauth', 'protonnz',
+]);
+const PERSON_FIELDS = new Set(['from', 'to', 'payer', 'owner', 'account', 'user', 'buyer', 'seller', 'creator', 'receiver', 'voter', 'actor', 'proposer', 'executer', 'approver', 'claimer', 'client', 'agent', 'holder', 'trader', 'recipient', 'sender', 'name']);
+export const PRIVATE = '[private account]';
+const NAME = /^[a-z1-5.]{1,12}$/;
+
+export function makeKeep(extra: string[] = [], producers: string[] = []): Set<string> {
+	return new Set([...PUBLIC_ACCOUNTS, ...producers, ...extra.filter(Boolean)]);
+}
+export function maskName(n: string, keep: Set<string>): string {
+	return keep.has(n) ? n : PRIVATE;
+}
+export function maskData(v: any, keep: Set<string>, depth = 0): any {
+	if (depth > 4 || v == null || typeof v !== 'object') return v;
+	if (Array.isArray(v)) return v.map((x) => maskData(x, keep, depth + 1));
+	const out: any = {};
+	for (const [k, x] of Object.entries(v)) {
+		if (PERSON_FIELDS.has(k) && typeof x === 'string' && NAME.test(x)) out[k] = maskName(x, keep);
+		else if (PERSON_FIELDS.has(k) && Array.isArray(x)) out[k] = x.map((y) => (typeof y === 'string' && NAME.test(y) ? maskName(y, keep) : maskData(y, keep, depth + 1)));
+		else out[k] = maskData(x, keep, depth + 1);
+	}
+	return out;
+}
+const auths = (list: any[], keep: Set<string>) => (list ?? []).map((x: any) => `${maskName(x.actor, keep)}@${x.permission}`);
+
+let producerCache: { at: number; names: string[] } | null = null;
+async function producerNames(ctx?: ExecutionContext): Promise<string[]> {
+	if (producerCache && Date.now() - producerCache.at < 10 * 60 * 1000) return producerCache.names;
+	try {
+		const r = await rpc('/v1/chain/get_producer_schedule', {}, 600, ctx);
+		const names = (r.json?.active?.producers ?? []).map((p: any) => p.producer_name);
+		producerCache = { at: Date.now(), names };
+		return names;
+	} catch {
+		return producerCache?.names ?? [];
+	}
+}
+
 export function isFilter(s: string): boolean {
 	// contract:action, either side may be "*" (Hyperion filter syntax)
 	return /^([a-z1-5.]{1,12}|\*):([a-z1-5.]{1,13}|\*)$/.test(s);
@@ -35,6 +82,7 @@ export async function actions(
 	if (args.filter) q.set('filter', args.filter);
 	if (args.after) q.set('after', args.after);
 	if (args.before) q.set('before', args.before);
+	const keep = makeKeep([args.account], await producerNames(ctx));
 	const r = await politeFetch(HYPERION_ENDPOINTS, `/v2/history/get_actions?${q}`, { method: 'GET' }, { ttlSec: 30, ctx });
 	if (r.status >= 400) throw new UpstreamError(`Hyperion returned HTTP ${r.status}`);
 	let j: any;
@@ -48,8 +96,8 @@ export async function actions(
 		block: a.block_num,
 		trx_id: a.trx_id,
 		action: `${a.act?.account}::${a.act?.name}`,
-		authorization: (a.act?.authorization ?? []).map((x: any) => `${x.actor}@${x.permission}`),
-		data: clip(a.act?.data),
+		authorization: auths(a.act?.authorization, keep),
+		data: clip(maskData(a.act?.data, keep)),
 		explorer: a.trx_id ? explorerTx(a.trx_id) : undefined,
 	}));
 	return {
@@ -59,7 +107,8 @@ export async function actions(
 	};
 }
 
-export async function transaction(id: string, ctx?: ExecutionContext) {
+export async function transaction(id: string, ctx?: ExecutionContext, typed: string[] = []) {
+	const keep = makeKeep(typed, await producerNames(ctx));
 	const r = await politeFetch(HYPERION_ENDPOINTS, `/v2/history/get_transaction?id=${encodeURIComponent(id)}`, { method: 'GET' }, { ttlSec: 3600, ctx });
 	if (r.status >= 400) throw new UpstreamError(`Hyperion returned HTTP ${r.status}`);
 	let j: any;
@@ -70,8 +119,8 @@ export async function transaction(id: string, ctx?: ExecutionContext) {
 	}
 	const acts = (j.actions ?? []).slice(0, 40).map((a: any) => ({
 		action: `${a.act?.account}::${a.act?.name}`,
-		authorization: (a.act?.authorization ?? []).map((x: any) => `${x.actor}@${x.permission}`),
-		data: clip(a.act?.data),
+		authorization: auths(a.act?.authorization, keep),
+		data: clip(maskData(a.act?.data, keep)),
 		inline: a.creator_action_ordinal ? a.creator_action_ordinal > 0 : undefined,
 	}));
 	if (!acts.length) throw new UpstreamError('no transaction with that id was found by this Hyperion node');
@@ -84,7 +133,8 @@ export async function transaction(id: string, ctx?: ExecutionContext) {
 }
 
 /** One block: its time stamp, producer and the actions in it, in order (the first legal block of a launch, who bought first). */
-export async function block(num: number, ctx?: ExecutionContext) {
+export async function block(num: number, ctx?: ExecutionContext, typed: string[] = []) {
+	const keep = makeKeep(typed, await producerNames(ctx));
 	const r = await rpc('/v1/chain/get_block', { block_num_or_id: num }, 3600, ctx);
 	const b = r.json;
 	const rows: any[] = [];
@@ -95,8 +145,8 @@ export async function block(num: number, ctx?: ExecutionContext) {
 			rows.push({
 				trx_id: trx.id,
 				action: `${a.account}::${a.name}`,
-				authorization: (a.authorization ?? []).map((x: any) => `${x.actor}@${x.permission}`),
-				data: clip(a.data),
+				authorization: auths(a.authorization, keep),
+				data: clip(maskData(a.data, keep)),
 			});
 		}
 	}

@@ -7,6 +7,7 @@ import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
+import { maskData, makeKeep, maskName, isFilter, PRIVATE } from '../src/history.ts';
 import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
@@ -398,6 +399,14 @@ globalThis.fetch = realFetch;
 	const row = d.prepare('SELECT status, source_url FROM suggestions WHERE id = 1').get() as any;
 	t('suggest: new rows wait as pending', row.status === 'pending' && row.source_url === 'https://metalx.com/');
 }
+
+// ── history privacy (2026-10-16): people hidden, contracts/producers/typed accounts kept
+const keepH = makeKeep(['typedacct'], ['storexbp']);
+const md = maskData({ from: 'someperson1', to: 'simplelaunch', quantity: '1.0000 XPR', memo: 'buy:471', inner: { owner: 'typedacct', buyer: 'another1' } }, keepH);
+t('history: person masked, contract kept', md.from === PRIVATE && md.to === 'simplelaunch' && md.memo === 'buy:471');
+t('history: typed account kept, nested person masked', md.inner.owner === 'typedacct' && md.inner.buyer === PRIVATE);
+t('history: producer kept', maskName('storexbp', keepH) === 'storexbp' && maskName('randomguy', keepH) === PRIVATE);
+t('history: filter syntax', isFilter('simplelaunch:setantisnp') && isFilter('eosio.token:*') && !isFilter('bad filter'));
 
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
