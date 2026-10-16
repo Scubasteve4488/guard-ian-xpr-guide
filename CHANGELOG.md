@@ -2,6 +2,7 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-16 (early, part 10):** RULES: the no-private-information rule now also covers pages and chain rows the AI reads live. Community token lists and SimpleDEX launch records show creator accounts, and one AI repeated one in exam bundle 8. When the creator is a person, the AI says "created by a community member".
 - **2026-10-16 (early, part 9):** From exam bundle 5:
   - **MarketPulse risk notice:** the row now carries the site's own words, read in a browser 10-16: "You may lose the XPR you stake". It also says predictions are final, draws and one-sided rounds are refunded, and rounds lock daily at 16:00 UTC.
   - **NFT list warning:** "anyone can mint any name, check the creator" now opens the row instead of closing it. Both AIs had left it out.
