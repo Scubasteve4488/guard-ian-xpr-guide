@@ -71,7 +71,14 @@ Everything we have found and checked, in one place: products, dApps, DeFi, token
   - **Metal DAO v1.0**: founded 2017 per this page, run by MTL holders (the paper itself says MTL was founded in 2016; §1c). https://cdn.metallicus.com/Metal_DAO_Whitepaper_v1.0.pdf
   - **Metal Dollar v1.1**: basket of USDC, PYUSD and USDP, governed by the Metal DAO. https://cdn.metallicus.com/Metal_Dollar_Whitepaper_v1.1.pdf
   - **Metal L2 v1.0**: OP Stack. https://cdn.metallicus.com/Metal_L2_Whitepaper_v1.0.pdf
+    - What the paper says (undated, read 2026-10-16): an Ethereum layer 2 built as an optimistic rollup on the Optimism stack, aiming to join the Optimism Superchain; MTL "could be used" for gas; WebAuth signing, Metal X, decentralized identity and Metal Pay on Metal L2.
+    - Its token section is a **proposal**: raise MTL from 66,588,888 to 78,588,888 through three 6,000,000 MTL grants (an L2 incentive paid in three tranches, a one-time sequencer grant, and 6,000,000 MTL every year to the elected core developer), with first-year inflation of 7.634%, falling each year. Whether this was adopted is not verified here.
+    - It gives the MTL v2 Ethereum contract as `0x709c999b4Bc5d19B5a2EE30297129D5aB4AAe454` (v2 audit at migrate.metall2.com) and an OpenZeppelin audit for v1. Later direction: the MIP-002 Homecoming proposal (SOURCES.md §4).
   - **Metal Blockchain v1.2**: layer 0. https://cdn.metallicus.com/Metal_Blockchain_Whitepaper_v1.2.pdf
+    - What the paper says (undated; the PDF is over 10 MB, so this connector can't open it; read 2026-10-16 through a summarising page reader, so check the PDF for exact wording): a permissionless layer 0 built on Avalanche's Snow consensus family, with an A-Chain (Antelope, XPR Network), C-Chain (EVM), P-Chain (validators and subnets) and X-Chain (assets). METAL is hard-capped at 666,666,666: Metal Foundation 142,333,333, founders 71,000,000, MTL conversion 120,000,000, staking rewards 333,333,333. Fees are burned.
+    - Staking per the paper: validators at least 2,000 METAL for 14 to 365 days, delegators at least 25 METAL, rewards need 80% uptime.
+    - **The live chain agrees on the minimums** (`metal_blockchain`, read 2026-10-16): validator 2,000 METAL, delegator 25 METAL; total staked 129,019,075 METAL; the node's supply upper bound is 375,692,052 METAL.
+    - The paper contradicts itself in two places: the conversion allocation is 120,000,000 METAL, but the conversion text caps it at 60,000,000 MTL; and it gives both 80% and 81% for the validator share a hard fork needs.
 
 - **Timeline from the newsroom headlines** (https://metallicus.com/news, read 10-16; each line is the headline and its date):
   - **2022:** "(Re) Introducing Metallicus" (Aug 3). Advisory board introduced (Aug 4). LunarCrush expands to XPR Network (Aug 29). Metal Pay API launched (Sep 20). **Metal Blockchain mainnet live (Oct 18).** Checkout.com partnership (Dec 15).
@@ -129,7 +136,10 @@ Source: https://xprnetwork.org/roadmap. The page gives no dates.
     | `XPAX@xtokens` (Pax Dollar, USDP) | 15% | 1,000,000 |
     | `MPD@mpd.token` | 2% | 100,000 |
   - **XPAX is USDP.** It keeps USDP's old name, Paxos Standard (PAX), and is not Pax Gold, PAXG (https://metaldollar.com/reserves, undated).
-  - **What MPD is: unverified.** The Metal Dollar article of 2026-08-28 mentions "a separate MPD reserve line" and doesn't explain it. On the chain, MPD@mpd.token has a supply of 100,008 and its issuer is `mpd.token`. It is not in XPR's developer token registry.
+  - ~~**What MPD is: unverified.**~~ (superseded 2026-10-16) The Metal Dollar article of 2026-08-28 mentions "a separate MPD reserve line" and doesn't explain it. On the chain, MPD@mpd.token has a supply of 100,008 and its issuer is `mpd.token`. It is not in XPR's developer token registry.
+  - **What MPD is (read 2026-10-16):** the **Metal Pay Dollar**. Metallicus's Q2 2025 quarterly report calls it an internal prototype for managing liquidity across the Metallicus ecosystem, added to the Metal Dollar basket and "held exclusively by Metallicus wallets" during a controlled rollout. Source: https://cdn.metallicus.com/Q2_2025_Metallicus_Report.pdf (page 7). Newer reports (2026 Q1, Q2) don't mention it; the Q1 2026 PDF has no readable text.
+    - The official XMD agent skill lists MPD (contract `mpd.token`) as collateral with a 2% treasury cap, oracle feed MPD/USD, mint and redeem (XPRNetwork/xpr-agents @ a7410e9, `openclaw/skills/xmd/SKILL.md`, line 24).
+    - On the chain (2026-10-16): the `oracles` feed MPD/USD (index 20) has one price provider, last updated 2025-07-03. The `mpd.token` contract has a pause switch (`pausempd`; `global` table: not paused) and a `claimtoken` action.
   - **Contract settings (table `xmdglobals`):**
     - the contract is not paused;
     - the fee account is `fee.metal`;
@@ -204,6 +214,7 @@ Source: https://xprnetwork.org/roadmap. The page gives no dates.
   - a live selfie;
   - then six questions.
 - **Not allowed:** VOIP phone numbers, VPNs or proxies, more than one account, prepaid debit cards, and handing an account to someone else. Only US customers can link a VISA card.
+- **Tax documents (new section 2026-09-22, 11 articles, updated to 2026-10-09):** Metal Pay may send US customers **Form 1099-DA** for digital-asset sales from 2025 on: 2025 forms show gross proceeds without cost basis; cost basis can follow for 2026 and later. Metal Pay works with TaxBit, uses FIFO for cost basis, and asks users to certify a W-9 (US persons) or W-8BEN (foreign persons). Receiving the form doesn't by itself mean tax is owed; Metal Pay gives no tax advice. Source: https://help.metalpay.com/hc/en-us/sections/43679786096407-Tax-Information-Documents
 - **One name, two products.** The help center's "Metal Pay Connect" is this consumer on-ramp. Metallicus's institutions page uses the same name for payment routing between banks' existing rails and blockchains (https://metallicus.com/institutions/metal-pay-connect, undated).
 
 **The institution pages** (metallicus.com, all undated, read 2026-10-16)
@@ -596,7 +607,7 @@ Live numbers can change: read the chain or the linked page before stating one, a
 - **Long staking:** Explorer only, minimum 100 XPR, 90 or 365 days. The reward is tied to XPR's value in Bitcoin satoshis, not a fixed APY.
   - 90-day: extra XPR only if that value fell.
   - 365-day: extra XPR if it stays below 106% of the staked value.
-  - **Live contract `longstaking` (chain read 2026-10-16, table `plans`):** two plans take new stakes: 90 days with multiplier 100 and 365 days with multiplier 106, both using price oracle feed 2. Two older plans (90 days ×105, 365 days ×150) take no new stakes but can still be claimed. The 100 and 106 match the staking guide's "fell" and "106%" rules.
+  - **Live contract `longstaking` (chain read 2026-10-16, table `plans`):** two plans take new stakes: 90 days with multiplier 100 and 365 days with multiplier 106, both using price oracle feed 2, which the `oracles` contract describes as tracking the **14-day average** XPR/BTC price (so the start price is a two-week average, not the price that minute). Two older plans (90 days ×105, 365 days ×150) take no new stakes but can still be claimed. The 100 and 106 match the staking guide's "fell" and "106%" rules.
   - The contract has a `claimstake` action (account, stake number) and a `cancelstake` action. The official help article (updated 2025-10-07) says a long stake can't be undone before its unlock date; the staking guide says the XPR is released when the period ends. Who may call `cancelstake`, and whether claiming is automatic, are not stated: https://help.xprnetwork.org/hc/en-us/articles/18031266904599-How-do-I-Long-Stake-my-XPR
   - The contract's code link on the official developer list (github.com/XPRNetwork/proton-longstaking) does not open publicly (checked 2026-10-16), so the exact top-up formula is not verified. Each stake row stores the XPR/BTC oracle price at the start.
 
