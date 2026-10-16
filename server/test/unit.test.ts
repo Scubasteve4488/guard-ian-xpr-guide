@@ -1,5 +1,6 @@
 // Unit tests: node --experimental-strip-types test/unit.test.ts  (no network: fetch is stubbed)
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table } from '../src/chain.ts';
 import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted } from '../src/sources.ts';
 import { parseRobotsTxt, isPathAllowed } from '../src/robots.ts';
@@ -85,7 +86,9 @@ t('search finds XMD contract', xmd.some((s) => s.text.includes('xmd.token')));
 const ksto = searchSections(sections, 'KSTO vetted tokens');
 t('search finds vetted tokens', ksto.some((s) => s.text.includes('SNIPPY')));
 t('tokenize drops stop words', tokenize('What is the XPR Network LOAN protocol?').join(',') === 'loan,protocol');
-t('no wallet name in guide files', !files.some((f) => /\bscubasteve44\b/.test(readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8'))));
+// The builder's wallet account must never appear in the guide. It is checked by hash so the test itself doesn't name it.
+const PRIVATE_NAME_HASHES = new Set(['91b15a99688585cf4c25abb607466e72bdcfbb7e271ae841e70148d776e04f1f']);
+t('no private wallet name in guide files', !files.some((f) => (readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8').toLowerCase().match(/[a-z0-9._-]+/g) ?? []).some((w) => PRIVATE_NAME_HASHES.has(createHash('sha256').update(w).digest('hex')))));
 
 // ── registry
 t('registry exact', registryLookup('XBTC', 'xtokens').exact?.precision === 8);
