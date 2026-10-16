@@ -503,7 +503,7 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext) {
 							signersRequired: i.signers?.required ?? null,
 							confirmationTiers: i.confirmationTiers ?? null,
 							bridgeVersion: i.bridgeVersion ?? null,
-							note: 'From the "GET /api/info" example in the official docs/API.md (main branch), not from the live API.',
+							note: 'From the "GET /api/info" example in the official docs/API.md (the default branch of the repo), not from the live API.',
 						}
 					: 'docs/API.md not readable right now',
 				warning: DOGEVM.warning,
