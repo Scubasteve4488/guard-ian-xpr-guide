@@ -94,9 +94,9 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 | Source | URL | Notes |
 |---|---|---|
 | CoinGecko XPR | https://www.coingecko.com/en/coins/xpr-network | price/supply; API `api.coingecko.com/api/v3/coins/xpr-network` |
-| CoinMarketCap XPR | https://coinmarketcap.com/currencies/proton/ | CMC slug is still "proton"; its "CMC AI" update pages are machine summaries — not a source |
+| CoinMarketCap XPR | coinmarketcap.com/currencies/proton (named, not fetched: its terms forbid crawling, checked 2026-10-15) | CMC slug is still "proton"; its "CMC AI" update pages are machine summaries — not a source |
 | CoinGecko MTL | https://www.coingecko.com/en/coins/metal-dao | Metal DAO token |
-| CoinMarketCap MTL | https://coinmarketcap.com/currencies/metal/ | |
+| CoinMarketCap MTL | coinmarketcap.com/currencies/metal (named, not fetched) | |
 | CoinGecko XMD | https://www.coingecko.com/en/coins/metal-dollar | |
 | AMBCrypto, 2026-09-13 | https://ambcrypto.com/xpr-network-suffers-9m-proton-swaps-exploit-can-confidence-recover/ | proton.swaps exploit coverage (numbers differ from the primary post-mortem — prefer protonnz.com) |
 | KuCoin news "Metallicus Weekly Recap" | e.g. https://www.kucoin.com/news/insight/BTC/6ab9c40874fd460007c5c49e | **community-written** recaps republished by KuCoin; a lead, never a source |
@@ -160,6 +160,26 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 | 18 | SEC https://www.sec.gov | Metallicus filings UNVERIFIED (EDGAR search blocked; do not claim either way) | RSS `sec.gov/news/pressreleases.rss` (confirmed); EDGAR full-text search | PRIMARY-RECORD |
 | 19 | CFTC https://www.cftc.gov | No XPR. Tokenized-collateral guidance cites the GENIUS Act (cftc.gov/csl/25-39/download, 2025-12-08) | RSS `cftc.gov/RSS/RSSGP/rssgp.xml` (confirmed) | PRIMARY-RECORD |
 | 20 | BIS https://www.bis.org | No XPR. Stablecoins vs tokenised deposits speech (bis.org/speeches/20260828-…, 2026-08-28), relevant to Metallicus's CU pitch | RSS `bis.org/doclist/bis_fsi_publs.rss` (confirmed) | RESEARCH (official sector) |
+
+### 7e. Added 2026-10-16: regulators, betting odds, reference data (each loaded and its robots.txt and terms read 2026-10-15/16)
+
+| # | Source | XPR / Metallicus coverage (evidence, date) | How to read | Tier |
+|---|---|---|---|---|
+| 21 | Polymarket https://polymarket.com (agent guide https://polymarket.com/llms.txt; data https://gamma-api.polymarket.com/public-search?q=XPR) | **No market about XPR, Metallicus, Metal Pay or DogecoinVM** (searched 2026-10-15). Only quote a market that is actually about the ecosystem | public read-only data; its own llms.txt invites agents and says never present a price as a fixed fact | **ODDS: crowd betting odds, not facts and not forecasts. Never advice. polymarket.com is not open to US residents (they use Polymarket US); many countries are blocked or close-only. Never point anyone to trading** |
+| 22 | FDIC https://www.fdic.gov + BankFind https://api.fdic.gov/banks/institutions | Metallicus is not a bank (BankFind "Metallicus": 0, 2026-10-15, as expected). Use it to check whether a named bank partner is FDIC-insured | free JSON API | REGULATOR. Never imply the FDIC endorses Metallicus |
+| 23 | Federal Reserve https://www.federalreserve.gov/supervisionreg.htm | No Metallicus item found. Supervision letters on bank crypto activity, context for the bank/credit-union business | page | REGULATOR |
+| 24 | OCC https://www.occ.gov | No Metallicus item found. Interpretive letters on bank crypto custody and stablecoins; charter decisions | page; cite letter number + date | REGULATOR |
+| 25 | FinCEN https://www.fincen.gov | Metallicus / Metal Pay money-services registration **unverified** (the registrant search is a form a person has to run) | page | REGULATOR |
+| 26 | ESMA MiCA register https://www.esma.europa.eu | No white paper or licensed provider for XPR Network or Metallicus (weekly CSVs, last update 2026-10-07, read 2026-10-15) | CSV files, weekly | REGULATOR (EU) |
+| 27 | SEC EDGAR full-text search https://efts.sec.gov/LATEST/search-index?q=%22Metallicus%22 | No filing by or about Metallicus; the only hits are a passing mention in an unrelated company's filings (2026-10-15). Never quote a private person's biography | free JSON API (SEC asks for a contact User-Agent) | PRIMARY-RECORD |
+| 28 | Federal Register https://www.federalregister.gov/api/v1/documents.json?conditions[term]=Metallicus | 0 documents mention Metallicus (2026-10-15). Dated federal rules on stablecoins and bank/credit-union crypto | free JSON API | PRIMARY-RECORD |
+| 29 | Kaiko reference data https://reference-data-api.kaiko.io/v1/assets | Lists XPR as "Proton" with the BNB Chain address; `mtl` there is an unrelated older "Metal" token (a name trap) | free reference data only; market data is paid and may not be passed on | DATA (reference only; the chain wins) |
+| 30 | Santiment https://api.santiment.net/graphql | Lists XPR as "Proton", meaning the Ethereum ERC-20 copy, not XPR Network's own chain | project names only; its terms limit data to private use, so don't quote its metrics | DATA (low value) |
+
+**Named, never fetched** (a person can open them; the connector doesn't read them):
+- **Terms ban AI or automated use:** Etherscan (etherscan.io) and BscScan (bscscan.com). XPR's token addresses on those chains are on-chain facts; read them from the chain. Also CoinMarketCap (coinmarketcap.com), Artemis, Nansen, Tokenomist / Token Unlocks (which has no XPR page anyway).
+- **robots.txt refuses all bots:** Reuters and Bloomberg (Bloomberg blocks Anthropic's crawlers by name).
+- **Cloudflare blocks every automated read:** CryptoRank, FATF (fatf-gafi.org) and NMLS Consumer Access (state money-transmitter licences, the Metal Pay angle). For FATF, cite a named publication with its date. For NMLS, a person runs the search and the guide cites the dated result.
 
 ### 7b. Credit-union, banking and fintech sources (often report Metallicus partnerships before or beside Metallicus)
 
