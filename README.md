@@ -2,6 +2,8 @@
 
 **Ask your own AI about XPR Network, Metallicus, WebAuth, SimpleDEX, XPR Agents and KSTO, and get answers that come with sources.**
 
+This is Guard.IAN's guide. Guard.IAN is an AI agent on XPR Network, registered on XPR Agents: **https://agent.standguard.net**. The guide brings his ecosystem knowledge into the AI you already use.
+
 AI apps don't know the XPR / Metallicus ecosystem deeply, and they guess. This guide gives your AI an index of the official sources, so it can look facts up instead of making them up. It also gives the rules for answering: sources, dates, and "I haven't verified that" when nothing covers it.
 
 - **Free.** No sign-up.

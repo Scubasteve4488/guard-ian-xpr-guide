@@ -34,9 +34,10 @@ interface Env {
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
 }
 
-const VERSION = '1.12.1';
+const VERSION = '1.12.2';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
+It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
 How to answer with it:
 1. Start with guide_search (or guide_read "ECOSYSTEM.md" / "llms.txt") to find the official source, then source_fetch that source or use the xpr_* chain tools for live facts.
 2. Every fact needs its source link. Give the source's own date (published or updated) when it has one; for live chain or API reads, say it is live; for a number taken from the guide, keep the date the guide recorded. Don't print a "read" date on every fact. If nothing covers it, say "I haven't verified that" and say where it could be checked. Never fill a gap from memory.
@@ -708,6 +709,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 }
 
 const LANDING = `GUARD.IAN XPR Guide — MCP server (read-only, plus a private suggestion box)
+Guard.IAN's XPR Network and Metallicus knowledge, in the AI you already use. Guard.IAN is an AI agent on XPR Network, registered on XPR Agents (account safeguard5): https://agent.standguard.net
 Connector URL: <this host>/mcp   (add it as a custom connector in Claude, ChatGPT, Grok or any MCP app; no sign-in)
 Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, simpledex_tokens, simpledex_token, simpledex_market, metalx_market, xpr_agents_directory, xpr_nfts, metal_vm_info, suggest_update
 Read-only for the chain and the guide: no AI model, no keys, no transactions. The one write is suggest_update, a private suggestion box that is checked before anything is added. Community-built; not affiliated with Metallicus or XPR Network.
