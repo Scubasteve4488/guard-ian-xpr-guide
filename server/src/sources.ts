@@ -156,6 +156,9 @@ const SAFE_QUERY_KEYS = new Set(['fields', 'limit', 'offset', 'page', 'sort', 'o
 export function dataApiRefusal(url: URL): string | null {
 	const host = url.hostname.toLowerCase();
 	if (API_EXEMPT_HOSTS.has(host) || !API_PATH.test(url.pathname)) return null;
+	// Zendesk Help Center API (help.xprnetwork.org, help.metalpay.com …): published help articles, sections and search.
+	// It has no wallet or account data (builder's yes 2026-10-16: help.metalpay.com was refused by this guard).
+	if (/^\/api\/v2\/help_center\//i.test(url.pathname)) return null;
 	const last = url.pathname.replace(/\/+$/, '').split('/').pop()!.toLowerCase();
 	const badKey = [...url.searchParams.keys()].find((k) => !SAFE_QUERY_KEYS.has(k.toLowerCase()));
 	if (AGGREGATE_ENDPOINTS.has(last) && !badKey) return null;
@@ -213,14 +216,17 @@ export interface PageView {
 	find?: string;
 }
 
-export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks, view: PageView = {}) {
+/** Turns a PDF's bytes into text. Supplied by index.ts from Cloudflare's Workers AI toMarkdown; absent in tests/local. */
+export type PdfToText = (bytes: Uint8Array) => Promise<string>;
+
+export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: GuideLinks, view: PageView = {}, pdfToText?: PdfToText) {
 	let target = raw;
 	let r: FetchResult;
 	for (let hop = 0; ; hop++) {
 		const chk = checkSourceUrl(target, links);
 		if (!chk.ok) throw new UpstreamError(hop === 0 ? chk.why : `it redirected to ${target}, which is refused: ${chk.why}`);
 		if (!(await robotsAllows(chk.url, ctx))) throw new UpstreamError(`${chk.url.host}'s robots.txt does not allow automated reading of this page`);
-		r = await politeFetch([chk.url.toString()], '', { method: 'GET' }, { ttlSec: 600, ctx, startAt: 0, returnRedirects: true });
+		r = await politeFetch([chk.url.toString()], '', { method: 'GET' }, { ttlSec: 600, ctx, startAt: 0, returnRedirects: true, pdf: pdfToText });
 		if (r.status < 300 || r.status >= 400) break;
 		if (hop >= MAX_REDIRECTS) throw new UpstreamError(`${chk.url.host} redirected more than ${MAX_REDIRECTS} times`);
 		if (!r.location) throw new UpstreamError(`${chk.url.host} redirected without saying where`);
@@ -230,6 +236,7 @@ export async function fetchSource(raw: string, ctx?: ExecutionContext, links?: G
 	if (r.status >= 400) throw new UpstreamError(`${new URL(r.source).host} returned HTTP ${r.status}`);
 	// Security review M3: text pages only, and cut before the HTML clean-up so one page cannot burn the CPU budget.
 	if (r.contentType && !/^(text\/|application\/(json|xml|javascript|[\w.+-]+\+(json|xml)))/i.test(r.contentType)) {
+		if (/^application\/pdf\b/i.test(r.contentType)) throw new UpstreamError(`${new URL(r.source).host} returned a PDF, and PDF reading is not switched on in this server`);
 		throw new UpstreamError(`${new URL(r.source).host} returned ${r.contentType.split(';')[0]}, not a text page`);
 	}
 	const pageText = r.text.slice(0, 300_000);

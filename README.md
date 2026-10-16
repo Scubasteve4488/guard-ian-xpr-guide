@@ -10,6 +10,8 @@ AI apps don't know the XPR / Metallicus ecosystem deeply, and they guess. This g
 - **Read-only.** No wallet, no keys, it signs nothing. The one exception is a private suggestion box (`suggest_update`): your AI can send a fact the guide is missing, with your OK. Nothing about you is stored, no one else can read it, and it is added only after it is checked at an official source.
 - **No AI model inside.** Your own Claude, ChatGPT or Grok writes the answer.
 
+> **Private for now (2026-10-16).** The builder is testing the guide and isn't opening it to the public yet. It might open later. GUARD.IAN's own server answers only at a private address, so the server address below returns "Not found" for everyone else. The files in this repo stay readable on GitHub.
+
 ## Connect it
 
 Connector URL:
@@ -20,7 +22,7 @@ https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
 
 Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
-**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"**. Code: [`server/`](server/).
+**Recommended: GUARD.IAN's own server (live since 2026-10-15; private since 2026-10-16, see the note above).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live chain tools: account facts, token balances, contract tables, the block-producer list, and **"is this the real token?"**. Code: [`server/`](server/).
 
 ```
 https://guard-ian-guide.rangelt88.workers.dev/mcp

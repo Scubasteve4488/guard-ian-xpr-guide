@@ -51,6 +51,40 @@ async function readCapped(res: Response): Promise<{ text: string; tooLarge: bool
 		text += dec.decode(value, { stream: true });
 	}
 }
+// PDFs (builder's yes 2026-10-16: whitepapers could not be read). Read as bytes up to 10 MB, checked to really be a PDF
+// ("%PDF-" in the first 1,024 bytes), then handed to the converter. Only PDFs ever reach it: an image would be described
+// by an AI model, which costs Workers AI Neurons; a PDF's text is extracted, not generated.
+const MAX_PDF_BYTES = 10_000_000;
+const PDF_TTL_SEC = 6 * 60 * 60;
+async function readBytesCapped(res: Response, cap: number): Promise<Uint8Array | null> {
+	if (!res.body) return new Uint8Array();
+	const reader = res.body.getReader();
+	const parts: Uint8Array[] = [];
+	let n = 0;
+	while (true) {
+		const { done, value } = await reader.read();
+		if (done) break;
+		n += value.byteLength;
+		if (n > cap) {
+			await reader.cancel().catch(() => {});
+			return null;
+		}
+		parts.push(value);
+	}
+	const out = new Uint8Array(n);
+	let at = 0;
+	for (const p of parts) {
+		out.set(p, at);
+		at += p.byteLength;
+	}
+	return out;
+}
+export function looksLikePdf(bytes: Uint8Array): boolean {
+	const sig = [0x25, 0x50, 0x44, 0x46, 0x2d]; // "%PDF-"
+	const end = Math.min(bytes.length, 1024) - sig.length;
+	for (let i = 0; i <= end; i++) if (sig.every((b, j) => bytes[i + j] === b)) return true;
+	return false;
+}
 const MAX_BACKOFF_MS = 1500;
 const TIMEOUT_MS = 8000;
 
@@ -187,7 +221,7 @@ export async function politeFetch(
 	pool: string[],
 	path: string,
 	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
-	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean } = {},
+	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean; pdf?: (bytes: Uint8Array) => Promise<string> } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
 	const key = cacheKey(pool.join('|') + path, init.body);
@@ -251,6 +285,21 @@ export async function politeFetch(
 			}
 			lastErr = `${new URL(url).host} redirected (not followed)`;
 			continue;
+		}
+		const ctype = res.headers.get('content-type') || '';
+		if (opts.pdf && res.ok && /^application\/pdf\b/i.test(ctype)) {
+			const bytes = await readBytesCapped(res, MAX_PDF_BYTES);
+			if (!bytes) throw new UpstreamError(`${host}: this PDF is over 10 MB, too large to read here`);
+			if (!looksLikePdf(bytes)) throw new UpstreamError(`${host} labelled this a PDF, but it is not one`);
+			let pdfText: string;
+			try {
+				pdfText = await opts.pdf(bytes);
+			} catch (e) {
+				throw e instanceof UpstreamError ? e : new UpstreamError('the PDF could not be turned into text (Cloudflare Workers AI did not answer); try again later');
+			}
+			const out: FetchResult = { status: res.status, text: pdfText, source: url, cached: false, readAt: new Date().toISOString(), contentType: 'text/markdown; converted-from=application/pdf' };
+			await cachePut(key, out, Math.max(ttl, PDF_TTL_SEC), opts.ctx);
+			return out;
 		}
 		const { text, tooLarge } = await readCapped(res);
 		const out: FetchResult = { status: res.status, text, source: url, cached: false, readAt: new Date().toISOString(), contentType: res.headers.get('content-type') || undefined, ...(tooLarge ? { tooLarge } : {}) };

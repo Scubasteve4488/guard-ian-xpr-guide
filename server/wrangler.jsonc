@@ -58,6 +58,12 @@
 			"database_id": "0d3b9337-d0d0-4284-afb5-e932a879ab6b",
 		},
 	],
+	// Workers AI, used ONLY to turn PDFs into text in source_fetch (builder's yes 2026-10-16). Cloudflare's own Markdown
+	// Conversion (developers.cloudflare.com/workers-ai/features/markdown-conversion/usage/binding/). Only PDFs are ever sent;
+	// on the Free plan Workers AI cannot bill: past the 10,000 free Neurons a day a call fails (workers-ai/platform/pricing).
+	"ai": {
+		"binding": "AI",
+	},
 	"vars": {
 		"GUIDE_REPO": "Scubasteve4488/guard-ian-xpr-guide",
 		"GUIDE_BRANCH": "main",

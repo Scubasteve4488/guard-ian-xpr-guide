@@ -1,14 +1,14 @@
 // Unit tests: node --experimental-strip-types test/unit.test.ts  (no network: fetch is stubbed)
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
-import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table, scopeFor } from '../src/chain.ts';
-import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted } from '../src/sources.ts';
+import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table, scopeFor, symbolScope } from '../src/chain.ts';
+import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted, dataApiRefusal } from '../src/sources.ts';
 import { parseRobotsTxt, isPathAllowed, robotsAllows } from '../src/robots.ts';
 import { splitSections, searchSections, tokenize } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
 import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN } from '../src/history.ts';
-import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling } from '../src/net.ts';
+import { politeFetch, __resetNetState, setUpstreamLimiters, hostCooling, looksLikePdf } from '../src/net.ts';
 import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateList, toolDisabled, MASK, KEY_MASK } from '../src/privacy.ts';
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
@@ -599,5 +599,55 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 t('private mode off: landing at /, /mcp passes', accessGate('/') === 'open-landing' && accessGate('/mcp') === 'pass' && accessGate('/mcp', '  ') === 'pass');
 t('private mode on: only /mcp/<secret> is served', accessGate('/mcp/abcDEF123', 'abcDEF123') === 'rewrite');
 t('private mode on: /mcp, /, a wrong or partial secret are 404', ['/mcp', '/', '/mcp/abc', '/mcp/abcDEF1234', '/mcp/abcDEF123/x', '/x/abcDEF123'].every((p) => accessGate(p, 'abcDEF123') === 'deny'));
+
+// ── PDFs in source_fetch (2026-10-16): converted by the supplied converter, only real PDFs, size-capped
+{
+	const pdfBytes = new TextEncoder().encode('%PDF-1.7\n1 0 obj << >> endobj\ntrailer\n%%EOF');
+	let sent: Uint8Array | null = null;
+	const conv = async (b: Uint8Array) => {
+		sent = b;
+		return '# Whitepaper\nMaximum supply: 66,588,888.';
+	};
+	const lkp = { hosts: new Set(['cdn.metallicus.com']), githubOwners: new Set<string>() };
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response(pdfBytes, { status: 200, headers: { 'content-type': 'application/pdf' } })));
+	const pd = await fetchSource('https://cdn.metallicus.com/paper.pdf', undefined, lkp, {}, conv);
+	t('pdf: converted text returned', pd.text.includes('Maximum supply: 66,588,888') && !!sent && (sent as Uint8Array).length === pdfBytes.length);
+	calls.length = 0;
+	const pd2 = await fetchSource('https://cdn.metallicus.com/paper.pdf', undefined, lkp, {}, conv);
+	t('pdf: second read comes from the cache', pd2.text === pd.text && calls.filter((c) => c.endsWith('/paper.pdf')).length === 0);
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response(pdfBytes, { status: 200, headers: { 'content-type': 'application/pdf' } })));
+	let off = '';
+	try { await fetchSource('https://cdn.metallicus.com/paper.pdf', undefined, lkp); } catch (e: any) { off = e.message; }
+	t('pdf: without a converter it says PDF reading is off', /PDF reading is not switched on/.test(off));
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response('<html>not a pdf</html>', { status: 200, headers: { 'content-type': 'application/pdf' } })));
+	let fake = '';
+	sent = null;
+	try { await fetchSource('https://cdn.metallicus.com/fake.pdf', undefined, lkp, {}, conv); } catch (e: any) { fake = e.message; }
+	t('pdf: a non-PDF labelled PDF is refused and never sent to the converter', /not one/.test(fake) && sent === null);
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response(new Uint8Array(10_000_001), { status: 200, headers: { 'content-type': 'application/pdf' } })));
+	let huge = '';
+	try { await fetchSource('https://cdn.metallicus.com/huge.pdf', undefined, lkp, {}, conv); } catch (e: any) { huge = e.message; }
+	t('pdf: over 10 MB refused', /over 10 MB/.test(huge));
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response(pdfBytes, { status: 200, headers: { 'content-type': 'application/pdf' } })));
+	let convFail = '';
+	try { await fetchSource('https://cdn.metallicus.com/x.pdf', undefined, lkp, {}, async () => { throw new Error('boom'); }); } catch (e: any) { convFail = e.message; }
+	t('pdf: converter failure is reported plainly', /could not be turned into text/.test(convFail));
+	t('pdf signature check', looksLikePdf(pdfBytes) && !looksLikePdf(new TextEncoder().encode('GIF89a')));
+	globalThis.fetch = realFetch;
+}
+
+// ── symbol scopes for a token's stat table (2026-10-16)
+t('symbol scope: XPR is 5394520', symbolScope('XPR') === '5394520');
+t('symbol scope: MPD', symbolScope('MPD') === String(77 + 80 * 256 + 68 * 65536));
+t('symbol scope: names and junk are not symbols', symbolScope('xpr') === null && symbolScope('X1') === null && symbolScope('TOOLONGX') === null);
+t('symbol scope never decodes to an account name', u64ToName(symbolScope('ZZZZZZZ')!) === null && u64ToName(symbolScope('XMD')!) === null);
+{
+	const refs = tableAccountRefs({ code: 'xmd.token', scope: symbolScope('XMD')!, scope_type: 'number' });
+	t('symbol scope raises no private-wallet check', refs.direct.length === 0 && refs.encoded.length === 0);
+}
+
+// ── help-center APIs are readable on any linked help center (2026-10-16: help.metalpay.com was refused)
+t('help-center API exempt', dataApiRefusal(new URL('https://help.metalpay.com/api/v2/help_center/en-us/articles.json?per_page=100')) === null);
+t('other Zendesk API paths still refused', dataApiRefusal(new URL('https://help.metalpay.com/api/v2/users.json')) !== null);
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);

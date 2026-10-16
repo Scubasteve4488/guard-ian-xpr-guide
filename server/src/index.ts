@@ -8,7 +8,7 @@ import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { GUIDE_FILES, readGuideFile, splitSections, searchSections, type GuideFile } from './guide.ts';
 import { fetchSource, guideLinks, labelUntrusted } from './sources.ts';
-import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol } from './chain.ts';
+import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol, symbolScope } from './chain.ts';
 import { tokenCheck } from './tokens.ts';
 import { helpSearch, helpArticle } from './help.ts';
 import { actions as historyActions, transaction as historyTx, abi as contractAbi, block as historyBlock, explorerAccount, isFilter, isIsoTime } from './history.ts';
@@ -34,9 +34,15 @@ interface Env {
 	SUGGEST_LIMITER?: Limiter; // per caller IP, for suggest_update only
 	WALLET_LIMITER?: Limiter; // per caller IP, tighter, for account/balance/history/holdings tools
 	ACCESS_PATH?: string; // Worker SECRET, optional: private mode — the connector answers only at /mcp/<ACCESS_PATH>
+	AI?: AiLike; // Workers AI binding (wrangler.jsonc "ai"): used ONLY for toMarkdown on PDFs in source_fetch
 }
 
-const VERSION = '1.13.1';
+// Cloudflare Workers AI Markdown Conversion (developers.cloudflare.com/workers-ai/features/markdown-conversion/usage/binding/).
+interface AiLike {
+	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
+}
+
+const VERSION = '1.14.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -91,6 +97,19 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		}
 	};
 	const slowDown = () => badInput('Too many account lookups from this connection: please wait a minute.');
+	// PDFs in source_fetch (builder's yes 2026-10-16). Cloudflare's own converter: Workers AI toMarkdown, the official binding
+	// method (developers.cloudflare.com/workers-ai/features/markdown-conversion/). Only PDFs are sent (net.ts checks the
+	// "%PDF-" signature), metadata left out (conversion-options: pdf.metadata). On the Free plan Workers AI never bills: past
+	// the daily free allowance a call fails (workers-ai/platform/pricing, "N/A - Upgrade to Workers Paid").
+	const pdfToText = env.AI
+		? async (bytes: Uint8Array) => {
+				const r = await env.AI!.toMarkdown({ name: 'document.pdf', blob: new Blob([bytes], { type: 'application/pdf' }) }, { conversionOptions: { pdf: { metadata: false } } });
+				const one = Array.isArray(r) ? r[0] : r;
+				if (!one || one.format === 'error' || typeof one.data !== 'string')
+					throw new UpstreamError(`the PDF could not be turned into text${one?.error ? ` (${String(one.error).slice(0, 120)})` : ''}`);
+				return one.data as string;
+			}
+		: undefined;
 	// Emergency off switch (researcher review 2026-10-16): a tool named in the DISABLED_TOOLS secret is not offered at all;
 	// "*" switches every tool off. Set it in Cloudflare → the Worker → Settings → Variables and Secrets, type Secret
 	// (a plain variable would be wiped by the next deploy; secrets never are, per developers.cloudflare.com
@@ -167,7 +186,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		{
 			title: 'Fetch an official source page',
 			description:
-				'Fetch one page from any site the guide links to (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, ecosystem projects, block producers, catalogued GitHub orgs, data APIs, press and regulators). The list updates itself from the guide. Returns readable text (HTML stripped), 20,000 characters at a time: for a long page use `find` to jump to the part about a word, or `offset` to read the next part. Follows up to 3 redirects that stay on listed sites and respects robots.txt. Sites the guide does not link to, and social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn), are refused.',
+				'Fetch one page or PDF from any site the guide links to (XPR Network, Metallicus, Metal X, SimpleDEX, XPR Agents, KSTO, ecosystem projects, block producers, catalogued GitHub orgs, data APIs, press and regulators), e.g. an official whitepaper PDF. The list updates itself from the guide. Returns readable text (HTML stripped; a PDF is converted to text, up to 10 MB), 20,000 characters at a time: for a long page use `find` to jump to the part about a word, or `offset` to read the next part. Follows up to 3 redirects that stay on listed sites and respects robots.txt. Sites the guide does not link to, and social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn), are refused.',
 			inputSchema: z.object({
 				url: z.string().url().max(500).describe('https URL taken from the guide, e.g. https://simpledex.fun/llms-launches.txt'),
 				find: z.string().min(2).max(100).optional().describe('Jump to the first place this word or phrase appears (case-insensitive), e.g. "globalram" or "max_asc_window_days"'),
@@ -178,7 +197,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 		async ({ url, find, offset }) => {
 			try {
 				const links = await guideLinks(repo, branch, ctx, env.GITHUB_TOKEN);
-				const r = await fetchSource(url, ctx, links, { find, offset });
+				const r = await fetchSource(url, ctx, links, { find, offset }, pdfToText);
 				const where = `Showing characters ${r.start}-${r.end} of ${r.total}.`;
 				const found = find
 					? r.matches && r.matches.length
@@ -276,7 +295,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 			inputSchema: z.object({
 				code: z.string().min(1).max(12).describe('Contract account, e.g. "simplelaunch"'),
 				table: z.string().min(1).max(12).describe('Table name, e.g. "antisnipe"'),
-				scope: z.string().min(1).max(20).optional().describe('Scope (defaults to the contract). An account name, or a number (e.g. a token ID, or the u64 encoding of an all-digit name)'),
+				scope: z.string().min(1).max(20).optional().describe('Scope (defaults to the contract). An account name; a token symbol in capitals for a token contract\'s "stat" table (supply, max supply, issuer), e.g. code "xmd.token", table "stat", scope "XMD"; or a number (e.g. a token ID, or the u64 encoding of an all-digit name)'),
 				scope_type: z.enum(['name', 'number']).optional().describe('Force how scope is read. Default: digits with 0 or 6-9, or longer than 12, are a number; anything else is a name'),
 				limit: z.number().int().min(1).max(50).optional().describe('Rows to return (default 20, max 50)'),
 				lower_bound: z.string().max(64).optional().describe('Start key (use next_key from a previous page). Numbers such as token IDs are sent as numbers.'),
@@ -290,10 +309,13 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 			}),
 			annotations: { title: 'Contract table', ...RO },
 		},
-		async (a) => {
+		async (input) => {
+			// A token symbol as scope (a token's `stat` table) is sent as its u64 number (chain.ts symbolScope).
+			const sym = input.scope ? symbolScope(input.scope) : null;
+			const a = sym ? { ...input, scope: sym, scope_type: 'number' as const } : input;
 			const numericScope = !!a.scope && /^\d{1,20}$/.test(a.scope);
 			if (!isAccountName(a.code) || !isTableName(a.table) || (a.scope && !isAccountName(a.scope) && !numericScope))
-				return badInput('code and table must be valid XPR names (a–z, 1–5 and ".", up to 12 characters); scope must be a name or a number.');
+				return badInput('code and table must be valid XPR names (a–z, 1–5 and ".", up to 12 characters); scope must be a name, a token symbol in capitals (for a "stat" table) or a number.');
 			// A table scoped to, or keyed on, a private person's account is a wallet lookup by another route: decline it.
 			// Includes all-digit names, names sent as their u64 number, and name-shaped bounds without key_type (access.ts).
 			const refs = tableAccountRefs(a);

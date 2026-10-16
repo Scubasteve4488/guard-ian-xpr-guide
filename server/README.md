@@ -1,6 +1,6 @@
 # GUARD.IAN XPR Guide: server
 
-A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.12.0 as of 2026-10-16).
+A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector. It runs on Cloudflare Workers, built on Cloudflare's official template [`cloudflare/ai` → `demos/remote-mcp-authless`](https://github.com/cloudflare/ai/tree/main/demos/remote-mcp-authless). Version: see `/health` (1.14.0 as of 2026-10-16).
 
 **Read-only for the chain and for everyone's data.** The one write is `suggest_update`: a private suggestion box that stores a proposed fact and its link (nothing about the sender), which the daily job checks at an official source or the live chain, and the builder approves, before anything is added.
 
@@ -16,11 +16,11 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 |---|---|
 | `guide_search` | Keyword search across the whole guide: ecosystem directory, source catalog, rules, KSTO, index |
 | `guide_read` | Read one guide file, always the latest commit on `main` (cached up to 5 min here and up to 5 min at GitHub) |
-| `source_fetch` | Fetch one page from any site the guide links to. The list updates itself from the guide's own links, so a project the daily update adds is readable within about 10 minutes. HTTPS only, robots.txt respected, up to 3 redirects that stay on listed sites, 20,000-character cap. Social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn) are never fetched |
+| `source_fetch` | Fetch one page or PDF from any site the guide links to. A PDF (up to 10 MB, e.g. an official whitepaper) is turned into text by Cloudflare's Workers AI Markdown Conversion; only real PDFs are sent, and on the Free plan it cannot bill (since 1.14.0). Help-center APIs (`/api/v2/help_center/…`) are readable on any linked help center. The list updates itself from the guide's own links, so a project the daily update adds is readable within about 10 minutes. HTTPS only, robots.txt respected, up to 3 redirects that stay on listed sites, 20,000-character cap. Social/log-in sites (X, Telegram, Discord, Reddit, YouTube, LinkedIn) are never fetched |
 | `xpr_chain_info` | Live chain status: chain id, head block, last irreversible block |
 | `xpr_account` | Live public account facts: created, XPR balance, resources, permission structure, votes |
 | `xpr_token_balances` | Every token an account holds, as symbol + contract + amount (Hyperion) |
-| `xpr_table` | Read any contract table (max 50 rows, paged), e.g. `simplelaunch` / `antisnipe` |
+| `xpr_table` | Read any contract table (max 50 rows, paged), e.g. `simplelaunch` / `antisnipe`. A token's `stat` table (supply, max supply, issuer) takes the symbol in capitals as scope, e.g. code `xmd.token`, table `stat`, scope `XMD` (since 1.14.0) |
 | `xpr_producers` | The live active block-producer schedule |
 | `suggest_update` | The one write: a private suggestion box for a fact the guide is missing (with the user's OK). Stores only the fact and an optional https link, nothing about the sender (no IP, no account). No tool reads it back. Limits: 3 a minute per connection, 50 a day in total, duplicates stored once, recovery phrases and private keys refused. The daily job checks each one at an official source before anything is added |
 | `xpr_token_check` | "Is this the real token?" Compares symbol + contract against XPR's developer token registry, the chain, Metal X's markets, Alcor's flags and SimpleDEX. It never declares anything safe or a scam |
@@ -87,6 +87,9 @@ npm test          # unit tests, network stubbed
 npm run type-check
 npm run dev       # local server at http://127.0.0.1:8787/mcp
 ```
+
+## Private mode (1.13.1, builder: "private")
+With the Worker **Secret** `ACCESS_PATH` set, the connector answers only at `/mcp/<that value>`. Plain `/mcp` and the landing page return 404; `/health` stays. Without the secret, nothing changes. The value is never written anywhere in this repo.
 
 ## Emergency off switch
 Any tool can be switched off at once, with no code change. In the Cloudflare dashboard open the Worker `guard-ian-guide` → **Settings** → **Variables and Secrets** → **Add**, choose type **Secret**, name `DISABLED_TOOLS`, value a comma-separated list of tool names (for example `xpr_actions,xpr_table`), or `*` for every tool. Then select **Deploy**. Use the Secret type: deploys never delete secrets, but they do wipe plain variables set in the dashboard. Remove the secret to switch the tools back on.

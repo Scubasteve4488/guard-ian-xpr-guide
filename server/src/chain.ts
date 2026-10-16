@@ -15,6 +15,21 @@ export function isSymbol(s: string): boolean {
 	return /^[A-Z]{1,7}$/.test(s);
 }
 
+/**
+ * A token symbol code as the u64 a table scope uses ("XPR" → 5394520): one byte per letter, first letter lowest.
+ * A token contract's `stat` table is scoped by the symbol code. SOURCE: XPRNetwork/xpr-network-dev-skill @ main
+ * skill/token-creation.md:78-79 ("TableStore's second argument is the SCOPE … wrap the symbol code
+ * (`new Name(sym.code())`)") and :168 (`new TableStore<CurrencyStats>(this.receiver, new Name(symbol.code()))`).
+ * Sent as a plain number, so no node has to guess whether "MPD" is a name or a symbol. The value is below 2^56, so it
+ * can never decode to an account name (access.ts u64ToName needs a letter in the top 5 bits).
+ */
+export function symbolScope(code: string): string | null {
+	if (!isSymbol(code)) return null;
+	let v = 0n;
+	for (let i = 0; i < code.length; i++) v |= BigInt(code.charCodeAt(i)) << BigInt(8 * i);
+	return v.toString();
+}
+
 // Copied from rpc-queries.md:234-254 @ a1d455e (upstream's published fix).
 export function nameToU64(name: string): string {
 	const charset = '.12345abcdefghijklmnopqrstuvwxyz';
