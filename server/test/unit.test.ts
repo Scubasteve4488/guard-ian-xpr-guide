@@ -13,7 +13,7 @@ import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateL
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
-import { u64ToName, tableAccountRefs, accessGate } from '../src/access.ts';
+import { u64ToName, tableAccountRefs, accessGate, isPublicAccount } from '../src/access.ts';
 import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
 import { z } from 'zod';
 
@@ -622,6 +622,24 @@ t('off switch: "*" turns everything off; empty turns nothing off', toolDisabled(
 		return x.isError || /could not be described/.test(x.content[0].text);
 	});
 	t('catalog: every more.ts tool describes cleanly', real.names().length >= 4 && undescribable.length === 0);
+}
+// 1.14.3: an account that once had code but cleared it is not "a smart contract" (2026-10-16 live check).
+{
+	const answer = (hash: string | null) => (url: string, init?: any) => {
+		const body = JSON.parse(init?.body ?? '{}');
+		if (url.endsWith('/v1/chain/get_account')) return new Response(JSON.stringify({ account_name: body.account_name, last_code_update: '2023-01-01T00:00:00.000' }), { status: 200 });
+		if (url.endsWith('/v1/chain/get_code_hash')) return hash === null ? new Response('{"error":{"what":"nope"}}', { status: 500 }) : new Response(JSON.stringify({ account_name: body.account_name, code_hash: hash }), { status: 200 });
+		if (url.endsWith('/v1/chain/get_table_rows')) return new Response('{"rows":[],"more":false}', { status: 200 });
+		return new Response('{}', { status: 404 });
+	};
+	const opts = { repo: 'x/y', branch: 'main', producers: [] as string[] };
+	stub(answer('0'.repeat(64)));
+	t('access: cleared contract counts as private', !(await isPublicAccount('clearedcode1', opts)).pub);
+	stub(answer('ab'.repeat(32)));
+	t('access: account with code now is a smart contract', (await isPublicAccount('hascodenow1', opts)).why === 'a smart contract');
+	stub(answer(null));
+	t('access: code-hash read failing keeps the date rule', (await isPublicAccount('hashfails11', opts)).pub);
+	globalThis.fetch = realFetch;
 }
 // Private mode (2026-10-16).
 t('private mode off: landing at /, /mcp passes', accessGate('/') === 'open-landing' && accessGate('/mcp') === 'pass' && accessGate('/mcp', '  ') === 'pass');

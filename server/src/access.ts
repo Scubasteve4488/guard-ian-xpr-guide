@@ -14,6 +14,20 @@ const cache = new Map<string, { at: number; pub: boolean; why: string }>();
 const TTL_MS = 60 * 60 * 1000;
 const NO_CODE = '1970-01-01T00:00:00.000';
 
+// An account that once had code and later cleared it keeps its last_code_update date (found 2026-10-16: a staker's
+// account counted as "a smart contract" with no code or ABI). get_code_hash tells whether code is there now:
+// all zeros = none. null = the read failed or looked odd, and the older date-only rule then decides.
+async function hasCodeNow(name: string, net: Network | undefined, ctx?: ExecutionContext): Promise<boolean | null> {
+	try {
+		const r = await rpc('/v1/chain/get_code_hash', { account_name: name }, 300, ctx, undefined, rpcPool(net));
+		const h = String(r.json?.code_hash ?? '');
+		if (!/^[0-9a-f]{64}$/i.test(h)) return null;
+		return !/^0+$/.test(h);
+	} catch {
+		return null;
+	}
+}
+
 async function isRegisteredAgent(name: string, ctx?: ExecutionContext): Promise<boolean> {
 	try {
 		const r = await rpc('/v1/chain/get_table_rows', { code: 'agentcore', scope: 'agentcore', table: 'agents', json: true, limit: 1, lower_bound: name, upper_bound: name, key_type: 'name' }, 600, ctx);
@@ -42,7 +56,8 @@ export async function isPublicAccount(
 	else {
 		try {
 			const a = await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, undefined, rpcPool(opts.net));
-			if (a.json?.last_code_update && a.json.last_code_update !== NO_CODE) res = { pub: true, why: 'a smart contract' };
+			if (a.json?.last_code_update && a.json.last_code_update !== NO_CODE && (await hasCodeNow(name, opts.net, ctx)) !== false)
+				res = { pub: true, why: 'a smart contract' };
 		} catch {
 			/* unknown → stays private */
 		}
