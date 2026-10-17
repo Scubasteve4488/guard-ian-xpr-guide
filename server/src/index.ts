@@ -8,6 +8,7 @@ import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
 import { GUIDE_FILES, readGuideFile, splitSections, searchSections, type GuideFile } from './guide.ts';
 import { fetchSource, guideLinks, labelUntrusted } from './sources.ts';
+import { plainHttp, httpsRedirect, withSecurityHeaders, favicon } from './edge.ts';
 import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol, symbolScope } from './chain.ts';
 import { tokenCheck } from './tokens.ts';
 import { helpSearch, helpArticle } from './help.ts';
@@ -54,7 +55,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.15.2';
+const VERSION = '1.15.4';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -840,29 +841,36 @@ Code and content: https://github.com/Scubasteve4488/guard-ian-xpr-guide
 
 export default {
 	async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-		const url = new URL(request.url);
-		if (url.pathname === '/health') return Response.json({ ok: true, name: 'guard-ian-xpr-guide', version: VERSION });
-		// Private mode (builder, 2026-10-16: "private"): with the ACCESS_PATH Worker secret set, the connector answers only
-		// at /mcp/<secret>; everything else (the landing page, plain /mcp) is a 404, so the address alone grants access.
-		const gate = accessGate(url.pathname, env.ACCESS_PATH, env.LOCK_PUBLIC);
-		if (gate === 'deny') return new Response('Not found', { status: 404 });
-		if (gate === 'open-landing') return new Response(LANDING, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
-		if (gate === 'rewrite') {
-			const inner = new URL(request.url);
-			inner.pathname = '/mcp';
-			request = new Request(inner.toString(), request);
-		}
-
-		// Rate limit (CLAUDE.md rule 10). Keyed per client IP; per Cloudflare location (see wrangler.jsonc).
-		const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-		if (env.RATE_LIMITER) {
-			const { success } = await env.RATE_LIMITER.limit({ key: ip });
-			if (!success) return new Response('Rate limit: 60 requests per minute. Please slow down.', { status: 429, headers: { 'retry-after': '60' } });
-		}
-		// Never get banned: shared per-target budgets (net.ts). Without the bindings, refuse rather than serve unmetered.
-		if (!env.CHAIN_LIMITER || !env.HOST_LIMITER) return new Response('Server misconfigured: upstream rate limits missing.', { status: 503 });
-		setUpstreamLimiters(env.CHAIN_LIMITER, env.HOST_LIMITER);
-		const handler = createMcpHandler(() => createServer(env, ctx, ip));
-		return handler(request, env, ctx);
+		// REA Lab job 2 fixes (edge.ts): http → https, HSTS + nosniff on every answer, a quiet favicon.
+		if (plainHttp(request)) return httpsRedirect(request);
+		if (new URL(request.url).pathname === '/favicon.ico') return favicon();
+		return withSecurityHeaders(await route(request, env, ctx));
 	},
 } satisfies ExportedHandler<Env>;
+
+async function route(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
+	const url = new URL(request.url);
+	if (url.pathname === '/health') return Response.json({ ok: true, name: 'guard-ian-xpr-guide', version: VERSION });
+	// Private mode (builder, 2026-10-16: "private"): with the ACCESS_PATH Worker secret set, the connector answers only
+	// at /mcp/<secret>; everything else (the landing page, plain /mcp) is a 404, so the address alone grants access.
+	const gate = accessGate(url.pathname, env.ACCESS_PATH, env.LOCK_PUBLIC);
+	if (gate === 'deny') return new Response('Not found', { status: 404 });
+	if (gate === 'open-landing') return new Response(LANDING, { headers: { 'content-type': 'text/plain; charset=utf-8' } });
+	if (gate === 'rewrite') {
+		const inner = new URL(request.url);
+		inner.pathname = '/mcp';
+		request = new Request(inner.toString(), request);
+	}
+
+	// Rate limit (CLAUDE.md rule 10). Keyed per client IP; per Cloudflare location (see wrangler.jsonc).
+	const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+	if (env.RATE_LIMITER) {
+		const { success } = await env.RATE_LIMITER.limit({ key: ip });
+		if (!success) return new Response('Rate limit: 60 requests per minute. Please slow down.', { status: 429, headers: { 'retry-after': '60' } });
+	}
+	// Never get banned: shared per-target budgets (net.ts). Without the bindings, refuse rather than serve unmetered.
+	if (!env.CHAIN_LIMITER || !env.HOST_LIMITER) return new Response('Server misconfigured: upstream rate limits missing.', { status: 503 });
+	setUpstreamLimiters(env.CHAIN_LIMITER, env.HOST_LIMITER);
+	const handler = createMcpHandler(() => createServer(env, ctx, ip));
+	return handler(request, env, ctx);
+}

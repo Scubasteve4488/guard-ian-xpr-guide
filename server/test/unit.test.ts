@@ -14,6 +14,7 @@ import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like 
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
 import { u64ToName, tableAccountRefs, accessGate, isPublicAccount } from '../src/access.ts';
+import { plainHttp, httpsRedirect, withSecurityHeaders, favicon, SECURITY_HEADERS } from '../src/edge.ts';
 import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
 import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
@@ -867,6 +868,26 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('cursor: ordinary numeric ids and empty keys are not names', cursorName('84', u64ToName) === null && cursorName('', u64ToName) === null && cursorName(null, u64ToName) === null);
 	t('cursor: the live blocklist cursor of 2026-10-16 decodes to a name (so it must be hidden)', cursorName('3953343095625482240', u64ToName) !== null);
 	t('always-private: only the blocklist table', isAlwaysPrivateTable('blocklist', 'blocklist') && !isAlwaysPrivateTable('eosio', 'producers') && !isAlwaysPrivateTable('blocklist', 'config'));
+}
+// ── 1.15.4: REA Lab job 2 fixes (http → https, HSTS + nosniff, favicon)
+{
+	t('edge: an http request is seen as plain http', plainHttp(new Request('http://guide.standguard.net/health')));
+	t('edge: an https request is not', !plainHttp(new Request('https://guide.standguard.net/health')));
+	t('edge: CF-Visitor scheme http is seen as plain http', plainHttp(new Request('https://guide.standguard.net/mcp', { headers: { 'cf-visitor': '{"scheme":"http"}' } })));
+	t('edge: CF-Visitor scheme https, or junk, is not', !plainHttp(new Request('https://g.example/x', { headers: { 'cf-visitor': '{"scheme":"https"}' } })) && !plainHttp(new Request('https://g.example/x', { headers: { 'cf-visitor': 'junk' } })));
+	const r = httpsRedirect(new Request('http://guide.standguard.net/mcp?x=1', { method: 'POST', body: '{}' }));
+	t('edge: redirect is 308 (keeps POST) to the same path on https', r.status === 308 && r.headers.get('location') === 'https://guide.standguard.net/mcp?x=1');
+	const h = withSecurityHeaders(Response.json({ ok: true }, { status: 200 }));
+	t('edge: HSTS one year, no includeSubDomains/preload', h.headers.get('strict-transport-security') === 'max-age=31536000');
+	t('edge: nosniff added, content type kept', h.headers.get('x-content-type-options') === 'nosniff' && (h.headers.get('content-type') || '').includes('application/json'));
+	t('edge: body and status kept', h.status === 200 && JSON.stringify(await h.json()) === '{"ok":true}');
+	const k = withSecurityHeaders(new Response('x', { status: 404, headers: { 'x-content-type-options': 'nosniff', 'retry-after': '60' } }));
+	t('edge: existing headers are not doubled or dropped', k.status === 404 && k.headers.get('x-content-type-options') === 'nosniff' && k.headers.get('retry-after') === '60');
+	const stream = new ReadableStream({ start(c) { c.enqueue(new TextEncoder().encode('data: 1\n\n')); c.close(); } });
+	const sse = withSecurityHeaders(new Response(stream, { headers: { 'content-type': 'text/event-stream' } }));
+	t('edge: a stream answer stays a stream with the headers on it', (await sse.text()) === 'data: 1\n\n' && sse.headers.get('strict-transport-security') === SECURITY_HEADERS['strict-transport-security']);
+	const f = favicon();
+	t('edge: favicon is an empty 204 with the headers', f.status === 204 && f.headers.get('x-content-type-options') === 'nosniff' && (await f.text()) === '');
 }
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
