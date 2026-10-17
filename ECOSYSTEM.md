@@ -425,7 +425,8 @@ Read 2026-10-15. This answers "where does XPR trade and how do I move it safely"
   - **Supply:** 21,000,000 EASY, all issued (supply = max). 1,457 accounts hold some.
   - **Where the supply sits:** about 75% is in Alcor (`swap.alcor`). Five pools hold about 3.16M EASY each, paired with only about 13,700–14,300 of XUSDT, XUSDC, XMD, XPYUSD and XPAX. In each, 95–100% of the liquidity belongs to `hands.mon3y` (same key as `mon3y`), locked in Alcor: XUSDT until 2030-01-06, XUSDC until 2028-06-01, XPYUSD until 2031-08-11, XPAX until 2033-03-18, and **XMD only until 2026-10-24**. After a lock ends, its owner can withdraw that position.
   - **GRAMS "gold":** 1,000,000,000 GRAMS issued by `gold.mon3y`. On 10-17 `gold.mon3y` and `mon3y` held no XPAXG (Paxos Gold) and `hands.mon3y` held 0.0003 XPAXG, so no gold backing is visible in these accounts. XPAXG's total supply on XPR is 50.
-  - **Not known:** who holds the key; what the code does beyond its ABI (fees, bans) without reading it; whether backing sits elsewhere.
+  - **The project's own docs** (flex.report `smart-contracts/easy.md`, read 10-17, https://github.com/dougbutner/flex.report): `setconfig` allows reflection + burn rates "sum ≤100%" (so the owner may set a tax of up to 100% per transfer); `noflexzone` bans or unbans an account from fees and rewards, "self-ban allowed; unban requires contract auth"; day one, 4,200,000 EASY went into each of the five stable pools from `hands.mon3y` (100% of supply), which matches the chain. The contract's source code was not found in the builder's public GitHub repos (10-17).
+  - **Not known:** who holds the key; whether the code matches the docs (the source isn't public, so only reading the deployed code could confirm it); whether backing sits elsewhere.
 
 ### 8b. SimpleDEX tokens that run their own website
 
