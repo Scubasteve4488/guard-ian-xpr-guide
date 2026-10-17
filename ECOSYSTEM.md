@@ -418,6 +418,14 @@ Read 2026-10-15. This answers "where does XPR trade and how do I move it safely"
   - **Transfers:** the `transfer` action has no fee field. A fee taken inside the code cannot be ruled out without reading the code.
   - **Who can change the code:** the `tokencreate` account's owner and active permissions are each one single key, threshold 1 (plus `eosio.code` on active), with no multisig. The code was last set on 2026-09-15 (earlier: 2025-04-14). So whoever holds that key can change the rules for every token on this contract, with no on-chain delay. Who holds it is not stated anywhere this guide has found.
   - Code hash (10-17): `e3e319da628187f86414108f531442f5edcd68aa3cb7047d787ad314a5a68628`. If it changes, the code has changed.
+- **EASY (`mon3y`): what the chain shows (read 2026-10-17).** Facts only; GUARD.IAN gives no verdict (RULES §3).
+  - **Control:** the `mon3y` contract (created 2025-03-19) is controlled by one key (owner and active, threshold 1, no multisig). Its code was set **33 times** between 2025-05-31 and **2026-10-13**. `gold.mon3y` (GRAMS) and `hands.mon3y` are controlled the same way.
+  - **Identity:** none of `mon3y`, `gold.mon3y` or `hands.mon3y` is KYC-verified on XPR (`eosio.proton` usersinfo `verified` = 0).
+  - **What the owner can change:** `setconfig` sets the reflection and burn rates (now 2% reflection, 0% burn); the ABI shows no upper limit. `noflexzone` takes an account and a `ban_status`. `setflexpool` / `setflextoken` change which pools and tokens rewards use.
+  - **Supply:** 21,000,000 EASY, all issued (supply = max). 1,457 accounts hold some.
+  - **Where the supply sits:** about 75% is in Alcor (`swap.alcor`). Five pools hold about 3.16M EASY each, paired with only about 13,700–14,300 of XUSDT, XUSDC, XMD, XPYUSD and XPAX. In each, 95–100% of the liquidity belongs to `hands.mon3y` (same key as `mon3y`), locked in Alcor: XUSDT until 2030-01-06, XUSDC until 2028-06-01, XPYUSD until 2031-08-11, XPAX until 2033-03-18, and **XMD only until 2026-10-24**. After a lock ends, its owner can withdraw that position.
+  - **GRAMS "gold":** 1,000,000,000 GRAMS issued by `gold.mon3y`. On 10-17 `gold.mon3y` and `mon3y` held no XPAXG (Paxos Gold) and `hands.mon3y` held 0.0003 XPAXG, so no gold backing is visible in these accounts. XPAXG's total supply on XPR is 50.
+  - **Not known:** who holds the key; what the code does beyond its ABI (fees, bans) without reading it; whether backing sits elsewhere.
 
 ### 8b. SimpleDEX tokens that run their own website
 
