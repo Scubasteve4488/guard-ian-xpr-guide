@@ -411,6 +411,13 @@ Read 2026-10-15. This answers "where does XPR trade and how do I move it safely"
 - **Copies are everywhere.** Alcor's list held 426 tokens copying these symbols on other contracts, and flagged 405 of them as scams (10-15). SimpleDEX also has lookalikes, such as a "METAL" and a "BTC" that are not the real ones.
 - **FOOBAR@xtokens** is a demo token per XPR's own repos (`foobar-faucet`). Don't treat it as an asset.
 - **Same symbol, different tokens:** BEAR exists at least as `BEAR@tokencreate` (5.89B, read 10-15) and `BEAR@simpletoken`. The SimpleDEX one (token 227) is Beartallicus's (§8b). NDAO also exists on both `tokencreate` and `simpletoken`. Always name the contract.
+- **The `tokencreate` contract: what the chain shows (read 2026-10-17, its ABI, tables and account).** It holds 850+ tokens, including CYPHR, KSTO, BLPAD, VIBRR and NDAO, so these facts apply to all of them.
+  - **Actions:** `create`, `issue`, `retire`, `transfer` (as in `eosio.token`), plus `burn`, `distribute` (creates a token, with a `creation_fee` field), `freeze` and `unfreeze`. It has no `open`/`close`.
+  - **`freeze` and `unfreeze` take only a token symbol**, so they act on a whole token, not on one holder. Who may call them is not visible in the ABI. On 10-17 its `frozen` table was empty: no token was frozen.
+  - **Issuing:** each token's `stat` row holds supply, max supply and issuer. CYPHR read supply = max supply = 4,206,942,069 with issuer `cypherxpr`, which matches its site's "fully issued, no new minting": there is no room left under the max. The ABI has no action that changes a max supply; whether the code allows one cannot be told from the ABI alone.
+  - **Transfers:** the `transfer` action has no fee field. A fee taken inside the code cannot be ruled out without reading the code.
+  - **Who can change the code:** the `tokencreate` account's owner and active permissions are each one single key, threshold 1 (plus `eosio.code` on active), with no multisig. The code was last set on 2026-09-15 (earlier: 2025-04-14). So whoever holds that key can change the rules for every token on this contract, with no on-chain delay. Who holds it is not stated anywhere this guide has found.
+  - Code hash (10-17): `e3e319da628187f86414108f531442f5edcd68aa3cb7047d787ad314a5a68628`. If it changes, the code has changed.
 
 ### 8b. SimpleDEX tokens that run their own website
 
