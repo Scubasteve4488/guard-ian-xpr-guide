@@ -10,14 +10,14 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 
 **Added, machine-readable (check these first in the daily read):**
 - Metallicus `https://metallicus.com/llms.txt` (product map) · Metal Pay `https://www.metalpay.com/sitemap.xml` (lastmod) · Metal X `https://docs.metalx.com/llms.txt` + `sitemap-pages.xml`.
-- WebAuth SDK `https://github.com/XPRNetwork/proton-web-sdk/releases.atom` (v5.1.0, 2026-09-17) · npm `https://registry.npmjs.org/@proton%2fweb-sdk`. WebAuth has NO docs/help site (help/docs/support.webauth.com don't resolve; webauth.com is an app page).
-- MetalGo `https://github.com/MetalBlockchain/metalgo/releases.atom` (v1.14.2-tahoe, 2026-09-22) · PulseVM `https://github.com/MetalBlockchain/pulsevm/commits/main.atom` + `/tags.atom` (v1.0.0 is a TAG, no release) · pulse-cutover `https://github.com/paulgnz/pulse-cutover/releases.atom` (rc.20, 2026-10-01) · pulsevm.dev `/llms.txt` + `/sitemap.xml` (COMMUNITY — Paul Grey).
-- XPR GitHub: xpr-network-dev-skill `releases.atom` (v2.9.0) · xpr-agents `releases.atom` + commits (HEAD 69adfab, 0.8.8 signing limits) · proton-cli · proton.contracts.
-- SimpleDEX: `simpledex.fun/llms*.txt` — store version line AND a content hash (launches says v1.11 but the server changed it 2026-10-01) · `https://indexer.protonnz.com/api/stats` · `https://protonnz.com/feed.xml` (RSS).
+- WebAuth SDK `https://github.com/XPRNetwork/proton-web-sdk/releases.atom` (v5.1.0, 2026-09-17; still the latest, re-read 2026-10-18) · npm `https://registry.npmjs.org/@proton%2fweb-sdk`. WebAuth has NO docs/help site (help/docs/support.webauth.com don't resolve; webauth.com is an app page).
+- MetalGo `https://github.com/MetalBlockchain/metalgo/releases.atom` (v1.14.2-tahoe, 2026-09-22; still the latest, re-read 2026-10-18) · PulseVM `https://github.com/MetalBlockchain/pulsevm/commits/main.atom` + `/tags.atom` (v1.0.0 is a TAG, no release; tag dated 2026-10-13, re-read 2026-10-18) · pulse-cutover `https://github.com/paulgnz/pulse-cutover/releases.atom` (v0.5.0-rc.32, 2026-10-16, read 2026-10-18; ~~rc.20, 2026-10-01~~ superseded 2026-10-18) · pulsevm.dev `/llms.txt` + `/sitemap.xml` (COMMUNITY — Paul Grey).
+- XPR GitHub: xpr-network-dev-skill `releases.atom` (v2.12.0, 2026-10-16: XPR Agents module updated for sdk 0.5.2 / openclaw 0.8.7; v2.11.0 removed the liquidation how-to and added Network Etiquette; read 2026-10-18; ~~v2.9.0~~ superseded 2026-10-18) · xpr-agents `releases.atom` + commits (HEAD a7410e9, 2026-10-16: openclaw plugin 0.9.1, plugin id renamed `openclaw` → `xpr-agents` in 0.9.0, which includes the 0.8.8 signing limits; latest GitHub release still v2026.09.17; read 2026-10-18; ~~HEAD 69adfab, 0.8.8 signing limits~~ superseded 2026-10-18) · proton-cli · proton.contracts.
+- SimpleDEX: `simpledex.fun/llms*.txt` — store version line AND a content hash (launches says v1.11 but the server changed it 2026-10-01; still headed "v1.11 · 2026-05-12" on 2026-10-18 while its body now gives the 120 s creator window) · `https://indexer.protonnz.com/api/stats` · `https://protonnz.com/feed.xml` (RSS).
 - XPR Agents: `https://xpragents.com/llms.txt` (no version line — hash it) · `https://indexer.xpragents.com/api/stats`.
-- Chain: `get_producer_schedule` (21 in the active schedule; 104 registered) + each producer's bp.json.
+- Chain: `get_producer_schedule` (21 in the active schedule, re-read 2026-10-18, schedule version 1426; 104 registered, 10-15 figure) + each producer's bp.json.
 
-**Corrections:** drop `t.me/s/xprannouncements` (last post 2023-08-22). `t.me/XPRNetwork`, `t.me/MetalBlockchain`, `t.me/metallicus` are groups with no public preview — unreadable. YouTube feeds for XPR channels returned 404 — skip. `xprnetwork.org/consortium` is 404. `help.metalpay.com` blocks scripts.
+**Corrections:** drop `t.me/s/xprannouncements` (last post 2023-08-22; source not readable 2026-10-18: the guide connector does not open Telegram). `t.me/XPRNetwork`, `t.me/MetalBlockchain`, `t.me/metallicus` are groups with no public preview — unreadable. YouTube feeds for XPR channels returned 404 — skip. `xprnetwork.org/consortium` is 404 (still 404, 2026-10-18). `help.metalpay.com` blocks scripts.
 
 ## 1. Metallicus (corporate)
 
@@ -30,7 +30,7 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 | CEO profile | https://metallicus.com/company/marshall-hayner | Marshall Hayner bio | OFFICIAL-M | rare | PAGE |
 | Marshall Hayner on X | https://x.com/MarshallHayner | CEO's public posts (policy, product previews) | the CEO personally | daily | not machine-readable without X API; quote only what a fetched post says |
 | Marshall Hayner LinkedIn | https://www.linkedin.com/in/marshallhayner/ | career, posts | the CEO personally | irregular | login wall — treat as UNREADABLE |
-| Metallicus TDBN on X | https://x.com/MetallicusTDBN | corporate posts ("The Digital Banking Network") | OFFICIAL-M | daily | as above (handle seen in a community recap, 2026-09-21; verify before citing) |
+| Metallicus TDBN on X | https://x.com/MetallicusTDBN | corporate posts ("The Digital Banking Network") | OFFICIAL-M | daily | as above (handle seen in a community recap, 2026-09-21; verify before citing; source not readable 2026-10-18: X is not fetched) |
 | Whitepapers | https://metallicus.com/company/whitepapers ; Metal L2 WP https://metallicus.com/metal-l2-whitepaper.pdf | design documents | OFFICIAL-M | rare | PDF |
 | Metal Pay | https://metallicus.com (Individuals → Metal Pay); on-ramp https://onramp.metalpay.com | fiat on-ramp app | OFFICIAL-M | — | PAGE |
 | Metal Dollar | https://metaldollar.com | XMD: basket-backed stablecoin index, chains, live treasury composition, newsroom list | OFFICIAL-M / Metal DAO | newsroom + live treasury | PAGE |
@@ -40,13 +40,13 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 | Source | URL | Covers | Publisher | Update rate | How to read |
 |---|---|---|---|---|---|
 | Home | https://xprnetwork.org | positioning, links hub | OFFICIAL-X | — | PAGE |
-| Roadmap | https://xprnetwork.org/roadmap | "In development" vs "core development" items, no dates except mainnet May 2020 | OFFICIAL-X | page stamp 2026-09-23 | PAGE |
+| Roadmap | https://xprnetwork.org/roadmap | "In development" vs "core development" items, no dates except mainnet May 2020 | OFFICIAL-X | page stamp 2026-09-23; re-read 2026-10-18, same items ("2025 and beyond", WebAuth Fiat Ramp "In development"); the stamp is not in the fetched text | PAGE |
 | Blog | https://xprnetwork.org/blog | guides + announcements (e.g. Introducing XPR Agents, staking guide, DappRadar as BP) | OFFICIAL-X | irregular; list shows no dates | PAGE + SITEMAP https://xprnetwork.org/sitemap_en.xml (index at /sitemap.xml; no RSS found) |
 | Developer docs | https://docs.xprnetwork.org | getting started, tutorials, CLI, Web SDK, client SDKs, contract SDK | OFFICIAL-X | as edited | PAGE (already covered by the dev skill) |
 | Explorer | https://explorer.xprnetwork.org | accounts, tx, producers, tokens | OFFICIAL-X | live | PAGE; for facts prefer the chain tools |
 | Help centre | https://help.xprnetwork.org/hc/en-us | user support articles | OFFICIAL-X | as edited | PAGE |
 | Governance portal | https://gov.xprnetwork.org | governance / voting UI | OFFICIAL-X | live | JS app — PAGE fetch returned only a title; use chain reads (`eosio` producers table) instead |
-| Bounties | https://github.com/XPRNetwork/bounties | open developer bounties | OFFICIAL-X | last push 2026-09-01 | GH |
+| Bounties | https://github.com/XPRNetwork/bounties | **program archived:** the last commit (2026-09-01) is "Archive bounty program and remove stale listings" (read 2026-10-18). ~~open developer bounties~~ superseded 2026-10-18 | OFFICIAL-X | last push 2026-09-01 | GH |
 | Grant framework | https://github.com/XPRNetwork/grant-framework | how grants work | OFFICIAL-X | rare | GH |
 | X | https://x.com/XPRNetwork | official announcements | OFFICIAL-X | daily | X |
 | Telegram (community) | https://t.me/XPRNetwork | main chat; announcements pinned; admins never DM | OFFICIAL-X | live | Telegram public preview https://t.me/s/XPRNetwork where enabled |
@@ -59,7 +59,7 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 |---|---|---|---|---|---|
 | WebAuth | https://webauth.com ; https://metallicus.com/individuals/webauth ; https://xprnetwork.org/wallet | self-custody passkey/biometric wallet, multi-chain | OFFICIAL-M | app releases | PAGE (webauth.com is a JS shell — fetch the metallicus page instead); App Store id1594500069, Play `com.metallicus.webauth` |
 | Metal X | https://metalx.com ; app https://app.metalx.com ; docs https://docs.metalx.com ; API https://api.dex.docs.metalx.com | on-chain order-book DEX, swaps, lending, LP, bridge, fiat ramp; operator Metallicus Inc. (NMLS 2057807 as read 2026-09-28; the ID was not shown on metallicus.com product pages on 2026-10-15, so check NMLS Consumer Access before citing it) | OFFICIAL-M | live | PAGE / API |
-| XPR Agents | https://xpragents.com ; https://xpragents.com/llms.txt ; indexer https://indexer.xpragents.com/api | agent registry, escrow job board, reputation; contracts agentcore/agentfeed/agentvalid/agentescrow | OFFICIAL-X (repo XPRNetwork/xpr-agents, MIT) | llms.txt reflects contracts as of 2026-09-02 | llms.txt + API (already covered by the xpr-agents skill) |
+| XPR Agents | https://xpragents.com ; https://xpragents.com/llms.txt ; indexer https://indexer.xpragents.com/api | agent registry, escrow job board, reputation; contracts agentcore/agentfeed/agentvalid/agentescrow | OFFICIAL-X (repo XPRNetwork/xpr-agents, MIT) | llms.txt reflects contracts as of 2026-09-02 (unchanged, re-read 2026-10-18) | llms.txt + API (already covered by the xpr-agents skill) |
 | SimpleDEX | https://simpledex.fun ; https://simpledex.fun/llms.txt (+ llms-trading/-launches/-reference/-analytics/-setup/-testnet/-full) | AMM + bonding-curve launches; analytics API https://indexer.protonnz.com | COMMUNITY-BP (Proton NZ, Paul Grey) | versions stamped in each file | llms.txt (already covered) |
 | Proton NZ | https://protonnz.com ; blog https://protonnz.com/blog | BP "protonnz"; 14 projects (SimpleDEX, XPR Tax, Private Transactions, XPR Agents, Shellbook…); incident write-ups | COMMUNITY-BP (Paul Grey, also Metallicus BD manager and XPR Consortium member per his site) | several posts/month in Aug–Sep 2026 | **RSS https://protonnz.com/feed.xml** (verified RSS 2.0) |
 | Private Transactions | https://private.protonnz.com | confidential transfers, contract `xprconf` | COMMUNITY-BP | — | PAGE + chain |
@@ -73,20 +73,23 @@ Publisher key: **OFFICIAL-M** = Metallicus Inc. · **OFFICIAL-X** = XPR Network 
 | Source | URL | Covers | Publisher | Update rate | How to read |
 |---|---|---|---|---|---|
 | Metal Blockchain | https://metalblockchain.org | Layer-0 for institutions: A-Chain (Antelope), C-Chain (EVM), P-Chain (validators/subnets), X-Chain (assets) | OFFICIAL-M | — | PAGE |
-| Metal Blockchain news | https://www.metalblockchain.org/blog | news & insights (latest seen: BitcoinVM, 2026-02-06) | OFFICIAL-M | slow in 2026 | PAGE |
+| Metal Blockchain news | https://www.metalblockchain.org/blog | news & insights (latest: "BTCVM, LTCVM and DogecoinVM Are Now in Alpha Testing on Metal Blockchain", 2026-09-29, read 2026-10-18; ~~latest seen: BitcoinVM, 2026-02-06~~ superseded 2026-10-18) | OFFICIAL-M | slow in 2026 | PAGE |
 | Metal Blockchain docs | https://docs.metalblockchain.org | node, subnets, staking | OFFICIAL-M | as edited | PAGE |
 | Metal Blockchain explorer | https://explorer.metalblockchain.org | chain data | OFFICIAL-M | live | PAGE |
 | Metal L2 | https://metall2.com ; news https://metall2.com/news-insights ; explorer https://explorer.metall2.com ; bridge https://bridge.metall2.com | Ethereum L2 (OP Stack today) moving to a Metal Blockchain subnet | OFFICIAL-M | a few posts/yr | PAGE |
 | MIP-002 Homecoming | https://metalhomecoming.com | Metal DAO proposal: Metal L2 → Metal Blockchain subnet, MTL as gas, XMD multichain | Metal DAO / Metallicus | — | PAGE |
 
-## 5. GitHub — what is being built (pushes read 2026-09-28)
+## 5. GitHub — what is being built (pushes re-read 2026-10-18; first read 2026-09-28)
 
 | Org / user | URL | What recent pushes show |
 |---|---|---|
-| XPRNetwork | https://github.com/XPRNetwork | xpr-network-dev-skill and xpr-agents (both pushed 2026-09-28), proton.contracts (09-24), vert test library, proton-web-sdk, bounties, proton-cli (08-28), xpr-loan-liquidation-bot |
-| MetalBlockchain | https://github.com/MetalBlockchain | pulsevm (09-24), hyperion-rs (Rust Hyperion, 09-28), btc-vm and dogecoin-vm (09-27), metalgo node, libevm, pulse-cdt-rust, pulsevm-js, mtl-migration-public (07-20) |
-| paulgnz (Paul Grey) | https://github.com/paulgnz | pulse-cutover ("Antelope→PulseVM cutover agent", rehearsed against XPR testnet state), pulse-cli-ts, pulse-privacy, btcvm, bridge-operator, metalgo-setup, dogecoin-vm-wallet, pulsevm-docs — all pushed 2026-09-22…09-29 |
-| charliebot87 | https://github.com/charliebot87 | mpp-xpr, x402-demo, xpr-account-trust-cli (09-09) |
+| XPRNetwork | https://github.com/XPRNetwork | 2026-10-18: proton-resources (10-17), xpr-agents and xpr-network-dev-skill (both 10-16), proton.contracts (10-06), vert (10-02), proton-web-sdk (09-17), bounties (09-01, archived), proton-cli (08-28) |
+| XPRNetwork | https://github.com/XPRNetwork | ~~xpr-network-dev-skill and xpr-agents (both pushed 2026-09-28), proton.contracts (09-24), vert test library, proton-web-sdk, bounties, proton-cli (08-28), xpr-loan-liquidation-bot~~ superseded 2026-10-18 (read 2026-09-28) |
+| MetalBlockchain | https://github.com/MetalBlockchain | 2026-10-18: pulsevm (10-16; v1.0.0 tag 10-13), hyperion-rs and pulsevm-js (10-14), dogecoin-vm (10-12), btc-vm (09-27), metalgo (09-22), libevm (09-18), pulse-cdt-rust (08-12), mtl-migration-public (07-20) |
+| MetalBlockchain | https://github.com/MetalBlockchain | ~~pulsevm (09-24), hyperion-rs (Rust Hyperion, 09-28), btc-vm and dogecoin-vm (09-27), metalgo node, libevm, pulse-cdt-rust, pulsevm-js, mtl-migration-public (07-20)~~ superseded 2026-10-18 (read 2026-09-28) |
+| paulgnz (Paul Grey) | https://github.com/paulgnz | 2026-10-18: pulse-cutover (10-16, v0.5.0-rc.32), a pulsevm fork (10-15), dogecoin-vm-wallet (10-02), metalgo-setup (09-27), bridge-operator and btcvm (09-26), pulsevm-docs (09-24), pulse-cli-ts (09-23), pulse-privacy (09-22) |
+| paulgnz (Paul Grey) | https://github.com/paulgnz | ~~pulse-cutover ("Antelope→PulseVM cutover agent", rehearsed against XPR testnet state), pulse-cli-ts, pulse-privacy, btcvm, bridge-operator, metalgo-setup, dogecoin-vm-wallet, pulsevm-docs — all pushed 2026-09-22…09-29~~ superseded 2026-10-18 (read 2026-09-28) |
+| charliebot87 | https://github.com/charliebot87 | mpp-xpr, x402-demo, xpr-account-trust-cli (09-09; unchanged, re-read 2026-10-18) |
 | "metallicus" | https://github.com/metallicus | **NOT Metallicus** — an unrelated user (a 2013 OpenCV fork). Never cite it. |
 
 ## 6. Market data and press
