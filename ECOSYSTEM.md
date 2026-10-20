@@ -719,3 +719,654 @@ Older grant-proposal titles with unknown status include Protonext, Fishtank, Pro
 - **alcor-labs[.]com is not a site Alcor links to** (sweep 2026-10-19: it looks like a copy of Alcor). Alcor on XPR is https://proton.alcor.exchange. Treat look-alike domains as unsafe.
 - **"XPR Network AI" on Base is not XPR Network.** A token by that name trades on Base (seen on DexScreener and DEXTools, 2026-10-19); its maker is unknown and it has nothing to do with XPR or Metallicus.
 - **Old addresses that now redirect:** dex.protonnz.com → simpledex.fun; agents.protonnz.com → xpragents.com; lending.metalx.com → app.metalx.com/lending (sweep 2026-10-19). Official posts may still show the old ones.
+
+## 15. Added by the full coverage sweep (2026-10-19)
+Everything below was found by a five-part sweep on 2026-10-19 (official sites and sitemaps, certificate logs, GitHub, on-chain directories, the open web) and was missing from §§1–14. LIVE = opened that day; LISTED = linked from the place named but not opened. Earlier sections stay the main reference; this section fills the gaps. Suspicious or look-alike sites are in §14 and are written without links.
+
+### 15a. Official sites and pages added by the 2026-10-19 sweep
+
+Found by the 2026-10-19 sweep of official sites, their sitemaps and footers, plus certificate records for official subdomains. **LIVE (read 2026-10-19)** means the page was opened and loaded that day. **LISTED** means an official page links to it but it was not opened, so check it before relying on it. "Loads only in a browser" means the page is a JavaScript app: a plain fetch shows only its frame. Hosts already in the guide (status pages, help centers, Sentinel, the redirects in §14) are not repeated here.
+
+**Metallicus**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal Identity app | On-chain identity app for XPR Network and Metal Blockchain | https://identity.metallicus.com | Metallicus | LIVE (read 2026-10-19; loads only in a browser) |
+| Careers | Careers page. The "join us" link in every XPR / Metal footer serves the same page. Openings come from an embedded TriNet Hire job board | https://metallicus.com/company/careers · https://metallicus.com/join-us · job board https://app.trinethire.com/companies/437042-metallicus-inc/jobs/embed | Metallicus | Careers pages LIVE (read 2026-10-19). Job board LISTED (linked from metallicus.com/company/careers, not opened) |
+| Brand guidelines | Brand guidelines page with logo downloads; a public Figma file of the brand guidelines for all 9 Metallicus products; a Google Drive folder of official logos | https://metallicus.com/company/brand-guidelines · Figma https://www.figma.com/design/MUUr9nWjU9Fn0Mg0ENgEC3/Metallicus-Products-Brand-Guidelines--Public-?node-id=299-2 · logos https://drive.google.com/drive/folders/1PCc_P--1YPnEgxc9zqodP9udNkOdGTT7?usp=drive_link | Metallicus | Page LIVE (read 2026-10-19). Figma and Drive LISTED (linked from metallicus.com/company/brand-guidelines, not opened) |
+| Integrations | Core-banking integrations (Jack Henry, Temenos) | https://metallicus.com/company/integrations | Metallicus | LIVE (read 2026-10-19) |
+| Contact | Contact and sales page | https://metallicus.com/contact-us | Metallicus | LISTED (linked from metallicus.com, not opened) |
+| Developers hub | Developer landing page and its XPR Network page (the Metal Blockchain and Metal L2 developer pages are already in §1) | https://metallicus.com/developers · https://metallicus.com/developers/xpr-network | Metallicus | LISTED (linked from metallicus.com and its sitemap, not opened) |
+| Pages for individuals | Individuals hub and its supported-assets page | https://metallicus.com/individuals · https://metallicus.com/individuals/assets | Metallicus | LISTED (linked from metallicus.com, not opened) |
+| Pages for institutions | Blockchain solutions; investing and wallets; identity; trading and lending | https://metallicus.com/institutions/blockchain-solutions · https://metallicus.com/institutions/investing-and-wallets · https://metallicus.com/institutions/identity · https://metallicus.com/institutions/trading-and-lending | Metallicus | LISTED (linked from metallicus.com, not opened) |
+| CFO page | Company bio page for Irina Berkon, CFO (public role, on the team page in §1a) | https://metallicus.com/company/irina-berkon | Metallicus | LISTED (linked from the metallicus.com sitemap, not opened) |
+| SOC 2 Type I | Blog post: Metallicus completed a SOC 2 Type I assessment (2026-08-18) | https://metallicus.com/blog/metallicus-completes-soc-2-type-i-assessment | Metallicus | LIVE (read 2026-10-19) |
+| Quarterly reports (older) | CEO's quarterly reports: 2026 Q2 (2026-07-06), 2025 Q4, Q3, Q2 and Q1 (Q1 2026 and Q3 2026 are already in §1) | https://metallicus.com/blog/metallicus---2026-q2-report · https://metallicus.com/blog/metallicus---2025-q4-report · https://metallicus.com/blog/metallicus-2025-q3-report · https://metallicus.com/blog/metallicus-2025-q2-report · https://metallicus.com/blog/metallicus-2025-q1-quarterly-report | Metallicus | LISTED (linked from metallicus.com and its sitemap, not opened) |
+| Institution news | CrossState pilot with 50 credit unions; FedNow Request for Payment (RfP) certification; engineering team update | https://metallicus.com/blog/crossstate-metallicus-launch-pilot-program-with-50-credit-unions · https://metallicus.com/blog/metallicus-expands-fednow-service-capabilities-with-request-for-payment-rfp-certification · https://metallicus.com/blog/engineering-team-update | Metallicus | LISTED (linked from the metallicus.com sitemap, not opened) |
+| Compliance posts | "Committed to compliance" and "Staying compliant with crypto in the United States" | https://metallicus.com/blog/committed-to-compliance · https://metallicus.com/blog/staying-compliant-with-crypto-in-the-united-states | Metallicus | LISTED (linked from the metallicus.com sitemap, not opened) |
+
+**XPR Network**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| FAQ | XPR Network FAQ | https://xprnetwork.org/faq | XPR Network | LIVE (read 2026-10-19) |
+| XPR Grants Fund | How to apply for an XPR grant; proposals go to the Grants community on the governance dashboard; the grants treasury is the `xprgrants` account | https://xprnetwork.org/blog/xpr-grants-fund · proposals https://gov.xprnetwork.org/communities/6 · treasury https://explorer.xprnetwork.org/account/xprgrants | XPR Network | Grants post LIVE (read 2026-10-19). Proposals page and treasury LISTED (linked from the grants post, not opened) |
+| XPR Checkout for WordPress | Product page for the WordPress checkout plugin (the Wookey page and repo are in §7) | https://xprnetwork.org/xpr-checkout-for-wordpress | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| Account security guides | Blog: how the permissions system works; securing an account with native 2-of-3 multisig; YubiKey as a hardware wallet | https://xprnetwork.org/blog/understanding-the-xpr-network-permissions-system · https://xprnetwork.org/blog/how-to-secure-your-account-with-native-2-of-3-multisig · https://xprnetwork.org/blog/why-yubikey-is-quietly-becoming-the-best-hardware-wallet | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| How-to guides | Blog: create an account; become a block producer; long staking | https://xprnetwork.org/blog/how-to-create-an-xpr-network-account · https://xprnetwork.org/blog/how-to-become-a-block-producer-on-the-xpr-network · https://xprnetwork.org/blog/long-staking-on-xpr-network | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| Programmes and governance posts | Blog: 2025 roadmap update; bounties programme; code of conduct; governance dashboard; DEX rebates | https://xprnetwork.org/blog/xpr-network-roadmap-update-2025 · https://xprnetwork.org/blog/bounties-program · https://xprnetwork.org/blog/code-of-conduct · https://xprnetwork.org/blog/gov-dashboard · https://xprnetwork.org/blog/rebates-dex | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| Partner posts | Blog: DappRadar joins as a block producer; RockerOne joins as Digital Adoption Growth Manager | https://xprnetwork.org/blog/dappradar-joins-xpr-network-as-a-block-producer · https://xprnetwork.org/blog/rockerone-joins-the-xpr-network-as-digital-adoption-growth-manager | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| NFT developer guides | Blog: NFTs on XPR Network for developers, parts 1 and 2 | https://xprnetwork.org/blog/guide-to-nfts-on-xpr-network-for-developers · https://xprnetwork.org/blog/nfts-on-xpr-network-for-developers-part-2 | XPR Network | LISTED (linked from the xprnetwork.org sitemap, not opened) |
+| Developer docs index | Sitemap of the developer docs, about 100 pages | https://docs.xprnetwork.org/sitemap.xml | XPR Network | LIVE (read 2026-10-19) |
+| Docs: getting started | Introduction; accounts and permissions | https://docs.xprnetwork.org/getting-started/introduction.html · https://docs.xprnetwork.org/getting-started/accounts-and-permissions.html | XPR Network | LISTED (linked from the docs sitemap, not opened) |
+| Docs: security and permissions | Smart-contract security; CLI multisig (msig); CLI permissions | https://docs.xprnetwork.org/contract-sdk/security.html · https://docs.xprnetwork.org/documentations/proton-cli/msig.html · https://docs.xprnetwork.org/documentations/proton-cli/permission.html | XPR Network | LISTED (linked from the docs sitemap, not opened) |
+| Docs: building | Web SDK; querying tables; user tokens; creating a token; reading chain data; signing and pushing transactions from a backend | https://docs.xprnetwork.org/client-sdks/web.html · https://docs.xprnetwork.org/client-sdks/query-tables.html · https://docs.xprnetwork.org/client-sdks/user-tokens.html · https://docs.xprnetwork.org/guides/create-token.html · https://docs.xprnetwork.org/reading-onchain-data/reading-onchain-data.html · https://docs.xprnetwork.org/signing-and-pushing-transactions/signing-and-pushing-transactions.html | XPR Network | LISTED (linked from the docs sitemap and xprnetwork.org, not opened) |
+| Developer code | `@proton` npm organisation; official developer-examples repo; TypeScript smart-contract SDK repo | https://www.npmjs.com/org/proton · https://github.com/XPRNetwork/developer-examples · https://github.com/XPRNetwork/ts-smart-contracts | XPR Network | LISTED (linked from docs.xprnetwork.org, not opened) |
+| Resources: RAM and faucet | Buy RAM (storage); testnet faucet | https://resources.xprnetwork.org/storage · https://resources.xprnetwork.org/faucet | XPR Network | LISTED (linked from docs.xprnetwork.org, not opened) |
+| Testnet tools | Testnet resources (buy resources and storage, create accounts); testnet NFT market | https://testnet.resources.xprnetwork.org · https://testnet.nft.xprnetwork.org | XPR Network | LIVE (read 2026-10-19) |
+| Proton IDE | Browser IDE titled "Proton IDE" | https://ide.xprnetwork.org | XPR Network | LIVE (read 2026-10-19; loads only in a browser) |
+| ISO 20022 demo | Page titled "ISO20022 DEMO" | https://iso20022.xprnetwork.org | XPR Network | LIVE (read 2026-10-19; loads only in a browser) |
+| Old explorer | Older block explorer ("Fastest Block Explorer and Wallet"); the current one is explorer.xprnetwork.org (§1) | https://old-explorer.xprnetwork.org | XPR Network | LIVE (read 2026-10-19; loads only in a browser) |
+| Brand assets | XPR Network brand assets (Figma) | https://www.figma.com/file/5N1UTmMXbE4Tk9EgDrIwVg/XPR-Network-Brand-Assets?type=design&node-id=0%3A1&mode=design&t=62joLtdtUCNTUBFu-1 | XPR Network | LISTED (linked from the xprnetwork.org footer, not opened) |
+| Developers Telegram topic | Official XPR developers topic in the XPR Network Telegram group | https://t.me/XPRNetwork/935158 | XPR Network | LISTED (linked from docs.xprnetwork.org, not opened) |
+
+**WebAuth**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| WebAuth get started | WebAuth get-started page | https://webauth.com/getStarted | Metallicus | LISTED (linked from docs.xprnetwork.org, not opened) |
+| WebAuth mobile apps | Official app store listings: iOS and Android | https://apps.apple.com/us/app/webauth-com/id1594500069 · https://play.google.com/store/apps/details?id=com.metallicus.webauth | Metallicus | LISTED (linked from xprnetwork.org, not opened) |
+| WebAuth short link | Official short link; redirects (302) to webauth.com | https://wauth.co | Metallicus | LIVE (read 2026-10-19; redirect) |
+| WebAuth privacy notice | The Metallicus privacy notice, updated 2024-02-05 (the WebAuth terms are already in the guide) | https://xprnetwork.org/webauth-privacy | Metallicus | LIVE (read 2026-10-19) |
+| WebAuth testnet wallet | WebAuth Wallet on testnet | https://testnet.webauth.com | Metallicus | LIVE (read 2026-10-19; loads only in a browser) |
+
+**Metal Pay**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal Pay mobile apps | Official app store listings: iOS and Android; "Get / Buy Crypto" short link; app deep link | https://apps.apple.com/us/app/metal-pay-buy-bitcoin-and-eth/id1345101178 · https://play.google.com/store/apps/details?id=com.metallicus.metalapp.production · https://m.tl/pay · https://metalpay.app.link/pay | Metallicus | LISTED (linked from metalpay.com; the deep link from metall2.com; not opened) |
+| Metal Pay terms (US) | US Terms of Service, updated 2026-10-01 | https://www.metalpay.com/terms | Metallicus | LIVE (read 2026-10-19) |
+| Metal Pay privacy notice | "Privacy Notice — Metal Pay", Metallicus, Inc.; effective and last updated 2024-02-05 | https://www.metalpay.com/privacy-notice | Metallicus | LIVE (read 2026-10-19) |
+| Other Metal Pay legal pages | Legal disclosures; Australian terms; New Zealand terms | https://www.metalpay.com/terms/legal-disclosures · https://www.metalpay.com/terms-au · https://www.metalpay.com/terms-nz | Metallicus | LISTED (linked from the metalpay.com sitemap, not opened) |
+| Metal Pay site pages | FAQs; markets and prices; referral programme; Metal Pay TV | https://www.metalpay.com/faqs · https://www.metalpay.com/markets · https://www.metalpay.com/refer-a-friend · https://www.metalpay.com/tv | Metallicus | LISTED (linked from metalpay.com and its sitemap, not opened) |
+| Metal Pay news | News index; about 190 weekly "crypto news" posts are listed in the sitemap | https://www.metalpay.com/news | Metallicus | LISTED (linked from metalpay.com, not opened) |
+| Metal Pay blog | Metal blog (for example "Metal Dev Update #1") | https://blog.metalpay.com | Metallicus | LIVE (read 2026-10-19) |
+| How to buy | How-to-buy index, and pages for LOAN, Metal Dollar (XMD), Metal DAO (MTL) and Metal Blockchain (METAL); the XPR page is already in §1 | https://www.metalpay.com/how-to-buy · https://www.metalpay.com/how-to-buy/loan · https://www.metalpay.com/how-to-buy/metal-dollar · https://www.metalpay.com/how-to-buy/metal-dao · https://www.metalpay.com/how-to-buy/metal-blockchain | Metallicus | LISTED (linked from metalpay.com and its sitemap, not opened) |
+| Metal Pay for business | Metal Pay for Business; Metal Pay Enterprise (institutions page on metallicus.com) | https://www.metalpay.com/metal-pay-for-business · https://metallicus.com/institutions/metal-pay-enterprise | Metallicus | LISTED (linked from metalpay.com and metallicus.com, not opened) |
+| Metal Pay Connect (product and help) | On-ramp product page; Metal Pay Connect help section | https://www.metalpay.com/metal-pay-connect · https://help.metalpay.com/hc/en-us/sections/26343604036887-Metal-Pay-Connect | Metallicus | LISTED (linked from docs.metall2.com and the Metal Pay help center, not opened) |
+| Metal Pay Connect developer docs | Developer documentation: APIs to add crypto buy and sell to apps; needs an API key. A separate Metal Pay API docs site is password-protected | https://connect-docs.metalpay.com · https://api-docs.metalpay.com | Metallicus | LIVE (read 2026-10-19; API docs site shows only a login) |
+| Metal Pay support ticket | The real support path: submit a request through the help center (useful against fake "support" accounts) | https://help.metalpay.com/hc/en-us/requests/new | Metallicus | LIVE (read 2026-10-19) |
+| Metal Pay help sections | Registration and verification; account access; funding; crypto deposits and withdrawals; trading; trading-fee structure article | https://help.metalpay.com/hc/en-us/sections/4409167245975-Registration-and-Verification · https://help.metalpay.com/hc/en-us/sections/4409444883863-Account-Access · https://help.metalpay.com/hc/en-us/sections/4409446961687-Funding-Your-Metal-Pay-Account · https://help.metalpay.com/hc/en-us/sections/4409445405719-Crypto-Deposits-Withdrawals · https://help.metalpay.com/hc/en-us/sections/4409445418519-Trading · https://help.metalpay.com/hc/en-us/articles/4409463514391-What-is-the-Trading-Fee-Structure-on-Metal-Pay | Metallicus | LISTED (linked from the Metal Pay help center, not opened) |
+| Metal Pay social accounts | X, Telegram, Reddit, Instagram and Facebook from the official footer | https://twitter.com/metalpaysme · https://t.me/metalpaysme · https://www.reddit.com/r/MetalPay/ · https://www.instagram.com/metalpaysme/ · https://www.facebook.com/metalpaysme | Metallicus | LISTED (linked from metalpay.com, not opened) |
+
+**Metal X**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal X terms | Terms of Service, Metallicus, Inc. The page gives no updated date (only "© 2024 Metallicus, Inc.") | https://metalx.com/terms | Metallicus | LIVE (read 2026-10-19; page undated) |
+| Metal X news | News index | https://metalx.com/news | Metallicus | LIVE (read 2026-10-19) |
+| Metal X news: features and LOAN | Complete features guide; LOAN protocol update; LOAN phased reopening announcement | https://metalx.com/news/metal-x-complete-features-guide · https://metalx.com/news/loan-protocol-update · https://metalx.com/news/loan-phased-reopening-announcement | Metallicus | LISTED (linked from metalx.com and its sitemap, not opened) |
+| Metal X learn | Learn hub; trading-bot guide; capabilities overview | https://metalx.com/learn · https://metalx.com/learn/trading-bot · https://metalx.com/learn/capabilities | Metallicus | LISTED (linked from metalx.com and its sitemap, not opened) |
+| Metal X site pages | Markets; lending | https://metalx.com/markets · https://metalx.com/lending | Metallicus | LISTED (linked from metalx.com and its sitemap, not opened) |
+| Metal X get-started guides | Create a wallet; verify identity (KYC); deposit assets; mint Metal Dollar | https://metalx.com/get-started/create-wallet · https://metalx.com/get-started/verify-identity · https://metalx.com/get-started/deposit-assets · https://metalx.com/get-started/metal-dollar | Metallicus | LISTED (linked from metalx.com, not opened) |
+| Metal X on metallicus.com | Product pages: Metal X; Metal X Lending; Metal X Staking | https://metallicus.com/individuals/metal-x · https://metallicus.com/individuals/metal-x-lending · https://metallicus.com/individuals/metal-x-staking | Metallicus | LISTED (linked from metallicus.com, not opened) |
+| Metal X app sections | DEX trading; liquidity pools; farms; OTC; streaming payments; crypto gift; fiat on-ramp (swap, lending and bridge are already in §1) | https://app.metalx.com/dex · https://app.metalx.com/pools · https://app.metalx.com/farms · https://app.metalx.com/otc · https://app.metalx.com/stream · https://app.metalx.com/gift · https://app.metalx.com/buy | Metallicus | LISTED (linked from metalx.com and xprnetwork.org, not opened) |
+| Metal X DEX bot | Official market-maker / grid trading bot (MIT), linked from the "Trading Bot" footer link; its docs page | https://github.com/XPRNetwork/dex-bot · docs https://docs.metalx.com/dex-bot/about.md | Metallicus (XPRNetwork GitHub org) | Repo LIVE (read 2026-10-19). Docs LISTED (linked from docs.metalx.com/llms.txt, not opened) |
+| Metal X API reference | API reference start page (footer "API" link) | https://api.dex.docs.metalx.com/reference/what-is-metal-x | Metallicus | LISTED (linked from metalx.com, not opened) |
+| Metal X docs: contracts and errors | DEX contract addresses; DEX common errors | https://docs.metalx.com/developers-dex/smart-contract/contract-address.md · https://docs.metalx.com/developers-dex/contract-mappings/common-errors.md | Metallicus | LISTED (linked from docs.metalx.com/llms.txt, not opened) |
+| Metal X docs: audits | DEX audit page; swap audit page (dates and auditors not read) | https://docs.metalx.com/developers-dex/audit.md · https://docs.metalx.com/developers-swap/tables/audit.md | Metallicus | LISTED (linked from docs.metalx.com/llms.txt, not opened) |
+| Metal X docs: fees | DEX fees and discounts | https://docs.metalx.com/dex/what-is-metal-x/dex-fees-and-discounts.md | Metallicus | LISTED (linked from docs.metalx.com/llms.txt, not opened) |
+| Metal X docs short address | Redirects (302) to docs.metalx.com | https://dex.docs.metalx.com | Metallicus | LIVE (read 2026-10-19; redirect) |
+| Metal X University | Crypto education platform: courses and guides for Metal X and Metal Pay | https://university.metalx.com | Metallicus | LIVE (read 2026-10-19) |
+| Metal X testnet | Metal X on testnet (XPR/XMD trading page) | https://testnet.app.metalx.com | Metallicus | LIVE (read 2026-10-19) |
+| Metal X social accounts | Instagram and Facebook from the official footer; Metal X topic in the XPR Network Telegram group | https://www.instagram.com/MetalXApp/ · https://www.facebook.com/MetalXApp · https://t.me/XPRNetwork/931709 | Metallicus | LISTED (linked from metalx.com, not opened) |
+
+**Metal Dollar**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal Dollar on metallicus.com | Overview; page for individuals; page for institutions | https://metallicus.com/metal-dollar · https://metallicus.com/individuals/metal-dollar · https://metallicus.com/institutions/metal-dollar | Metallicus | LISTED (linked from metallicus.com, not opened) |
+| Metal Dollar site pages | Developers; stablecoin-as-a-service; "XMD in motion" | https://metaldollar.com/developers · https://metaldollar.com/stablecoin-as-a-service · https://metaldollar.com/xmd-in-motion | Metallicus | LISTED (linked from metaldollar.com and its sitemap, not opened) |
+| Metal Dollar newsroom | Blog index, and posts on what is in the XMD basket, the proposed stablecoin CIP rules, and the GENIUS Act | https://metaldollar.com/blog · https://metaldollar.com/blog/inside-the-metal-dollar-basket · https://metaldollar.com/blog/proposed-stablecoin-cip-rules-reinforce-the-metal-dollar-model · https://metaldollar.com/blog/the-genius-act-explained-what-new-stablecoin-regulations-mean-for-you | Metallicus | LISTED (linked from metaldollar.com, not opened) |
+| Metal Dollar app (XPR) | Metal Dollar app and its mint-and-redeem page on XPR (the treasury page and the Ethereum app are in §1) | https://dollar.metalx.com · https://dollar.metalx.com/mint-n-redeem | Metallicus | LISTED (linked from metaldollar.com, not opened) |
+| Metal Dollar testnet | Testnet app ("Decentralized stablecoin basket"); testnet.metaldollar.com redirects (302) to it | https://testnet.dollar.metalx.com · https://testnet.metaldollar.com | Metallicus | LIVE (read 2026-10-19; loads only in a browser) |
+| Metal Dollar on X | Official X account | https://x.com/MetalDollarXMD | Metallicus | LISTED (linked from metaldollar.com, not opened) |
+
+**Metal Blockchain**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Site index and news archive | Site sitemap; lists the news archive (about 70 posts beyond those below, mostly credit-union partners) | https://metalblockchain.org/sitemap_en-US.xml | Metallicus | LIVE (read 2026-10-19) |
+| Whitepaper page | Whitepaper page from the footer (the PDF is already in §1) | https://metalblockchain.org/whitepaper | Metallicus | LISTED (linked from the metalblockchain.org footer, not opened) |
+| Guides | Guides index; how to stake as a validator; node requirements; run a cheap VPS node; staking FAQ; deposit from WebAuth to Metal Wallet | https://metalblockchain.org/guides · https://metalblockchain.org/guides/how-to-stake-as-a-validator · https://metalblockchain.org/guides/node-requirements-for-metal-blockchain · https://metalblockchain.org/guides/run-a-cheap-metal-blockchain-vps-node · https://metalblockchain.org/guides/the-metal-blockchain-staking-faq · https://metalblockchain.org/guides/how-to-deposit-from-webauth-to-metal-wallet | Metallicus | LISTED (linked from metalblockchain.org and its sitemap, not opened) |
+| Programmes | Integrations; Banking Innovation Program | https://metalblockchain.org/integrations · https://metalblockchain.org/banking-innovation-program | Metallicus | LISTED (linked from metalblockchain.org and its sitemap, not opened) |
+| News: VMs and core development | BTCVM / LTCVM / DogecoinVM live (in alpha); BitcoinVM; core developer update | https://metalblockchain.org/news-insights/btcvm-ltcvm-dogecoinvm-live-on-metal-blockchain · https://metalblockchain.org/news-insights/bitcoinvm-on-metal-blockchain · https://metalblockchain.org/news-insights/core-developer-update | Metallicus | LISTED (linked from metalblockchain.org and its sitemap, not opened) |
+| Docs sections | Overview; quick start; nodes and validators; subnets; MetalGo APIs | https://docs.metalblockchain.org/intro · https://docs.metalblockchain.org/quickstart · https://docs.metalblockchain.org/nodes · https://docs.metalblockchain.org/subnets · https://docs.metalblockchain.org/apis/metalgo/apis | Metallicus | LISTED (linked from docs.metalblockchain.org, not opened) |
+| Metal Wallet | Self-custody wallet for METAL | https://wallet.metalblockchain.org | Metallicus | LIVE (read 2026-10-19; loads only in a browser) |
+| Tahoe testnet tools | Explorer (served on the Tahoe testnet host); testnet faucet; testnet bridge ("Metal Blockchain Bridge") | https://tahoe-explorer.metalblockchain.org · https://faucet.metalblockchain.org · https://bridge-tahoe.metalblockchain.org | Metallicus | LIVE (read 2026-10-19). Faucet and bridge load only in a browser |
+| ISO 20022 demo | Page titled "ISO20022 DEMO" | https://iso20022.metalblockchain.org | Metallicus | LIVE (read 2026-10-19; loads only in a browser) |
+| Metal Blockchain social and developer channels | X; Telegram; developer Telegram; Discord; Reddit; YouTube | https://x.com/metalblockchain · https://t.me/metalblockchain · https://t.me/metaldevelopers · https://discord.gg/B2QDmgf · https://www.reddit.com/r/MetalBlockchain/ · https://www.youtube.com/channel/UCbB7oW7WQIpk5KIY5gkHJrA | Metallicus | LISTED (linked from metalblockchain.org and docs.metalblockchain.org, not opened) |
+
+**Metal L2**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal L2 audit (PDF) | Smart-contract audit by PeckShield, dated 29 Oct 2023 (footer "Audit" link) | https://migrate.metall2.com/Metal_L2_Audit.pdf | Metallicus | LIVE (read 2026-10-19) |
+| Metal L2 news | News index, and posts: MIP-002 "Homecoming" (Metal L2 moving to Metal Blockchain); Upgrade 19 hardfork; Metal L2 grant fund; dRPC as an official RPC provider; MTL migration. More posts (upgrades 14 to 17, Velodrome, Ionic, airdrop) are in the sitemap | https://metall2.com/news · https://metall2.com/news-insights/announcing-mip-002-homecoming · https://metall2.com/news-insights/announcing-upgrade-19 · https://metall2.com/news-insights/metal-l2-grant-fund · https://metall2.com/news-insights/drpc-becomes-an-official-rpc-endpoint-provider-for-metal-l2 · https://metall2.com/news-insights/mtl-migration | Metallicus | LISTED (linked from metall2.com and its sitemap, not opened) |
+| MIP-002 Homecoming page | Metal DAO proposal page: move Metal L2 to a Metal Blockchain subnet with MTL as gas | https://homecoming.metall2.com | Metallicus | LIVE (read 2026-10-19) |
+| Metal DAO (MTL) whitepaper copy | MTL whitepaper PDF hosted on the Metal Dollar app host (the v1.0 PDF on cdn.metallicus.com is in the guide already) | https://dollar.metalx.com/XMT_Whitepaper.pdf | Metallicus | LISTED (linked from metall2.com, not opened) |
+| Docs: chain | Networks and RPC endpoints; contract addresses; bridged token list | https://docs.metall2.com/chain/networks · https://docs.metall2.com/chain/addresses · https://docs.metall2.com/chain/tokenlist | Metallicus | LISTED (linked from docs.metall2.com, not opened) |
+| Docs: security | Security policy; privileged roles; security model FAQ; audit reports | https://docs.metall2.com/chain/security/security-policy · https://docs.metall2.com/chain/security/privileged-roles · https://docs.metall2.com/chain/security/faq · https://docs.metall2.com/stack/security/audits-report | Metallicus | Security policy LIVE (read 2026-10-19). Others LISTED (linked from docs.metall2.com, not opened) |
+| Docs source | Metal L2 docs repository | https://github.com/MetalPay/metal-l2-docs | Metallicus (MetalPay GitHub org) | LISTED (linked from docs.metall2.com, not opened) |
+| Metal L2 Safe | Smart-account (multisig) wallet for Metal L2 | https://safe.metall2.com | Metallicus | LIVE (read 2026-10-19) |
+| Metal L2 testnet tools | Testnet block explorer (built by Conduit); testnet bridge (Sepolia to Metal L2 Testnet) | https://testnet.explorer.metall2.com · https://testnet.bridge.metall2.com | Metallicus | LIVE (read 2026-10-19) |
+| Metal L2 on X | Official X account | https://twitter.com/Metal_L2 | Metallicus | LISTED (linked from metall2.com, not opened) |
+
+**PulseVM**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| PulseVM for AI agents | Machine quickstart for AI agents; llms.txt listing about 60 Markdown pages | https://pulsevm.dev/agents · https://pulsevm.dev/llms.txt | Community docs by Paul Grey (Proton NZ); PulseVM itself is Metallicus's | LIVE (read 2026-10-19) |
+| PulseVM full text and sitemap | Full-text llms file; sitemap | https://pulsevm.dev/llms-full.txt · https://pulsevm.dev/sitemap.xml | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev/agents, not opened) |
+| PulseVM guide pages | What PulseVM is; migrating an Antelope chain | https://pulsevm.dev/guide/what-is-pulsevm · https://pulsevm.dev/guide/migrate-antelope-chain.md | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev and its llms.txt, not opened) |
+| PulseVM network pages | Endpoints; network updates; run a validator; upgrade to metalgo 1.14 (Granite) | https://pulsevm.dev/network/endpoints · https://pulsevm.dev/network/updates · https://pulsevm.dev/network/validator · https://pulsevm.dev/network/upgrade-metalgo-1-14 | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev, not opened) |
+| PulseVM build pages | Tutorial: a bot key that can only trade; permissions cookbook | https://pulsevm.dev/build/tutorial-bot-key · https://pulsevm.dev/build/permissions-cookbook | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev, not opened) |
+| PulseVM background | Who is behind PulseVM (a sourced page on Metallicus); comparisons | https://pulsevm.dev/institutions/metallicus · https://pulsevm.dev/compare/ | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev, not opened) |
+| PulseVM code | Docs source repo; XPR-to-PulseVM migration tools repo (its release feed is already in the guide) | https://github.com/paulgnz/pulsevm-docs · https://github.com/paulgnz/pulse-cutover | Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev and protonnz.com, not opened) |
+| PulseVM Telegram | Telegram group linked from the docs site | https://t.me/+N1mAvoUDbtVmNTBh | Community docs by Paul Grey (Proton NZ) | LISTED (linked from pulsevm.dev, not opened) |
+
+**XPR Agents**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| XPR Network AI Agents page | XPR Network's landing page for AI agents | https://xprnetwork.org/agents | XPR Network | LIVE (read 2026-10-19) |
+| "Introducing XPR Agents" | Official XPR Network blog post announcing XPR Agents (it still links the old agents.protonnz.com host: see Notes) | https://xprnetwork.org/blog/introducing-xpr-agents | XPR Network | LIVE (read 2026-10-19) |
+| XPR Agent Deploy | Launches cloud-hosted AI agents that have their own XPR accounts and bid on the XPR Agents job board | https://deploy.xpragents.com | Proton NZ | LIVE (read 2026-10-19) |
+| XPR Agents marketplace pages | Services directory; jobs board; leaderboard; validators; arbitrators | https://xpragents.com/services · https://xpragents.com/jobs · https://xpragents.com/leaderboard · https://xpragents.com/validators · https://xpragents.com/arbitrators | Proton NZ | LISTED (linked from xpragents.com, not opened) |
+| XPR Agents onboarding pages | Register an agent; how it works; get started / deploy; dashboard | https://xpragents.com/register · https://xpragents.com/how-it-works · https://xpragents.com/get-started · https://xpragents.com/dashboard | Proton NZ | LISTED (linked from xpragents.com and its sitemap, not opened) |
+| XPR Agents specs | Security model; A2A (agent-to-agent) protocol spec | https://github.com/XPRNetwork/xpr-agents/blob/main/docs/SECURITY.md · https://github.com/XPRNetwork/xpr-agents/blob/main/docs/A2A.md | XPRNetwork GitHub org | LISTED (linked from xpragents.com, not opened) |
+| XPR Network dev skill repo | The official developer skill's repository page (the guide already links its raw files) | https://github.com/XPRNetwork/xpr-network-dev-skill | XPRNetwork GitHub org | LIVE (read 2026-10-19) |
+| XPR Agents contracts | Explorer pages for the four contracts: `agentcore`, `agentfeed`, `agentvalid`, `agentescrow` | https://explorer.xprnetwork.org/account/agentcore · https://explorer.xprnetwork.org/account/agentfeed · https://explorer.xprnetwork.org/account/agentvalid · https://explorer.xprnetwork.org/account/agentescrow | Proton NZ (contracts); explorer by XPR Network | LISTED (linked from xpragents.com, not opened) |
+
+**SimpleDEX**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| SimpleDEX sitemap | Lists about 274 token pages and about 290 launch pages | https://simpledex.fun/sitemap.xml | Proton NZ | LIVE (read 2026-10-19) |
+| SimpleDEX terms | "Terms of Use — SimpleDEX". The page gives no date and names no operating company | https://simpledex.fun/terms | Proton NZ | LIVE (read 2026-10-19; page undated) |
+| SimpleDEX launchpad | Launch index; create a launch; one page per launch at `/launch/<ID>` (the guide already has the `/token/<ID>` pattern) | https://simpledex.fun/launch · https://simpledex.fun/launch/create · https://simpledex.fun/launch/ID | Proton NZ | LISTED (linked from the simpledex.fun sitemap, not opened) |
+| SimpleDEX trading pages | Token list; swap; pools; analytics; history; wallet | https://simpledex.fun/tokens · https://simpledex.fun/swap · https://simpledex.fun/pools · https://simpledex.fun/analytics · https://simpledex.fun/history · https://simpledex.fun/wallet | Proton NZ | LISTED (linked from the simpledex.fun sitemap, not opened) |
+
+**Proton NZ tools**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| LOANWatch | Live analytics for LOAN Protocol: borrowing, lending, health factors, fees, shorts. The site says it does not custody funds | https://loanwatch.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Vaults (**deposit service**) | "Automated trading on XPR Network": you deposit into a vault and a bot trades a chosen strategy on Metal X. **It takes deposits.** Its own risk terms were not read in the sweep | https://vaults.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| X-Tools | Search and analysis of DEX referrals on XPR Network | https://x-tools.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| GOV Explorer | Governance proposal tracker | https://gov.protonnz.com | Proton NZ | LIVE (read 2026-10-19; showed "0 of 0 proposals" while loading, so it loads only in a browser) |
+| Hyperion history API | Hyperion history endpoints: mainnet (version 4.0.8, chain "proton") and testnet (v3.3.10-2, chain proton-test) | https://hyperion-xpr-mainnet.protonnz.com · https://hyperion-testnet.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Chain API node | XPR chain API node (get_info answers; server v5.0.3) | https://api.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Simple XPR Block Explorer | Account and block lookup; its API is provided by Saltant | https://account.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Developer docs copy | A copy of the XPR developer documentation (dApps, contracts, SDK and CLI); the official docs are docs.xprnetwork.org | https://docs.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| NFT manager | FACINGS Creator: AtomicAssets NFT collection manager for XPR | https://nftmanager.protonnz.com | Proton NZ (hosts it) | LIVE (read 2026-10-19) |
+| Rewards split | One-click tool that applies Proton NZ's block-producer reward policy on-chain (75% to `xprgrants`) | https://rewards.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Jelli | Community scroll story promoting XPR, which calls itself unofficial; ends with a free NFT | https://jelli.protonnz.com | Proton NZ | LIVE (read 2026-10-19) |
+| Proton NZ node status | Proton NZ's own node status page | https://www.protonnz.com/status | Proton NZ | LIVE (read 2026-10-19) |
+| Proton NZ sitemap | Sitemap of protonnz.com (blog and pages) | https://www.protonnz.com/sitemap.xml | Proton NZ | LIVE (read 2026-10-19) |
+| Proton NZ company pages | About; contact; terms; privacy; ownership disclosure; code of conduct | https://www.protonnz.com/about · https://www.protonnz.com/contact · https://www.protonnz.com/terms · https://www.protonnz.com/privacy · https://www.protonnz.com/ownership · https://www.protonnz.com/code-of-conduct | Proton NZ | LISTED (linked from protonnz.com, not opened) |
+| Proton NZ blog posts | Introducing private transactions; introducing XPR Tax; introducing XPR Agents; how to set up an XPR block producer | https://www.protonnz.com/blog/introducing-private-transactions · https://www.protonnz.com/blog/introducing-xpr-tax · https://www.protonnz.com/blog/introducing-xpr-agents · https://www.protonnz.com/blog/how-to-setup-xpr-network-block-producer | Proton NZ | LISTED (linked from protonnz.com and its sitemap, not opened) |
+
+**Notes**
+- **XPR Network's "2023 Development Proposal" PDF does not load.** The xprnetwork.org footer links it as `http://xprnetwork.org/phoenix.pdf`. It failed in the sweep and again over https on 2026-10-19. Don't cite it until it loads.
+- **An official post still links an old address.** "Introducing XPR Agents" (xprnetwork.org) links `agents.protonnz.com/llms.txt` and `agents.protonnz.com/jobs`. That host now redirects to xpragents.com (§14), so use xpragents.com/llms.txt (§4) and https://xpragents.com/jobs.
+- **The Metal L2 audit sits on a near-empty host.** The front page of migrate.metall2.com shows only the title "Metal L2 Migrate". The audit PDF on it loads.
+- **Metal Pay Connect's developer docs have now been opened.** §1c says connect-docs.metalpay.com was "not opened here". It loaded on 2026-10-19 and needs an API key.
+- **Legal pages without dates.** The Metal X terms and the SimpleDEX terms give no "updated" date (Metal X shows only "© 2024 Metallicus, Inc."). The SimpleDEX terms name no operating company. Say "page undated" when citing either one.
+- **Big archives are summed up, not listed.** The Metallicus blog has about 110 more posts and the xprnetwork.org blog has more posts (comparisons with Ethereum and Solana, ISO 20022, hackathon). Both are in the sitemaps already linked in the guide. Metal Pay has about 190 weekly news posts, Metal Blockchain about 70 news posts, and the XPR docs about 100 pages; the rows above link their index pages.
+
+### 15b. GitHub repos added by the 2026-10-19 sweep
+
+Found with a GitHub search on 2026-10-19. These links were not in the guide before. **Being listed here does not mean the code was audited or is safe, and code existing does not mean a product is live.** Check a repo yourself before you rely on it.
+
+- **Last push** = the repo's `pushed_at` date as GitHub reported it on 2026-10-19. **Stars** = the star count that day.
+- **Status:** ACTIVE = pushed in 2026 · QUIET = last pushed in 2025 · OLD = last pushed before 2025 · ARCHIVED = GitHub marks the repo archived (read-only).
+- "(fork)" = a copy of another project kept by this owner.
+- Some repos below are trading or liquidation bots. They are listed so people know they exist. RULES §5 still applies: GUARD.IAN explains how things work and never builds, tunes or speeds up a bot meant to beat other bots.
+
+#### XPRNetwork (official)
+
+| Repo | What it is | Last push | Stars | Status |
+|---|---|---|---|---|
+| https://github.com/XPRNetwork/xpr-network-dev-skill | The official XPR dev skill for Claude Code: the repo page itself (the guide had only its raw files) | 2026-10-16 | 11 | ACTIVE |
+| https://github.com/XPRNetwork/proton-cli | The `proton` command-line tool | 2026-08-28 | 22 | ACTIVE |
+| https://github.com/XPRNetwork/ts-smart-contracts | Write XPR smart contracts in TypeScript (proton-tsc) | 2024-01-04 | 35 | OLD |
+| https://github.com/XPRNetwork/ts-smart-contract-docs | Docs site source for the TypeScript contracts | 2026-06-11 | 4 | ACTIVE |
+| https://github.com/XPRNetwork/dex-bot | Official Metal X DEX trading bot | 2026-10-19 | 17 | ACTIVE |
+| https://github.com/XPRNetwork/xpr-loan-liquidation-bot | LOAN protocol liquidation bot | 2026-06-12 | 9 | ACTIVE |
+| https://github.com/XPRNetwork/vert | Testing library for blockchain contracts | 2026-10-02 | 3 | ACTIVE |
+| https://github.com/XPRNetwork/proton-resources | Resources app (RAM, CPU, NET) | 2026-10-18 | 8 | ACTIVE |
+| https://github.com/XPRNetwork/xpr.start | Start scripts for a mainnet node or block producer | 2026-08-31 | 7 | ACTIVE |
+| https://github.com/XPRNetwork/xpr-testnet.start | Start scripts for a testnet node | 2026-08-31 | 9 | ACTIVE |
+| https://github.com/XPRNetwork/wharfkit-plugin-webauth | WharfKit wallet plugin for WebAuth | 2026-02-26 | 1 | ACTIVE |
+| https://github.com/XPRNetwork/xpr-market | NFT market frontend | 2026-03-30 | 4 | ACTIVE |
+| https://github.com/XPRNetwork/xpr-market-template | White-label NFT marketplace template | 2022-11-09 | 42 | OLD |
+| https://github.com/XPRNetwork/developer-examples | Developer examples | 2025-01-21 | 4 | QUIET |
+| https://github.com/XPRNetwork/xpr-backend-examples | Backend examples for common transactions | 2022-11-09 | 10 | OLD |
+| https://github.com/XPRNetwork/XPRNKit | React Native kit | 2024-11-19 | 2 | OLD |
+| https://github.com/XPRNetwork/eosio.evm | EOSIO EVM implementation | 2024-10-29 | 93 | OLD |
+| https://github.com/XPRNetwork/proton-rng | On-chain random number contract | 2025-04-17 | 2 | QUIET |
+| https://github.com/XPRNetwork/proton-oracle | Price oracle contract | 2024-07-18 | 5 | OLD |
+| https://github.com/XPRNetwork/chain-info | Chain information metadata | 2025-04-14 | 0 | QUIET |
+| https://github.com/XPRNetwork/bloks-docs | Source of the docs.bloks.io docs | 2025-07-04 | 0 | QUIET |
+| https://github.com/XPRNetwork/test-walletconnect | WalletConnect test app | 2025-10-17 | 0 | QUIET |
+| https://github.com/XPRNetwork/xpr-ide | In-browser IDE for TypeScript contracts | 2023-10-19 | 0 | OLD |
+| https://github.com/XPRNetwork/webauth-discourse-plugin | "Log in with WebAuth" for Discourse forums | 2023-08-13 | 1 | OLD |
+| https://github.com/XPRNetwork/proton.token | Token contract | 2023-03-06 | 2 | OLD |
+| https://github.com/XPRNetwork/proton-mnemonic | Library that makes keys from mnemonic words | 2023-05-05 | 0 | OLD |
+| https://github.com/XPRNetwork/consortium | Consortium repo | 2024-05-01 | 0 | OLD |
+| https://github.com/XPRNetwork/hyperion-api | Hyperion history API client | 2023-03-05 | 30 | ARCHIVED |
+| https://github.com/XPRNetwork/xpr-ai-nft-mint | AI NFT mint demo | 2025-03-24 | 2 | ARCHIVED |
+| https://github.com/XPRNetwork/dex-ccxt | CCXT trading library with Metal X DEX support (fork) | 2026-01-15 | 6 | ACTIVE |
+| https://github.com/XPRNetwork/ProtonSwift | Old Swift (iOS) SDK from the Proton Chain days | 2021-11-10 | 15 | ARCHIVED |
+| https://github.com/XPRNetwork/ProtonKotlin | Old Kotlin (Android) SDK from the Proton Chain days | 2021-10-21 | 12 | ARCHIVED |
+
+#### MetalBlockchain (official)
+
+| Repo | What it is | Last push | Stars | Status |
+|---|---|---|---|---|
+| https://github.com/MetalBlockchain/btc-vm | BTCVM: a Bitcoin-compatible L1 on Metal, bridged to Bitcoin. A newer repo, separate from `btcvm` (already in the guide) | 2026-09-27 | 0 | ACTIVE |
+| https://github.com/MetalBlockchain/hyperion-rs | Hyperion (history API) written in Rust | 2026-10-14 | 2 | ACTIVE |
+| https://github.com/MetalBlockchain/pulsevm-js | TypeScript SDK for PulseVM | 2026-10-14 | 1 | ACTIVE |
+| https://github.com/MetalBlockchain/pulse-cdt-rust | Rust kit for writing PulseVM contracts | 2026-08-12 | 4 | ACTIVE |
+| https://github.com/MetalBlockchain/mtl-migration-public | MTL migration (public). Nearly empty: about 1 KB | 2026-07-20 | 0 | ACTIVE |
+| https://github.com/MetalBlockchain/antelopevm | Older Antelope-based VM for Metal | 2023-09-28 | 8 | OLD |
+| https://github.com/MetalBlockchain/metal-wallet | The Metal Blockchain web wallet (fork) | 2026-05-27 | 0 | ACTIVE |
+| https://github.com/MetalBlockchain/subnet-evm | Launch your own EVM as a Metal subnet (fork) | 2026-07-19 | 1 | ACTIVE |
+| https://github.com/MetalBlockchain/coreth | EVM code for the C-Chain (fork) | 2026-06-24 | 1 | ACTIVE |
+| https://github.com/MetalBlockchain/metaljs | Metal JavaScript library (fork) | 2025-01-30 | 1 | QUIET |
+| https://github.com/MetalBlockchain/metal-network-runner | Run a Metal network locally (fork) | 2026-04-02 | 1 | ACTIVE |
+| https://github.com/MetalBlockchain/metal-docs | Metal Blockchain docs source (fork) | 2026-02-04 | 0 | ACTIVE |
+| https://github.com/MetalBlockchain/blockscout | EVM block explorer (fork) | 2026-07-23 | 1 | ACTIVE |
+| https://github.com/MetalBlockchain/pulsevm-hyperion | Full-history API for PulseVM chains (fork) | 2026-02-06 | 0 | ACTIVE |
+| https://github.com/MetalBlockchain/metal-cli | Metal command-line tool (fork) | 2024-06-20 | 0 | OLD |
+| https://github.com/MetalBlockchain/ledger-app-metal | Ledger hardware-wallet app for METAL | 2022-10-06 | 0 | OLD |
+
+#### MetalLayer2 (likely official)
+
+Org: https://github.com/MetalLayer2. **The org name and content point to Metal L2; ownership not confirmed** (no link from an official Metal L2 page was found).
+
+| Repo | What it is | Last push | Stars | Status |
+|---|---|---|---|---|
+| https://github.com/MetalLayer2/metal-l2-docs | Metal L2 docs source (default branch `start_of_rewrite`) | 2025-06-30 | 1 | QUIET |
+| https://github.com/MetalLayer2/subnet-evm | Described as "The VM supporting the homecoming proposal" (fork; no pushes seen since it was copied on 2026-05-06) | 2025-12-15 | 0 | QUIET |
+| https://github.com/MetalLayer2/safe-wallet-monorepo | Safe smart-account wallet (fork) | 2025-04-10 | 0 | QUIET |
+
+#### Proton NZ / paulgnz (block producer, community)
+
+| Repo | What it is | Last push | Stars | Status |
+|---|---|---|---|---|
+| https://github.com/paulgnz/pulsevm-docs | Source of the PulseVM docs site (pulsevm.dev) | 2026-10-19 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-wallet | Native macOS PulseVM wallet (Secure Enclave, YubiKey) | 2026-10-19 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-cutover | Antelope-to-PulseVM cutover agent. A community cutover proposal, not an official plan | 2026-10-16 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-cli-ts | PulseVM command-line tool for XPR developers | 2026-10-19 | 0 | ACTIVE |
+| https://github.com/paulgnz/dogecoin-vm-wallet | macOS wallet for Dogecoin and DogecoinVM | 2026-10-02 | 0 | ACTIVE |
+| https://github.com/paulgnz/metalgo-setup | One-shot Metal node installer, plus the BTCVM, LTCVM and DogecoinVM L1s | 2026-09-27 | 0 | ACTIVE |
+| https://github.com/paulgnz/bridge-operator | Node and peg-signer setup for the BTCVM and DogecoinVM bridges | 2026-09-26 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-privacy | Confidential transfers for PulseVM / XPR (alpha) | 2026-09-22 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulsevm-operator-kit | Operator kit for PulseVM / A-Chain block producers | 2026-09-08 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-explorer | Pulse testnet explorer | 2026-08-20 | 0 | ACTIVE |
+| https://github.com/paulgnz/proton-web-sdk-pulse | proton-web-sdk, Pulse edition | 2026-06-13 | 0 | ACTIVE |
+| https://github.com/paulgnz/pulse-web-sdk | Pulse web SDK | 2026-06-13 | 0 | ACTIVE |
+| https://github.com/paulgnz/protonnz | Proton NZ site / app source | 2026-09-29 | 0 | ACTIVE |
+| https://github.com/paulgnz/openclaw-railway | Railway template to deploy an OpenClaw agent for XPR Agents | 2026-02-23 | 0 | ACTIVE |
+| https://github.com/paulgnz/xpr-agent-gateway | Reverse proxy for agents.xpragents.com/{agent} | 2026-02-22 | 0 | ACTIVE |
+| https://github.com/paulgnz/shellbook-sdk | SDK for Shellbook, the social network for AI agents | 2026-03-16 | 0 | ACTIVE |
+| https://github.com/paulgnz/pricebattle-bots | PriceBattle trading and resolver bot | 2026-01-26 | 0 | ACTIVE |
+| https://github.com/paulgnz/xpr-transfer | XPR transfer app | 2026-01-04 | 0 | ACTIVE |
+| https://github.com/paulgnz/stack-dash-game | Browser game | 2026-02-16 | 0 | ACTIVE |
+| https://github.com/paulgnz/ccxt-xpr-examples | Example arbitrage scripts for Metal X through CCXT | 2023-09-06 | 4 | OLD |
+| https://github.com/paulgnz/moltworker-xpr | OpenClaw on Cloudflare Workers, XPR variant (fork) | 2026-02-18 | 0 | ACTIVE |
+| https://github.com/paulgnz/xprpy | XPR Network Python library for smart contracts (fork) | 2024-10-19 | 0 | OLD |
+| https://github.com/protonnz/dex-bot-agent | DEX bot agent, under the older protonnz account (fork) | 2024-12-02 | 1 | OLD |
+
+#### Community
+
+| Repo | What it is | Last push | Stars | Status |
+|---|---|---|---|---|
+| https://github.com/alcorexchange/alcor-ui | Alcor Exchange web app (several chains, including XPR) | 2026-10-19 | 164 | ACTIVE |
+| https://github.com/alcorexchange/alcor-v2-sdk | Alcor v2 swap SDK | 2026-10-11 | 5 | ACTIVE |
+| https://github.com/alcorexchange/docs | Alcor docs source (docs.alcor.exchange) | 2026-10-18 | 0 | ACTIVE |
+| https://github.com/charliebot87/xpr-agent-sdk | Agent SDK for XPR | 2026-03-15 | 0 | ACTIVE |
+| https://github.com/charliebot87/skill-simpledex-trading | SimpleDEX trading skill for agents | 2026-03-15 | 0 | ACTIVE |
+| https://github.com/charliebot87/sniper-detector | Launch-sniper detector | 2026-03-15 | 0 | ACTIVE |
+| https://github.com/charliebot87/mpp-xpr | XPR payments for the Machine Payments Protocol (MPP) | 2026-09-09 | 0 | ACTIVE |
+| https://github.com/charliebot87/x402-demo | x402 machine-payments demo | 2026-09-09 | 1 | ACTIVE |
+| https://github.com/charliebot87/mpp-xpr-starter | Starter project for MPP on XPR | 2026-09-09 | 0 | ACTIVE |
+| https://github.com/charliebot87/xpr-account-trust-cli | Command-line account trust check | 2026-09-09 | 0 | ACTIVE |
+| https://github.com/charliebot87/xpr-hyperion-rotation | Rotates Hyperion endpoints for XPR agents | 2026-02-26 | 0 | ACTIVE |
+| https://github.com/charliebot87/metalx-order-bot-v2 | Read-only Telegram alerts for Metal X order fills | 2026-05-24 | 0 | ACTIVE |
+| https://github.com/charliebot87/xpr-arb-radar | Arbitrage radar | 2026-05-20 | 0 | ACTIVE |
+| https://github.com/charliebot87/xpr-nft-creator | NFT creator | 2026-03-28 | 0 | ACTIVE |
+| https://github.com/charliebot87/blog | Source of blog.charliebot.dev | 2026-04-02 | 0 | ACTIVE |
+| https://github.com/SuperstrongBE/signbox | Local signing daemon that puts limits on what an AI agent can sign | 2026-08-14 | 0 | ACTIVE |
+| https://github.com/SuperstrongBE/xpr_abi_2_ts_types | Turns an XPR contract ABI into TypeScript types | 2026-02-24 | 0 | ACTIVE |
+| https://github.com/SuperstrongBE/xprnetwork-guru-site | XPR Network Guru site (Next.js) | 2025-01-31 | 0 | QUIET |
+| https://github.com/SuperstrongBE/xpr-guru-bot | XPR Guru help bot | 2025-01-30 | 0 | QUIET |
+| https://github.com/SuperstrongBE/block-stream | Block stream (TypeScript) | 2025-08-26 | 0 | QUIET |
+| https://github.com/chaininfra/evm-to-xpr-migration | Course: moving EVM contracts to XPR | 2026-05-26 | 1 | ACTIVE |
+| https://github.com/chaininfra/metal-validator-guide | Metal validator guide | 2026-05-11 | 0 | ACTIVE |
+| https://github.com/chaininfra/xpr-key-refresh | Key refresh tool | 2025-10-16 | 0 | QUIET |
+| https://github.com/chaininfra/xpr-delegation-demo | Vote delegation demo (vote.chaininfra.net) | 2025-10-07 | 0 | QUIET |
+| https://github.com/Saltant/XPR-Peer-Probe | Diagnostic probe for nodeos peers | 2026-09-07 | 0 | ACTIVE |
+| https://github.com/relocke/agentic-abi | Versioned "agentic ABIs" for tokens and contracts | 2026-08-17 | 0 | ACTIVE |
+| https://github.com/dougbutner/xpr-app-forge | XPR app template (a template, not a live product: see §12) | 2026-09-13 | 1 | ACTIVE |
+| https://github.com/dougbutner/XPR-Tools | Tools for XPR bots; the repo calls itself "Unaudited" | 2026-03-10 | 0 | ACTIVE |
+| https://github.com/dougbutner/Flex-Launcher-UI | Flex token launcher UI | 2026-10-15 | 0 | ACTIVE |
+| https://github.com/dougbutner/flex-launchpad | Launchpad on the FlexForex engine | 2026-09-16 | 0 | ACTIVE |
+| https://github.com/dougbutner/flex-spot-bot | Spot grid bot for EASY/XUSDC, MEME/XPR and INDEX/XPR | 2026-08-05 | 0 | ACTIVE |
+| https://github.com/dougbutner/Hedgewaters | EASY-backed loans and flash loans (a template, not a live product: see §12) | 2026-08-28 | 0 | ACTIVE |
+| https://github.com/dougbutner/antelope-core-dev-skill | Antelope core development skill | 2026-08-16 | 0 | ACTIVE |
+| https://github.com/TetraGrids/Visual-Identity | Tetra Grids logos, brand guide and style guide | 2026-10-17 | 0 | ACTIVE |
+| https://github.com/ubitquity/UBQTY | $UBQTY, Ubitquity's utility token on XPR | 2026-08-27 | 0 | ACTIVE |
+| https://github.com/ubitquity/UBQ | $UBQ utility token | 2026-06-17 | 1 | ACTIVE |
+| https://github.com/ubitquity/XPR-Network-Account-Verifier | Checks whether an XPR account is publicly verified | 2026-05-14 | 0 | ACTIVE |
+| https://github.com/ubitquity/UBITQUITY-nDAO-Token-Swap-Tool | Token swap page (Alcor prices, WebAuth login) | 2026-03-11 | 1 | ACTIVE |
+| https://github.com/ubitquity/AIRDROP_ARCADE | Airdrop Arcade | 2026-06-09 | 1 | ACTIVE |
+| https://github.com/MrAgentSmith26/xmd-interface | "Metal Dollar interface for XPR Network". Unofficial: not a Metallicus repo | 2026-06-15 | 0 | ACTIVE |
+| https://github.com/squdgy/xpr-mcp | An MCP server for XPR | 2025-03-28 | 0 | QUIET |
+| https://github.com/xprgridrunner/gridrunners | Grid Runners 1/1 Genesis NFT site | 2026-07-18 | 0 | ACTIVE |
+| https://github.com/xprcore/XPR-block-producer | Website of the xprcore block producer | 2026-10-19 | 0 | ACTIVE |
+| https://github.com/Melxisedek75/gcsc-smart-contractor | GCSC construction escrow app (backend and frontend). The GCSC README says testnet only (§12) | 2026-10-17 | 1 | ACTIVE |
+| https://github.com/Melxisedek75/xprclaw | GCSC CLAW, an installable web app | 2026-04-28 | 1 | ACTIVE |
+| https://github.com/forkonlyone/alcor-xpr-bot | Arbitrage bot for Alcor on XPR | 2026-05-04 | 0 | ACTIVE |
+| https://github.com/chainfeedspace/ChainFeed | Social media platform on XPR | 2026-05-02 | 0 | ACTIVE |
+| https://github.com/VirgilBB/Metal-Grafana | Grafana monitoring for Metal validator nodes on Akash | 2025-12-31 | 0 | QUIET |
+| https://github.com/Panda404NotFound/GiftForDragons | Off-chain auto-compound bot (same author as ProtonFarming) | 2025-12-13 | 1 | QUIET |
+
+#### Websites set as repo homepages
+
+These sites are named in a repo's homepage field (or, for Alcor docs, its description). "LIVE" means the page answered a fetch on 2026-10-19. Many are apps that need JavaScript, so only the title came back. "DOWN" was a single failed fetch and may be temporary.
+
+| Site | Homepage of | Status |
+|---|---|---|
+| https://wallet.metalblockchain.org | MetalBlockchain/metal-wallet | LIVE (read 2026-10-19). Title "Redefining Finance \| Metal Wallet"; says it is "a simple, highly secure, non-custodial crypto wallet for storing METAL" |
+| https://protonide.com/ | XPRNetwork/xpr-ide | LIVE (read 2026-10-19). Title "Proton IDE"; the repo was last pushed in 2023 |
+| sc.protonchain[.]com (no link: old domain, holder not checked) | XPRNetwork/ts-smart-contract-docs | LISTED (repo homepage, not opened: the site's robots.txt blocked the fetch). Old protonchain.com domain |
+| https://pulse-privacy-alpha.vercel.app | paulgnz/pulse-privacy | LIVE (read 2026-10-19). Title "Private XPR"; an alpha demo |
+| https://pulse-explorer-mocha.vercel.app | paulgnz/pulse-explorer | DOWN (server error, 2026-10-19) |
+| https://xpr-transfer.vercel.app | paulgnz/xpr-transfer | LIVE (read 2026-10-19). Title "xpr-transfer" only |
+| https://shellbook-sigma.vercel.app | paulgnz/shellbook | LIVE (read 2026-10-19). "Shellbook — The Social Network for AI Agents". The guide's main Shellbook link is shellbook.io |
+| https://stack-dash-game.vercel.app | paulgnz/stack-dash-game | LIVE (read 2026-10-19). Title "Neon Dash" |
+| https://x402-demo-psi.vercel.app | charliebot87/x402-demo | DOWN (the fetch got a client error, 2026-10-19) |
+| https://sniper-detector.vercel.app | charliebot87/sniper-detector | DOWN (server error, 2026-10-19) |
+| https://gcsc-builder-ai.vercel.app | Melxisedek75/gcsc-smart-contractor | LIVE (read 2026-10-19). "GCSC Smart Contractor — AI-Powered Construction Escrow & Milestone Payments"; the page doesn't say mainnet or testnet |
+| https://docs.alcor.exchange | alcorexchange/docs | LIVE (read 2026-10-19). "Introduction \| Alcor Docs"; docs for the Alcor DEX on WAX, XPR, EOS and Telos |
+| protondex[.]com | paulgnz/ccxt-xpr-examples | LISTED (repo homepage, not opened: the site's robots.txt blocked the fetch) |
+
+#### Corrections (found on 2026-10-19)
+
+- **`github.com/metallicus` has no repos of its own.** Its only public repo is a fork of opencv from 2013. Nothing found shows that it is the company, so don't present it as Metallicus on GitHub. The official orgs are XPRNetwork and MetalBlockchain; MetalLayer2 is likely official but not confirmed (above).
+- **`github.com/ProtonProtocol` was not found.** GitHub search said no such user or org exists. Don't link it.
+- **The `protonnz` GitHub account holds only old demos and forks from 2022 to 2024** (Godot and Unity demos, a dex-bot-agent fork). Current Proton NZ work is under **paulgnz** (table above).
+- **The xpr-network-dev-skill repo page is now linked:** https://github.com/XPRNetwork/xpr-network-dev-skill. Before this, the guide linked only its raw files.
+
+### 15c. Ecosystem projects and dApps added by the 2026-10-19 sweep
+
+Found on 2026-10-19 in on-chain records (the token registry `token.proton::tokens`, SimpleDEX launch profiles `simplelaunch::community`, the XPR Agents registry `agentcore::agents`, AtomicAssets collections, the governance site's community records) and on the open web. **LIVE (read 2026-10-19)** means the page itself was opened that day. **LISTED (where)** means the link was only seen in that place and the page was not opened: the project wrote it there itself, and nothing here checks that it works or is still run by that project. Being listed is not an endorsement. A token is still its symbol plus its contract (§8). Projects with no site named here may already be in §2 to §8.
+
+**Directories and developer tools**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| xprstack | Community directory of XPR ecosystem projects (63 entries on 2026-10-19). Also offers a /llms.txt for AI readers | https://www.xprstack.info/ | Community-built (credited on the site; not Metallicus) | LIVE (read 2026-10-19) |
+| xprstack schema.json | Machine-readable list of every xprstack entry (name and URL), useful as a feed of new projects. Entries are self-listed: check each one before citing it | https://www.xprstack.info/.well-known/xprstack/schema.json | xprstack | LIVE (read 2026-10-19) |
+| Bloks explorer docs, AI-readable | The explorer docs (explorer.xprnetwork.org) in one LLM-friendly file, including the wallet list | https://docs.bloks.io/llms.txt | Bloks | LIVE (read 2026-10-19) |
+| xpr-network-dev skill on ClawHub | The OpenClaw skill registry's listing of the official xpr-network-dev skill, v2.0.0, licence MIT-0 | https://clawhub.ai/paulgnz/xpr-network-dev | Paul Grey (paulgnz) | LIVE (read 2026-10-19) |
+| xprpy | Python library for XPR Network transactions, v1.0.1 (released 2024-10-19), marked alpha | https://pypi.org/project/xprpy/ · code https://github.com/paulgnz/xprpy | Paul Grey (paulgnz) | LIVE (PyPI page read 2026-10-19); code LISTED (linked from PyPI) |
+| @proton/api | npm package for the XPR (Proton) API | https://www.npmjs.com/package/@proton/api | not stated | LISTED (xprstack) |
+| Metal X DEX bot | Official code for a Metal X trading bot. This guide explains how such bots work but never helps tune one to beat other traders (RULES §5) | https://github.com/XPRNetwork/dex-bot | XPRNetwork GitHub org | LISTED (linked from metalx.com) |
+| TypeScript smart contracts | Official toolkit for writing XPR contracts in TypeScript | https://github.com/XPRNetwork/ts-smart-contracts | XPRNetwork GitHub org | LISTED (official docs; xprstack) |
+| NFT market template | White-label NFT marketplace code | https://github.com/XPRNetwork/xpr-market-template | XPRNetwork GitHub org | LISTED (linked from nft.xprnetwork.org/learn-more) |
+| WebAuth Discourse plugin | Lets a Discourse forum use WebAuth sign-in | https://github.com/XPRNetwork/webauth-discourse-plugin | XPRNetwork GitHub org | LISTED (linked from xprnetwork.org) |
+| mppx-xpr-network | MPP machine payments on XPR | https://github.com/charliebot87/mpp-xpr | Charlie Bot (§4) | LISTED (xprstack) |
+| ChainInfra metrics calculator | Validator and block-producer metrics calculator | https://metrics.chaininfra.net/calculator | chaininfra (producer) | LISTED (xprstack) |
+
+**dApps, DeFi and token tools**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| XPRNameSwap | Marketplace for buying and selling XPR @names, with escrow | https://xprnameswap.com | not stated | LIVE (read 2026-10-19) |
+| XPRescrow | Escrow dApp. The page showed only its title, so what it does is unconfirmed. It may or may not be the "XPR Escrow" named in §13 | https://xprescrow.com | not stated | UNCLEAR (read 2026-10-19: title only) |
+| XPR Checkout | Merchant checkout site (the WordPress plugin repo is in §12) | https://xprcheckout.com | not stated | LISTED (xprstack; the site blocked the automated read) |
+| SuchDEX | Peer-to-peer Dogecoin exchange. xprstack files it under XPR, but the page itself names no chain | https://suchdex.com | not stated | LIVE (read 2026-10-19); XPR link not confirmed |
+| XPRPS | Says it is a decentralized perpetual-futures exchange on XPR | https://xprps.com | not stated | LISTED (token registry #1002852) |
+| BlockHive | No-code token creation, staking and airdrops on XPR | https://www.blockhive.pro/ | not stated | LISTED (token registry #1002978) |
+| XPRdrasil (Yggdrasil Protocol) | Liquidity infrastructure, YGG token | https://xprdrasil.vercel.app/ | not stated | LISTED (token registry #1002973) |
+| Flex tokens site | Website set for the EASY and HOLOWON flex tokens (flex tokens: §8) | https://flex.forex | not stated | LISTED (token registry #1003004, #1003000) |
+| Easy Escrow | EASY / EZSX tokens ("EasyEscrow" is also an old grant title, §13) | https://easyescrow.io/ | not stated | LISTED (token registry #1000165, #1000190) |
+| TokenCreate | Site of the token creator behind the `tokencreate` contract (§8), which BlastPad uses | https://tokencreate.io | not stated on the record | LISTED (token registry icon links) |
+| Mintify | Token-creation service | https://mintify.space/ | not stated | LISTED (token registry #1000388) |
+| Crypto Audit Scanner | TLENS and CAUDIT tokens | https://cryptoauditscanner.com | not stated | LISTED (token registry #1002500, #1002848) |
+| CryptoListing | KEYS token | https://cryptolisting.net | Ubitquity (per the registry; Ubitquity tools: §12) | LISTED (token registry #1002531) |
+| CipherBPA | Formerly NFTitle Network | https://cipherbpa.com | not stated | LISTED (token registry #1002876) |
+| NFTitle DAO (nDAO) | The NDAO token (§8; nDAO's own page is in §8b) | https://nftitledao.org | NFTitle DAO | LISTED (token registry #1000422) |
+| HomeBloks | TIPS and MESSAGE tokens | https://homebloks.com | HomeBloks (per the registry) | LISTED (token registry #1000168, #1000297) |
+| Snipcoins | SNIPS, Snipverse's utility token (§8) | https://snipcoins.com | not stated | LISTED (token registry #1000081) |
+| Frostic | Web hosting, FRO token. Snipverse's grant application names a Frostic, LLC (§3) | https://frostic.net/ | not stated | LISTED (token registry #1000091) |
+| SimpleDEX bot companion | Host used for a token logo in the registry; no other detail | https://companion.simpledexbot.us | not stated (not confirmed as Proton NZ) | LISTED (token registry #1002844 icon link) |
+| Newer registry tokens with their own sites | NETTWERKED (NETT, #1002963) https://nettwerked.org · Captcha (#1002514) https://captcha.social · ProtonX (PX, #1002850) protonx[.]com · XBOT (#1002537) xbot[.]com (generic domains, may not be the tokens' own sites; no links) | (links in the first column) | not stated | LISTED (token registry; sites not opened) |
+| Older registry tokens: utility and services | Sense (XSENSE) https://www.sense.chat · MyJobber (JOBS) https://myjobber.io · Trende Coin (TCX) https://trende.io/ · PorkPay (PORK) https://porkpay.org · Fishtank (MLY/JLY/FSH; also a §13 grant title) https://www.fishtank.ai · Freeos DAO https://freeos.io · Proton Bots (BTS) https://protonbots.io · Amari FM https://www.amari.fm | (links in the first column) | not stated | LISTED (token registry ids 1000014 to 1000448; sites not opened) |
+
+**Agents and bots (endpoints set in the XPR Agents registry)**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| AI Toolkit Agent | Registered agent's service endpoint (agent: §4) | https://toolkitagent.onrender.com | the agent's owner | LISTED (XPR Agents directory) |
+| Jacob | Registered agent's endpoint, hosted on OpenClaw | https://api.openclaw.ai/agents/jacobbot | the agent's owner | LISTED (XPR Agents directory) |
+| BrobotXPR | Registered agent's endpoint | https://xwlgbucb.agents.pinata.cloud | the agent's owner | LISTED (XPR Agents directory) |
+| chattybot | Registered agent's site | https://chattybot.xpragents.com | the agent's owner | LISTED (`agentcore::agents`) |
+| Guard.IAN endpoint (this guide's builder) | Guard.IAN's registered endpoint (agent `safeguard5`, §4) | https://agent.standguard.net | this guide's builder | LISTED (`agentcore::agents`) |
+| Charlie Bot board | Board for the AGENT token | https://board.charliebot.dev | Charlie Bot (§4) | LISTED (SimpleDEX profile #182) |
+
+**Games**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| NLMT Spin | Daily spin game for NLMT holders; says it pays out BTC, ETH, DOGE or USDC. Links Alcor and BlastPad | https://nlmt.app | not stated | LIVE (read 2026-10-19) |
+| Grid Runners app | GRID token's site (the NFT row and the older netlify site are in §6) | https://gridrunners.app/ | not stated | LISTED (token registry #1002957) |
+| LuckDrop | NFT staking for the LUCK token | https://luckdrop.fun/ | not stated | LISTED (token registry #1002960) |
+| Older registry tokens: games | Proton Keepers (KEEP, 3D game) https://protonkeepers.com/ · Proton Games (GAME/LOTTO) https://www.proton-games.com/ · Proton Spin (SPIN) https://protonspin.live/ · PLAYN (play-to-earn) https://playn.pro · XSTEP (move-to-earn) https://xstep.pro/ · Harju Gaming (HGNT) https://www.harjugaming.net · Versus poker (VS) https://pkrvs.com/ · Metalsea (MLS, fishing) https://metalsea.org · Pixel Heroes (PIXEL/RDM/QST) https://www.pixelheroes.in · SLAM Land https://slam.land · GUESS https://www.guesstoken.org | (links in the first column) | not stated | LISTED (token registry ids 1000036 to 1000560; sites not opened) |
+
+**NFTs and metaverse**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| ProtonMint | One of the oldest XPR NFT marketplaces, MINT token ("protonmint" is also an old grant title, §13) | https://www.protonmint.com | not stated | QUIET? (listed by xprstack and an older ProtonUK newsletter; the site blocked the 2026-10-19 read, so activity is unconfirmed) |
+| Proton Pandas: Adventures of Pandania | NFT collection and token | https://pandania.xyz/ · X https://x.com/ProtonPandas | not stated | LISTED (AtomicAssets collection; token registry) |
+| Jelli Genesis / Smack Back Badges | Game NFT collection; Jelli Genesis carries the ProtonNZ Team badge on CYPHR.Market (§6) | https://jelli.protonnz.com | Proton NZ | LISTED (AtomicAssets collection) |
+| MoonBeasts | NFT collection | https://moonbeasts.surge.sh/ | not stated | LISTED (token registry #1003006) |
+| Older registry tokens: NFTs and virtual land | Crystal Frogs (CRYSTAL) https://www.crystalfrogs.com · NeonVerse (NEON) https://neonverse.io · Sights NFT (SIG/MOKUM) https://sights-nft.com · Dragon Token (DRAG) https://dragon-nfts.com · ProtonVerse (PROV) https://protonverse.org · Virtual Land Alliance (VLA) https://vla.properties · Sayari (SPR/DLX) https://planet-sayari.com · LOUNGE https://lounge.land | (links in the first column) | not stated | LISTED (token registry ids 1000038 to 1000249; sites not opened) |
+
+**Community and meme tokens**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Wisteria-Group | SWPHX token's site | https://wisteria-flow-core.base44.app/ | not stated | LISTED (SimpleDEX profile #57) |
+| FRAGG pulse page | Page for FRAGG, a CryptoCurrencyShops token (§7, §8) | https://FRAGGpulse.cryptocurrencyshops.com | CryptoCurrencyShops | LISTED (SimpleDEX profile #370) |
+| CHAOS | Link page for the CHAOS token | https://heylink.me/CHAOSCNG | not stated | LISTED (SimpleDEX profile #34) |
+| Older registry tokens: community and meme | Proton Army (AMMO) https://protonarmy.com · BeQuest Gold (BQG) https://bequest.world · Gratitude Token (GRAT) https://gratitudetoken.world · Liberation (LBTY) https://www.liberateyou.org/ · Astremn https://astremn.org · MAGIC https://magic-ian-metal.com/ · CryptoChinchilla (CRCH) https://cryptochinchilla.fun/ · Proton Dog (DOG) https://protondog.com · CAT https://www.xprcat.com · Proton APE (XAPE) https://protonape.io · Baby Proton (BABYXPR) https://babyproton.io · BUFF https://www.buffcoin.io/ · MEME https://protonmemes.com | (links in the first column) | not stated | LISTED (token registry ids 1000076 to 1000457; sites not opened) |
+| Project accounts set in SimpleDEX launch profiles | Broton https://x.com/BrotonXPR · Degen Hoopers (§5) https://x.com/DegenHoopers · https://t.me/DegenVilla · PRICK https://x.com/XLPrick · OG XPR https://x.com/OGXPR · https://t.me/OGXPR · Oni Stacks https://x.com/OniStacksCrew · https://t.me/OniStacksCrew · Beartallicus https://x.com/Beartallicus · THC Arcade (§5) https://x.com/Proton_Valve · https://t.me/ProtonValve · XPR Time Capsule https://x.com/XPRTimeCap · TRAMP https://x.com/TRAMPonXPR · Atomic Ramjet (§5) https://x.com/atomicramjet · nDAO https://x.com/ndaodotorg · https://t.me/ndaoxpr · House of Validators https://x.com/HouseOfValid · https://t.me/HOVCommunity · Panda https://x.com/panda_xpr · Genie https://x.com/Genie_XPR · Leafquip https://x.com/leafquip · https://t.me/leafquip · Metal Monsters https://x.com/METALM0NSTERS · FRAGG https://x.com/FraggletonFRAGG · Charlie Bot https://x.com/charliebot87 · Proton Bull https://x.com/protonbull · MetalX Bot https://x.com/metalxbot · LOANSKI https://x.com/loanskixpr · https://t.me/loanskixprcommunity · Proton Gift Bot (XPRGAMES) https://t.me/proton_gift_bot · KSTO token group https://t.me/Keepsnippingtoken | (links in the first column) | each project | LISTED (`simplelaunch::community`; accounts not opened) |
+| Project accounts set in NFT and token records | Element Companions https://x.com/elementcompnft · LoFi Club https://x.com/LoFiClubXPR · Star Dex https://x.com/stardexio · PRYZM https://t.me/pryzm_hub_bot | (links in the first column) | each project | LISTED (AtomicAssets collection; token registry) |
+
+**Metal L2 DeFi (linked from metall2.com)**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal L2 on Chainlink's ecosystem page | Chainlink's page for Metal L2 | https://www.chainlinkecosystem.com/ecosystem/metal-l2 | Chainlink | LISTED (linked from metall2.com) |
+| Ionic on Metal L2 | Lending market on Metal L2 (chain 1750) | https://app.ionic.money/market?chain=1750&pool=0 | Ionic | LISTED (linked from metall2.com) |
+| Velodrome on Metal L2 | Swap into MTL on Metal L2 | https://velodrome.finance/swap?from=eth&to=0xbcfc435d8f276585f6431fc1b9ee9a850b5c00a9&chain0=1750&chain1=1750 | Velodrome | LISTED (linked from metall2.com) |
+| Oku | DEX listed as a Metal L2 integration | https://oku.trade/ | Oku | LISTED (linked from metall2.com) |
+
+**Old Proton-era addresses still written on chain**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Legacy domains | Addresses from before the XPR Network and Metal X names, still in on-chain website fields: the governance site's community records (XPR Network, LOAN Protocol, Metal X) and a legacy producer record. Use the current sites (§1) instead | proton[.]org · protonloan[.]com · protondex[.]com · protonchain[.]com (written without links on purpose) | not checked who holds these domains now | QUIET? (legacy addresses, not opened 2026-10-19; they may no longer belong to the project) |
+
+### 15d. Market pages, exchanges, wallets and tax tools
+
+Read 2026-10-19 unless marked LISTED. These pages show prices and markets; they are data sites, not sources of fact about the projects, and **AI summaries on price sites are never sources** (RULES §1). Quote any number as "<site> showed <value> at <time>". None of this is advice to buy, sell or hold. Where XPR trades on XPR Network itself, with deposit accounts: §2b.
+
+**Market data pages**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| CoinMarketCap: XPR Network (XPR) | XPR's CMC page, ID 5350, noted as "rebranded from Proton" | https://coinmarketcap.com/currencies/proton/ | CoinMarketCap | LIVE (read 2026-10-19) |
+| CoinMarketCap: Metal Dollar (XMD) | ID 38457, contract `xmd.treasury` | https://coinmarketcap.com/currencies/metal-dollar/ | CoinMarketCap | LIVE (read 2026-10-19) |
+| CoinMarketCap: Metal DAO (MTL) | ID 1788 | https://coinmarketcap.com/currencies/metal/ | CoinMarketCap | LIVE (read 2026-10-19) |
+| CoinMarketCap: Loan Protocol (LOAN) | LOAN's CMC page | https://coinmarketcap.com/currencies/loan-protocol/ | CoinMarketCap | LISTED (web search) |
+| CoinGecko: Loan Protocol (LOAN) | The only market it listed was LOAN/XMD on Metal X. It still gives lending.metalx.com as LOAN's website, which now redirects (§14) | https://www.coingecko.com/en/coins/proton-loan | CoinGecko | LIVE (read 2026-10-19) |
+| CoinGecko: Metal Blockchain (METAL) | METAL's CoinGecko page (Slovak-language version, as found) | https://www.coingecko.com/sk/coins/metal-blockchain | CoinGecko | LISTED (web search) |
+| CryptoRank: METAL | METAL price page | https://cryptorank.io/price/metal-blockchain/usd | CryptoRank | LISTED (web search) |
+| CoinGecko: Metal X exchange | Metal X as a DEX: 14 pairs, top pair XPR/XMD | https://www.coingecko.com/en/exchanges/metalx | CoinGecko | LIVE (read 2026-10-19) |
+| CoinMarketCap: Metal X exchange | Metal X's CMC exchange page | https://coinmarketcap.com/exchanges/metal-x/ | CoinMarketCap | LISTED (web search) |
+| CoinMarketCap: ProtonSwap | CMC's exchange page for the `proton.swaps` pools (Metal X Swap, §1) | https://coinmarketcap.com/exchanges/protonswap/ | CoinMarketCap | LISTED (web search) |
+| Other price and data pages | Trust Wallet price page (it does not show that Trust Wallet supports native XPR) https://trustwallet.com/price/xpr-network · TradingView XPR/USD https://www.tradingview.com/symbols/XPRUSD/ · Bybit price page (a price page; a Bybit listing is not confirmed) https://www.bybit.com/en/price/proton/ · TokenInsight tokenomics https://tokeninsight.com/en/coins/proton/tokenomics · LunarCrush social data https://lunarcrush.com/en/coin/xpr-network-xpr | (links in the first column) | each site | LISTED (web search) |
+| Staking Rewards: XPR | XPR staking page | https://www.stakingrewards.com/asset/proton | Staking Rewards | LIVE (read 2026-10-19), but it showed no live data |
+
+**Where to buy: official help pages and the exchange pages they link**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| "Where can I buy METAL?" | Metal Blockchain's help article. It lists Metal Pay, Metal X, Gate.io and MEXC (updated 2025-02-06) | https://help.metalblockchain.org/hc/en-us/articles/9594849942679-Where-can-I-buy-METAL | Metallicus | LIVE (read 2026-10-19) |
+| Coinbase: XPR price page | The page says "XPR Network is not tradable on Coinbase", which answers "can I buy XPR on Coinbase?" | https://www.coinbase.com/price/proton | Coinbase | LIVE (read 2026-10-19) |
+| Exchange pages linked by the XPR help article | The help article "Where Can I Buy XPR Network (XPR)?" (updated 2025-04-05, §2b) links these. Check that an exchange still lists XPR, and which network it uses, before sending anything: KuCoin https://www.kucoin.com/price/XPR · Gate.io https://www.gate.io/trade/XPR_USDT · OKX (the article links its Turkish-language page) https://www.okx.com/tr/trade-spot/xpr-usdt · Bitrue (generic trade page only) https://www.bitrue.com/trade/ · LATOKEN https://latoken.com/exchange/XPR_USDT · CoinEx https://www.coinex.com/exchange?currency=USDT&dest=XPR · HitBTC https://hitbtc.com/xpr-to-btc · CoinSpot (Australia) https://www.coinspot.com.au/buy/xpr · Easy Crypto (New Zealand) https://easycrypto.com/nz/buy-sell/xpr-proton-chain | (links in the first column) | each exchange | LISTED (XPR help article 4417459294615). CoinGecko's 10-16 market list did not show HitBTC or CoinEx (§2b) |
+| Bithumb Global (in the same article) | XPR/USDT page | https://www.bitglobal.com/en-us/spot/trade?q=XPR-USDT | Bithumb Global | QUIET? (still in the article, but the exchange may have closed; not checked) |
+| Liquid (in the same article) | XPRUSDT page | https://app.liquid.com/exchange/XPRUSDT?lang=en | Liquid | QUIET? (still in the article; the exchange is believed closed, but that was not verified on 2026-10-19) |
+| PancakeSwap: BNB Chain XPR | Info page for the BEP-20 XPR token. It is a token on BNB Chain, not native XPR (§2b) | https://pancakeswap.finance/info/token/0x5de3939b2f811a61d830e6f52d13b066881412ab | PancakeSwap | LISTED (XPR help article 4417459294615) |
+| Uniswap v2: Ethereum XPR | Info page for the ERC-20 XPR token (contract `0xd7ef…5da2af`, the same as on CMC). A token on Ethereum, not native XPR (§2b) | https://v2.info.uniswap.org/token/0xd7efb00d12c2c13131fd319336fdf952525da2af | Uniswap | LISTED (XPR help article 4417459294615) |
+| MEXC: XPR/USDT | MEXC's XPR market (Philippine-English page, as found). MEXC is also on CoinGecko's list (§2b) | https://www.mexc.com/en-PH/exchange/XPR_USDT | MEXC | LISTED (web search) |
+| LCX listing announcement | LCX's post that XPR was being listed on its exchange | https://wp.lcx.com/xpr-token-is-getting-listed-on-the-lcx-exchange/ | LCX | LISTED (web search; date not read) |
+
+**Tax**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Koinly: XPR Network | Tax-tool integration: import by public account name (API) or CSV. Koinly's own page warns about duplicate transactions. For a full-history export, see XPR Tax (§7) | https://koinly.io/integrations/xpr-network/ | Koinly | LIVE (read 2026-10-19) |
+
+**Wallets**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| WebAuth for iPhone | App Store listing of the official wallet (§1, §2b) | https://apps.apple.com/us/app/webauth-com/id1594500069 | Metallicus | LISTED (linked from xprnetwork.org and the governance docs) |
+| WebAuth for Android | Google Play listing of the official wallet | https://play.google.com/store/apps/details?id=com.metallicus.webauth | Metallicus | LISTED (linked from xprnetwork.org, metalx.com and the governance docs) |
+| WebAuth short link | Short link that metalx.com and the NFT market use for "Get Wallet" | https://wauth.co | Metallicus | LISTED (linked from metalx.com and nft.xprnetwork.org/learn-more) |
+| Metal Pay for iPhone | App Store listing | https://apps.apple.com/us/app/metal-pay-buy-bitcoin-and-eth/id1345101178 | Metallicus | LISTED (linked from metalpay.com) |
+| Metal Pay for Android | Google Play listing | https://play.google.com/store/apps/details?id=com.metallicus.metalapp.production | Metallicus | LISTED (linked from metalpay.com and metalx.com) |
+| Metal Wallet | Non-custodial wallet for METAL on Metal Blockchain | https://wallet.metalblockchain.org | Metallicus | LIVE (read 2026-10-19; the page is script-only, so its content wasn't readable) |
+| Anchor | Desktop and mobile wallet that supports XPR (§2b) | https://anchorwallet.io | Greymass | LISTED (XPR dev skill resources.md) |
+| Anchor with XPR (explorer docs) | The explorer docs' guide to signing in with Anchor. The same docs list older wallets (Lynx, MEET.ONE, NOVA, TokenPocket, Scatter, SimplEOS, Math/Leaf) and Ledger and Trezor. Whether each older wallet is still maintained: UNCLEAR (§2b) | https://docs.bloks.io/login/mobile-wallets/anchor | Bloks | LISTED (docs.bloks.io/llms.txt) |
+
+### 15e. Official social accounts and media
+
+Only accounts that an official Metallicus page links to. An account's posts are that company's own words: "Metallicus says…" (RULES §2). Official support never asks for a private key or recovery phrase (RULES §5). XPR Network, Metallicus and Metal X's main accounts are in §11.
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal Blockchain | Official channels | X https://x.com/metalblockchain · Telegram https://t.me/metalblockchain · Discord https://discord.gg/B2QDmgf · Reddit https://www.reddit.com/r/MetalBlockchain/ · YouTube https://www.youtube.com/channel/UCbB7oW7WQIpk5KIY5gkHJrA | Metallicus | LISTED (linked from metalblockchain.org) |
+| Metal Blockchain brand guidelines | Official brand file on Figma | https://www.figma.com/file/M8B3GjftesAHxWAt2l8rZZ/Metal-Blockchain-Brand-Guidelines?type=design&node-id=0%3A1&mode=design&t=1KPTxx7fwLu6095C-1 | Metallicus | LISTED (linked from metalblockchain.org) |
+| Metal Pay | Official channels | X https://twitter.com/metalpaysme · Instagram https://www.instagram.com/metalpaysme/ · Facebook https://www.facebook.com/metalpaysme · Telegram https://t.me/metalpaysme · Reddit https://www.reddit.com/r/MetalPay/ | Metallicus | LISTED (linked from metalpay.com; Instagram, Facebook and Telegram also from metall2.com) |
+| Metal Pay on Trustpilot | Review page that Metal Pay links to itself. The reviews are customers' own views | https://www.trustpilot.com/review/metalpay.com | Trustpilot (reviews by users) | LISTED (linked from metalpay.com) |
+| Metal Pay brand assets | Official brand file on Figma | https://www.figma.com/file/AFu4BgcbMXcauj14ay0RAm/Metal-Pay-Brand-Assets?type=design&node-id=0%3A1&mode=design&t=msGp5q0vQU76vvAf-1 | Metallicus | LISTED (linked from metalpay.com) |
+| Metal X | More official channels | Instagram https://www.instagram.com/MetalXApp/ · Facebook https://www.facebook.com/MetalXApp | Metallicus | LISTED (linked from metalx.com) |
+| Metal Dollar (XMD) | Official X account | https://x.com/MetalDollarXMD | Metallicus | LISTED (linked from metaldollar.com) |
+| Metal L2 | Official X account | https://twitter.com/Metal_L2 | Metallicus | LISTED (linked from metall2.com) |
+| Metallicus Client Services+ | Metallicus's support account on X | https://twitter.com/metalhelpsme | Metallicus | LISTED (linked from XPR help article 4417597596439) |
+| XPR Network brand assets | Official brand file on Figma | https://www.figma.com/file/5N1UTmMXbE4Tk9EgDrIwVg/XPR-Network-Brand-Assets?type=design&node-id=0%3A1&mode=design&t=62joLtdtUCNTUBFu-1 | XPR Network | LISTED (linked from xprnetwork.org) |
+
+### 15f. Block producers: API, history and NFT endpoints from bp.json
+
+Each producer publishes a bp.json file that lists its public servers. These are the endpoints read from active producers' bp.json files (and the XPR dev skill's endpoint table) on 2026-10-19 that the guide didn't have yet. "API" means the chain API (RPC), "Hyperion" is the history API, and "AtomicAssets API" serves NFT data. Producers change servers often: test an endpoint before relying on it, and read the live producer list (§10). Endpoints are free public services with limits; heavy automated use gets blocked (RULES §5). The X and Telegram accounts are as each producer listed them in bp.json. Producer accounts are fine to name (RULES §3).
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Alvosec | API | https://proton-api.alvosec.com · X https://x.com/alvosec · Telegram https://t.me/alvosec | `alvosec` | LIVE (bp.json read 2026-10-19) |
+| BlocksForge | API; AtomicAssets API | https://api-xpr.blocksforge.com · https://atomic-xprmain.blocksforge.com · X https://x.com/blocksforgeXPR | `blocksforge` | LIVE (bp.json read 2026-10-19) |
+| BloxProd | API and Hyperion; AtomicAssets API; snapshots | https://xpr-mainnet-api.bloxprod.io · https://xpr-mainnet-atm-api.bloxprod.io · https://snapshots.bloxprod.io/ · Telegram https://t.me/bloxprodio | `bloxprod` | LIVE (bp.json and dev skill, read 2026-10-19) |
+| Cats Vote | API | https://api.cats.vote · X https://x.com/catsvoteXPR · Telegram https://t.me/catsvote | `catsvote` | LIVE (bp.json read 2026-10-19) |
+| Cerebro AI | API | https://mainnet.cerebro.host · X https://x.com/Cerebro_Agent · Telegram https://t.me/CerebroAgentBot | `cerebroai` | LIVE (bp.json read 2026-10-19) |
+| ChainInfra | API; AtomicAssets API | https://api.chaininfra.net · https://xpr-atomic.chaininfra.net · Telegram https://t.me/chaininfra | `chaininfra` | LIVE (bp.json read 2026-10-19) |
+| CindroNET | API | https://mainxpr.cindro.net · X https://x.com/cindronet · Telegram https://t.me/cindronet | `cindronet` | LIVE (bp.json read 2026-10-19) |
+| CryptoLions | API | https://proton.cryptolions.io | `cryptolions` | LISTED (XPR dev skill resources.md) |
+| DanemarkBP | API | https://api-xpr-main.danemarkbp.com · X https://x.com/danemarkbp | `danemarkbp` | LIVE (bp.json read 2026-10-19) |
+| EOS Madrid | API and Hyperion | https://proton-api.eosiomadrid.io | `protonmadrid` | LIVE (dev skill endpoint, read 2026-10-19) |
+| HomeBloks | API | https://api.homebloksbp.com · X https://x.com/homebloks · Telegram https://t.me/Homebloks | `homebloksbp` | LIVE (bp.json read 2026-10-19) |
+| LedgerWise | API | https://protonapi.ledgerwise.io · X https://x.com/ledgerwise · Telegram https://t.me/ledgerwiseio | `ledgerwiseio` | LIVE (bp.json read 2026-10-19) |
+| Luminary Visions | API; API and Hyperion | https://api.luminaryvisn.com/ · https://proton-hyperion.luminaryvisn.com · X https://x.com/luminaryvisn · Telegram https://t.me/luminaryvisn | `luminaryvisn` | LIVE (bp.json and dev skill, read 2026-10-19) |
+| MadBlocks | API | https://api.madblocks.tech | `madblocks` | LIVE (bp.json read 2026-10-19) |
+| NodeONE | API (on port 8344) | https://api-proton.nodeone.network:8344 · X https://x.com/eosnodeoneio · Telegram https://t.me/nodeoneio | `xprnodeonebp` | LIVE (bp.json read 2026-10-19) |
+| Proton NZ | API | https://api.protonnz.com · Telegram https://t.me/protonnz | `protonnz` | LIVE (dev skill endpoint, read 2026-10-19) |
+| ProtonIND (Blocks India) | API | https://protonapi.blocksindia.com/ · X https://x.com/protonind | `protonind` | LIVE (bp.json read 2026-10-19) |
+| ProtonUK | API and Hyperion | https://proton.protonuk.io · X https://x.com/proton_uk · Telegram https://t.me/protonuk | `protonuk` | LIVE (dev skill endpoint, read 2026-10-19) |
+| RockerOne | API | https://api.rockerone.io · X https://x.com/rockeronebp | `rockeronebp` | LIVE (bp.json read 2026-10-19) |
+| Saltant | API and Hyperion; AtomicAssets API; snapshots | https://api-xprnetwork-main.saltant.io · https://aa-xprnetwork-main.saltant.io · https://snapshots.saltant.io · X https://x.com/SaltantXPR · Telegram https://t.me/saltant_bp | `saltant` | LIVE (bp.json and dev skill, read 2026-10-19) |
+| Snipverse | API | https://api.snipverse.io · X https://x.com/snipverse · Telegram https://t.me/snipversexpr | `snipverse` | LIVE (bp.json read 2026-10-19) |
+| Storex | API | https://bp-api.storex.io · X https://x.com/storex_io · Telegram https://t.me/storex_io | `storexbp` | LIVE (bp.json read 2026-10-19) |
+| Terrapin Block | API; snapshots | https://api-mainnet.turtlebp.online · https://snapshot.turtlebp.online · X https://x.com/turtle_xpr · Telegram https://t.me/turtle_BP | `turtlebp` | LIVE (bp.json read 2026-10-19) |
+| TotalProton | API | https://api.totalproton.tech · X https://x.com/protontotal · Telegram https://t.me/totalproton | `totalproton` | LIVE (bp.json read 2026-10-19) |
+| ArtWebin | API | https://mainnet-api.artwebin.com · X https://x.com/artwebin · Telegram https://t.me/artwebin | `artwebin` | LIVE (bp.json read 2026-10-19) |
+| xprcore | API | https://api-mainnet.xprcore.com · X https://x.com/xprcore · Telegram https://t.me/xprcore | `xprcore` | LIVE (bp.json read 2026-10-19) |
+| xprdata | API | https://mainnet-api.xprdata.org · X https://x.com/xpr_data | `xprdata` | LIVE (bp.json read 2026-10-19) |
+| GenerEOS | API | https://mainnet.genereos.io · Telegram https://t.me/generEOS | `genereos` | UNCLEAR (bp.json read 2026-10-19, but it names the producer `aus1genereos`, not `genereos`, so it may describe the producer's EOS servers rather than XPR) |
+| EOSArabia | API | https://api.eosarabia.net · X https://x.com/eos_arabia · Telegram https://t.me/EOS_Arabia | `eosarabianet` | UNCLEAR (bp.json read 2026-10-19, but it lists EOS-style nodes, so these may not be XPR servers) |
+| Producers with only social accounts in bp.json | Detroit Ledger Tech https://x.com/detledgertech · https://t.me/detroitledgertech · BROTON https://x.com/brotonbp · https://t.me/brotonbpgroup · A-DEX https://x.com/a_dex_official · https://t.me/a_dex_official | (links in the first column) | `eosiodetroit`, `brotonbp`, `bpadex` | LISTED (bp.json read 2026-10-19) |
+| Standby and backup producer accounts | Sites set by a CryptoLions standby account and an EOSUSA backup account | https://sbp.proton.cryptolions.io · https://bp.eosusa.news/proton/ | CryptoLions; EOSUSA | LISTED (`eosio::producers`; sites not opened) |
+| Retired or inactive producers | Sites these producers set on chain: Aloha EOS https://www.alohaeos.com · EOS Argentina https://eosargentina.io · Blockside https://proton.blockside.io · bountyblok https://www.bountyblok.io · EOS Cannon https://eoscannon.io · CryptoBloks https://bp.cryptobloks.io/proton/ · CSX https://proton.csx.io · Dank Dollars https://dankdollars.co/ · DappRadar https://xpr-nodes.dappradar.com/ · Dmail https://dmail.co · Proton Eastern https://protoneastern.cn/ · Edenia https://edenia.com · EOS Africa https://www.eosafrica.com · EOS Barcelona https://eos.barcelona/proton · EOS Dublin https://eosdublin.com · EOSeoul https://eoseoul.io · EOS Korea https://eoskorea.site · EOSphere https://www.eosphere.io · CryptoTribe https://cryptotribe.io · Galaxoid Labs https://galaxoidlabs.com · Greymass https://greymass.com · NeftyBlocks https://bp.neftyblocks.com · Maltablock https://maltablock.org · Pink Network https://bp.pink.gg · Pixelblok https://www.pixelblok.com · protondc https://dc.protongroup.info · protonlondon https://protongroup.info · Proton France https://www.protonfrance.fr/ · Proton GB https://protongb.com/ · protonglobal https://XPRGlobal.com · protonkiwi https://bp.kiwi/ · Proton LATAM https://protonlatam.com/ · protonmt https://bp.protonmt.com · Proton Russia https://protonrussia.online · Proton Tokyo https://protontokyo.xyz · Quantumblok https://quantumblok.com · SimpleBlock https://simpleblock.org/ · Softatom https://softatom.com · EOS Sweden https://eossweden.org · EOS Venezuela https://eosvenezuela.io · Proton Asia https://protonasia.github.io/ProtonAsia/ · EOS Cafe Block https://eoscafeblock.com · XPR Labs https://xprlabs.org · Proton Europe https://protoneurope.github.io/ProtonEurope/ · europemain https://europemain.github.io/protonwebsite | (links in the first column) | each producer | Producer not active, site not checked (`eosio::producers`, 2026-10-19). Recent stops (§10): `xprlabs` 2026-09, `simpleblock` 2026-08, `guild.nefty` 2026-04, `dappradar` 2025-11 |
+
+### 15g. Press, research and exploit coverage
+
+Word each of these as its source: "<Outlet> reported on <date> that…" (RULES §2). Press ranks below the chain and official pages; when an article and an official page disagree, give both and lead with the newer one.
+
+**The September 2026 `proton.swaps` exploit.** The primary source is Proton NZ's post-mortem (§1, Metal X Swap row). The press reports below don't agree on the date, and their figures don't match the post-mortem (SOURCES.md has an AMBCrypto article from 2026-09-13 too). Give each figure with its own source. This is separate from the October 2026 outage on the status pages (§7).
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Yellow.com: "XPR Network bled $9M" | Reports more than $9M drained from `proton.swaps` through a withdraw with a negative value, and says block producers seized about 1.80B XPR. Its page dates the exploit 2026-09-14 | https://yellow.com/news/xpr-network-bled-9m-minus-signs | Yellow.com (press) | LIVE (read 2026-10-19) |
+| KuCoin News flash: "XPR Network loses $9M" | Same exploit, dated 2026-09-12; says it was patched at 21:32 UTC and XPR fell about 6.5%. **It disagrees with Yellow.com on the date** (Sept 12 vs Sept 14) | https://www.kucoin.com/news/flash/xpr-network-loses-9m-in-proton-swaps-exploit-price-drops-6-5 | KuCoin News (press) | LIVE (read 2026-10-19) |
+
+**Security documents and official announcements**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Metal L2 audit (PDF) | Audit report for Metal L2, linked from its site's footer. The auditor's name and date were not read here: open the PDF before citing either | https://migrate.metall2.com/Metal_L2_Audit.pdf | Metallicus (it hosts the file) | LISTED (linked from metall2.com) |
+| Metallicus: SOC 2 Type I | Metallicus's post on completing a SOC 2 Type I assessment (§1a dates it 2026-08-18) | https://metallicus.com/blog/metallicus-completes-soc-2-type-i-assessment | Metallicus | LISTED (linked from metallicus.com) |
+| Metallicus: 2026 Q2 report | The CEO's quarterly report for Q2 2026 (the Q3 report is in §1a) | https://metallicus.com/blog/metallicus---2026-q2-report | Metallicus | LISTED (linked from metallicus.com) |
+| Metallicus: InvestiFi stablecoin alliance | Post on a stablecoin alliance with InvestiFi | https://metallicus.com/blog/metallicus-investifi-stablecoin-alliance | Metallicus | LISTED (web search) |
+| XPR Network: "Introducing XPR Agents" | The official post introducing XPR Agents (§4) | https://xprnetwork.org/blog/introducing-xpr-agents | XPR Network | LISTED (linked from xprnetwork.org) |
+| XPR Network: DappRadar joins as a block producer | Official post. DappRadar's producer has since stopped producing (last claim 2025-11-26, §10) | https://xprnetwork.org/blog/dappradar-joins-xpr-network-as-a-block-producer | XPR Network | LISTED (linked from xprnetwork.org/news) |
+
+**Press that features Metallicus (linked from metalblockchain.org's "Featured In")**
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| Forbes, 2024-05-06 | "How BankSocial and Metallicus are banking on blockchain in 2024" | https://www.forbes.com/sites/jasonbrett/2024/05/06/how-banksocial-and-metallicus-are-banking-on-blockchain-in-2024/ | Forbes | LISTED (linked from metalblockchain.org) |
+| Nasdaq | "Behind the scenes of blockchain and crypto", featuring Metallicus | https://www.nasdaq.com/articles/behind-the-scenes-of-blockchain-and-crypto | Nasdaq | LISTED (linked from metalblockchain.org) |
+| Fortune, 2022-10-12 | "Safe and secure crypto is closer than we think" | https://fortune.com/crypto/2022/10/12/safe-and-secure-crypto-is-closer-than-we-think/ | Fortune | LISTED (linked from metalblockchain.org) |
+| Inc. | "How blockchain fintechs are navigating regulation" | https://www.inc.com/sean-kim/how-blockchain-fintechs-are-navigating-regulation.html | Inc. | LISTED (linked from metalblockchain.org) |
+
+**Other news, explainers and research** (leads; check against an official page before citing)
+
+| Name | What it is | Link | Run by | Status |
+|---|---|---|---|---|
+| BingX News: Metallicus FedNow certification | News post on Metallicus's FedNow certification (§1a has the official date, 2026-02-27) | https://bingx.com/en/news/post/just-in-xpr-network-is-connected-to-the-fednow-era-through-metallicus-metallicus-is-now-fednow-certified-for-send-receive-liquidity-management-request-for-payment-rfp-and-that-infrastructure-sits-alongside-the-metallicus-blockchain-ecosystem-including-xpr-network-webauth-wallet-digital-identity-stablecoins-defi-and-institutional-digitalasset-infrastructure | BingX News | LISTED (web search) |
+| KuCoin News: Metallicus weekly recap, 2–8 March 2026 | A community-written weekly recap that KuCoin republishes: a lead, never a source (SOURCES.md) | https://www.kucoin.com/news/trends/BTC/69adf126ecaf060007724949 | KuCoin News (republished) | LISTED (web search) |
+| Messari: XPR Network | Research firm's project page | https://messari.io/project/proton | Messari | LISTED (web search; the page did not load for the sweep) |
+| IQ.wiki: Metal Pay | Wiki entry | https://iq.wiki/wiki/metal-pay | IQ.wiki (crowd-edited) | LISTED (web search) |
+| IQ.wiki: Marshall Hayner | Wiki entry on Metallicus's CEO | https://iq.wiki/wiki/marshall-hayner | IQ.wiki (crowd-edited) | LISTED (web search) |
+| Gate Learn: what is XPR Network | Exchange-written explainer | https://www.gate.com/learn/articles/what-is-xpr-network-xpr/3527 | Gate | LISTED (web search) |
+| MEXC News: the Metallicus ecosystem | Exchange-written explainer (XPR Network, Metal Blockchain, WebAuth and more) | https://www.mexc.com/news/metallicus-ecosystem-explained-xpr-network-metal-blockchain-webauth-wallet-more/67791 | MEXC | LISTED (web search) |
+| Easy Crypto: XPR explainer | Exchange-written explainer | https://hub.easycrypto.com/proton-xpr | Easy Crypto | LISTED (web search) |
+| XPR Community DAO: making NFTs on Proton | Older community how-to from the Proton era; steps may be out of date | https://xprcommunitydao.medium.com/how-to-create-and-sell-nfts-on-proton-blockchain-x-fd8b3eb84f76 | XPR Community DAO | QUIET? (older post) |
+| "Metallicus Live" podcast | Podcast feed | https://metallicus.buzzsprout.com/2080317/episodes | Metallicus Live | QUIET? (the page loaded on 2026-10-19 but showed no episodes) |
+| Proton blog: "Meet WebAuth" | Legacy Proton-era post introducing WebAuth, still linked from the governance docs | blog.protonchain[.]com/meet-webauth (legacy host, no link) | Proton (legacy) | QUIET? (old host, probably no longer served; not opened) |
