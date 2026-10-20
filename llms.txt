@@ -46,8 +46,8 @@ How to use this guide (read RULES.md first):
 - [resources.md: CPU, NET, RAM](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/resources.md)
 - [nfts-atomicassets.md: NFTs](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/nfts-atomicassets.md)
 - [smart-contracts.md: contracts](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/smart-contracts.md)
-- [safety-guidelines.md: safety](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/safety-guidelines.md)
-- [xpr-agents.md: XPR Agents](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/xpr-agents.md)
+- [safety-guidelines.md: safety, incl. "Network Etiquette: Do Not Spam the Chain" (added in skill v2.11.0, 2026-10-16)](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/safety-guidelines.md)
+- [xpr-agents.md: XPR Agents (brought up to date in skill v2.12.0, 2026-10-16: escrow beyond the happy path, job messages, service listings, stopping an agent, openclaw 0.8.7 / sdk 0.5.2 tooling)](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/xpr-agents.md)
 - [troubleshooting.md](https://raw.githubusercontent.com/XPRNetwork/xpr-network-dev-skill/main/skill/troubleshooting.md)
 
 ## SimpleDEX (built by Proton NZ, a block producer)
