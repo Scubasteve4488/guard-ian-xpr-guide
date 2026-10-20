@@ -1370,3 +1370,113 @@ Word each of these as its source: "<Outlet> reported on <date> that…" (RULES �
 | XPR Community DAO: making NFTs on Proton | Older community how-to from the Proton era; steps may be out of date | https://xprcommunitydao.medium.com/how-to-create-and-sell-nfts-on-proton-blockchain-x-fd8b3eb84f76 | XPR Community DAO | QUIET? (older post) |
 | "Metallicus Live" podcast | Podcast feed | https://metallicus.buzzsprout.com/2080317/episodes | Metallicus Live | QUIET? (the page loaded on 2026-10-19 but showed no episodes) |
 | Proton blog: "Meet WebAuth" | Legacy Proton-era post introducing WebAuth, still linked from the governance docs | blog.protonchain[.]com/meet-webauth (legacy host, no link) | Proton (legacy) | QUIET? (old host, probably no longer served; not opened) |
+
+### 15h. Token registry projects (token.proton, read in full 2026-10-19)
+
+- Read all 2,775 rows of `token.proton::tokens` (ids 1000001–1003006, live chain, read 2026-10-19); 2,448 have a website/url field filled in, 39 are flagged blacklisted (`blisted=1`), and about 1,641 look like spam/test or joke entries (896 spam/test, 584 of them one auto-generated "Token AAAAAxx" series on `vweb`; 745 joke/impersonation entries pointing at governments, central banks, retailers, other chains or troll pages). 359 more are SimpleDEX launches whose url is just their dex.protonnz.com or simpledex.fun token page (hosts already listed).
+- Read note: 6 rows (ids 1001116, 1001527, 1001529, 1001536, 1001537, 1001596) could not be decoded on any node that answered (the chain API returns "Invalid symbol"), so their contents are unknown; any page that includes one fails, and some public nodes return an empty or cut-short page instead of an error, so page with small limits around those ids.
+
+New project websites not in CURRENT-HOSTS and not already in D-onchain (registry text only, sites not opened):
+
+| Token (symbol@contract) | Name | Website | Status |
+|---|---|---|---|
+| ZFT@3z.xpr | 3ZNFT Token | 3znft.com | LISTED (registry, not opened) |
+| AIRK@tokencreate, DPUS@tokencreate | AI Robot Kitty | https://airobotkitty.com | LISTED (registry, not opened) |
+| AIVERSE@aiverse | AIVerse | aiverse.io | LISTED (registry, not opened) |
+| APEX@tokencreate | APEX | https://www.apexmeme.com | LISTED (registry, not opened) |
+| ATOM@tokencreate | ATOM3 | https://www.atom3studio.com/ | LISTED (registry, not opened) |
+| ARP@tokencreate, ART@tokencreate | Aurora Rewards | https://aurora4d.com | LISTED (registry, not opened) |
+| AUT@autpolo | Aut | https://autpolo.com/ | LISTED (registry, not opened) |
+| BCDT@tokencreate | Baby Cadet | https://www.babycadet.com | LISTED (registry, not opened) |
+| BBC@tokencreate | Bad Breath Coin | https://bad-breath-coin.com | LISTED (registry, not opened) |
+| BAYRA@bayrameta | BAYRA | Bayra.io | LISTED (registry, not opened) |
+| BEAR@tokencreate | BEAR XPRoton | https://bearxpr.tilda.ws | LISTED (registry, not opened) |
+| BETHER@bether.gm | Betherance | https://betherance.com/ | LISTED (registry, not opened) |
+| WBTC@wrapper | wbtc | https://betterwrapper.com | LISTED (registry, not opened) |
+| CFT@chainfeed (x2), CFTA@chainfeed | Chainfeed | https://chainfeed.space/ | LISTED (registry, not opened) |
+| CHUR@taruntoken | Chur Coin | www.churcoin.com | LISTED (registry, not opened) |
+| RC@coinroyale25 | Coin Royale | https://coinroyale.online | LISTED (registry, not opened) |
+| MYCC@tokencreate, CONSENT@tokencreate | Consent Coin | https://consentcoin.io | LISTED (registry, not opened) |
+| CROS@tokencreate | CROSSET-UP | https://crosset-up.org | LISTED (registry, not opened) |
+| XOHM@tokencreate | ophanim | https://cursejourney.com | LISTED (registry, not opened) |
+| CAS@tokencreate | Cyber Ad Space | https://CyberAdSpace.com | LISTED (registry, not opened) |
+| DKT@tokencreate | DaiKhoToken | https://daikhotoken.io | LISTED (registry, not opened) |
+| DEN@tokencreate | Decarbon | www.decarbonthepast.com | LISTED (registry, not opened) |
+| DEED@tokencreate | DeedAlert Token | https://www.deedalert.net | LISTED (registry, not opened) |
+| CANDLE@tokencreate, WICK@tokencreate, CMAKER@tokencreate | Degen Development Studios Candle Shop | https://degendevelopmentstudios.com | LISTED (registry, not opened) |
+| DGG@softclarinet | DigiGold | https://digigoldcoin.rootsociety.nl/ | LISTED (registry, not opened) |
+| MAKURA@dogemakura | Dogemakura | Dogemakura.com | LISTED (registry, not opened) |
+| GPTN@tokencreate | GreenProton | https://ecologiexp.com | LISTED (registry, not opened) |
+| VEC@envisionevc | V E C | https://envisioncharging.com/home | LISTED (registry, not opened) |
+| FC@vtoken, F@vtoken | Father Crypto | https://fathercrypto.online | LISTED (registry, not opened) |
+| FIK@tokencreate | FIKCOIN | https://fikcoin.blogspot.com | LISTED (registry, not opened) |
+| FXC@tokencreate | FlexCoin | https://www.flex-coin.com | LISTED (registry, not opened) |
+| GBX@tokencreate | Gift Box | www.gift-box.io | LISTED (registry, not opened) |
+| GFC@tokencreate, SHREK@tokencreate | GiftCards | http://giftcards.xo.je | LISTED (registry, not opened) |
+| GUMDROP@tokencreate | Gumdrop | http://www.gumdrop.net | LISTED (registry, not opened) |
+| XHTTPS@vtoken | $HTTPS | https.meme | LISTED (registry, not opened) |
+| IXT@tokencreate | Interesting X | https://inis-world.vercel.app | LISTED (registry, not opened) |
+| KST@tokencreate | Keep snipping | https://keesnipping.io | LISTED (registry, not opened) |
+| SHK@tokencreate | Shamecoin | https://looknloot.com | LISTED (registry, not opened) |
+| LUCE@luce.xpr | LUCE | www.lucestore.io | LISTED (registry, not opened) |
+| LUCK@thomashp | Luck | www.luckcoin.info | LISTED (registry, not opened) |
+| MLD@tokencreate | MemeLord | https://memelord.gamer.gd | LISTED (registry, not opened) |
+| SEA@metalseaxpr, XEA@metalseaxpr, MLS@xeonloyalty | Metalsea (fisheries) | https://metalseaxpr.com | LISTED (registry, not opened) |
+| MINK@agac2 | MINK | https://minkcoin.io | LISTED (registry, not opened) |
+| LMDC@tokencreate | Moneda Libre | https://MonedaLibre.co | LISTED (registry, not opened) |
+| MBRO@motoburro | Motoburro Coin | https://motoburro.com | LISTED (registry, not opened) |
+| TGUARD@tokencreate | TitleGuard Token | https://nftitlenetwork.com | LISTED (registry, not opened) |
+| NIMBUS@tokencreate | Nimbus Protocol | https://nimbusprotocol.wordpress.com/home | LISTED (registry, not opened) |
+| NLMT@tokencreate | No Limits | https://nlmt.app/ | LISTED (registry, not opened) |
+| SEED@tokencreate | ONE SEED | https://www.oneseedimpact.com | LISTED (registry, not opened) |
+| PEPZ@tokencreate | PepeFree | https://www.pepefree.com | LISTED (registry, not opened) |
+| PHXP@tokencreate | Phoenix Prize | https://Phoenixprize.com | LISTED (registry, not opened) |
+| ETF@tokencreate | MANOR | https://www.piedmontmanor.com | LISTED (registry, not opened) |
+| GIRCHI@girchitoken | GIRCHI | https://pirates.girchi.org | LISTED (registry, not opened) |
+| POG@tokencreate | Proton Dog | https://pog.io | LISTED (registry, not opened) |
+| PTP@poloptp | poloptp | https://polotecnologicopehuajo.my.canva.site/about | LISTED (registry, not opened) |
+| PRKL@tokencreate | Prickle Seeds | https://pricklevalleyfarmstead.blogspot.com | LISTED (registry, not opened) |
+| PROTONA@protonai | ProtonAI | protonai.io | LISTED (registry, not opened) |
+| PBC@almonds | PBC Token | http://www.protonbee.club/ | LISTED (registry, not opened) |
+| CROWN@tokencreate | proton crown | https://protoncrowncoin.blogspot.com | LISTED (registry, not opened) |
+| ALPHA@royalcoin | Alpha Coin | https://www.protonmarket.com/ | LISTED (registry, not opened) |
+| XPURP@tokencreate, PURPL@tokencreate | Purple Stuff | https://purplepantherphoenixunicorn.com | LISTED (registry, not opened) |
+| SEARCH@realestatese | SEARCH | realestatesearch.io | LISTED (registry, not opened) |
+| SATS@tokencreate | Saturnalia | https://Saturnalia98.com | LISTED (registry, not opened) |
+| SDX@sayarideluxe | SAYIRIDELUXE | https://sayarideluxe.com | LISTED (registry, not opened) |
+| SBFC@tokencreate | ScHiZ0 B3rRy Fc | https://schizoberryfanclub.com | LISTED (registry, not opened) |
+| SEOM@seomtoken | SEO Maximus | https://seomaximus.ai/token | LISTED (registry, not opened) |
+| SHAI@tokencreate | SHAIstrategy | https://shaistrategy.com | LISTED (registry, not opened) |
+| SHWOOP@andrewb | Shwoop Coin | https://www.shwoop.co.nz/ | LISTED (registry, not opened) |
+| TITLET@tokencreate, SMART@tokencreate | Title Token | https://smartescrow.us | LISTED (registry, not opened) |
+| SPLIFF@coinabis | SPLIFF Token | spliffnft.io | LISTED (registry, not opened) |
+| SUP@tokencreate | Supameta | https://supezee.com | LISTED (registry, not opened) |
+| INIS@inch13 | Inis World | https://tester-lime.vercel.app | LISTED (registry, not opened) |
+| CPHR@tokencreate | Cipher Vault | https://theciphervault.carrd.co | LISTED (registry, not opened) |
+| TOP@tokencreate | TopAimultiverse | https://TopAimultiverse.org | LISTED (registry, not opened) |
+| USDP@worthless | USD Proton | https://usdp.godaddysites.com | LISTED (registry, not opened) |
+| USDX@stablexpr | USDX Coin | https://usdx2.godaddysites.com | LISTED (registry, not opened) |
+| VAL@valoreum | Valoreum | https://valoreum.notion.site/ (Notion page) | LISTED (registry, not opened) |
+| VLUX@vluxpayment | V*Lux | www.VLUXCleaningServicesINC.com | LISTED (registry, not opened) |
+| VOTA@votar | votar | https://votavotar.000webhostapp.com/ | LISTED (registry, not opened) |
+| VTOKEN@vtokens | Virtual Token | https://vtokens.github.io/ | LISTED (registry, not opened) |
+| WAGMI@tokencreate | WAGMI Coin | https://wagmicoin.store | LISTED (registry, not opened) |
+| BOKCHOY@tokencreate, CHOYSUM@tokencreate | BOKCHOY | https://wenbokchoychoysum.com | LISTED (registry, not opened) |
+| XAGSURF@taruntoken, XAUSURF@tokencreate | XAgSurfer | https://xagsurfer.com | LISTED (registry, not opened) |
+| XCG@xweb | Xchange | https://xcgtech.com | LISTED (registry, not opened) |
+| XID@tokencreate | XIDCOIN | https://xidcoin.blogspot.com | LISTED (registry, not opened) |
+| EVER@tokencreate | Everburn | https://xmagnetic.org/farming/EverBurn | LISTED (registry, not opened) |
+| XPL@xplutons, XPU@tokencreate | XPL Token | https://xpluto.xyz | LISTED (registry, not opened) |
+| BRETTX@tokencreate | BRETT (XPR) | https://www.xprbrett.com/ | LISTED (registry, not opened) |
+| ENERGY@xenergy | ENERGY | https://xprenergy.com | LISTED (registry, not opened) |
+| XPRXO@tokencreate | XPR Escrow | https://XPRescrow.com | LISTED (registry, not opened) |
+| SIGMA@tokencreate | Sigma | https://xprsigma.org | LISTED (registry, not opened) |
+| SOLAR@solarx | SOLAR | https://xprsolar.com | LISTED (registry, not opened) |
+| XRPX@tokencreate | XRP 2.0 | https://www.xrpboom.com | LISTED (registry, not opened) |
+| XVLR@xvalorian (x2) | xVALORIAN | https://xvalorian.ic.bike | LISTED (registry, not opened) |
+| YACHT@tokencreate | Yacht | https://yachtstorm.com/ | LISTED (registry, not opened) |
+| YCATU@ytokens | Yodacoin | https://yodacoin.ink/ | LISTED (registry, not opened) |
+
+Also listed but left out of the table as placeholder-style or unverified-looking (55 hosts, mostly one BlastPad creator series of "...xprnetwork..."-named domains; not opened, not linked): MUSCLE, AMERICA, AURA, BOOSTED, RIDE, ONE, HYDRATE, FARE, BEAUTY, WWCU, DIEZER, FOODPAY, WAGON, GYM, EMS, BILLS, HOME, JFT, LEARN, LUST, BRRR, ELDERLY, PAY, PAYUP, SPORTS, CHEF, DOLLAR, BAMBOO, BAT, TRUCK, HELI, RACE, STORM, RICH, XROYCE, RTHCP, SBEL, PCHD, STIMM, SHOP, SHOWER, SIDE, WEALTH, TCB, LSC, UNVAXXD, WAGE, WENMOON, XCASH, XDR, SWOOSH, MEMORY, TRASH, ZION (all @tokencreate); PRDOGE@vtoken; RFC@rangers, RFC@rangersfc.
+
+Blacklisted in the registry: 39 — PVERSE@pverseme.gm, PDOGE@protondoge, XXRP@knightbank, XBCB@bep2, PSAFE@cryptosafe, WIZ@royalcoin, DOGEMTX@btoken, BFC@bfrost, APE@apecointoken, KIBA@kibainu, PIKA@bfrost, KINDER@kinderinu, LUNA@lunatoken, CHIPS@protontokens, BTCI@lastroman, BAYRA@bayramela, BITS@protontokens, SHIB@kibainu, LUNC@lunatoken, STEPN@pverseme.gm, IOTA@protonmeta, DOGEGF@albabank, ALBA@albabank, FREEBTC@protontokens, AGIX@agix, SOL@eosiotokens, AVAX@eosioavax, PORN@xxxtokens, XSHIB@eosiotokens, XLUNC@eosiotokens, VRA@eosiotokens, DICK@metafuture, SDICK@metafuture, BTC@eosiotokens, ETH@eosiotokens, DOGE@eosiotokens, BNB@eosiotokens, CFX@eosiotokens, XPRDROP@xprdrops.
