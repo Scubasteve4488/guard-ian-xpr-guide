@@ -2,6 +2,11 @@
 
 Every change to the guide is dated here. Nothing is deleted. Outdated items are marked superseded, with the date.
 
+- **2026-10-20 (second run, 23:35 UTC):** each item read at its source this run.
+  - **§7 official status pages:** re-read; no new incident update. The Metal X Lending incident now says withdrawals from Lending are not yet enabled; the 13:00 reading is kept below it.
+  - **Code found on GitHub:** artcircles (savings circles by the `artwebin` producer), TESTNET only per its README and the testnet ABI; no mainnet contract.
+  - **§10:** chaininfra and totalproton filled in from their own sites; protonmadrid's page now redirects to plain http, so it was not read.
+  - Checked, no change since the morning run: XPR dev skill (HEAD b7d9f1f), xpr-agents (HEAD 3b7370f; npm openclaw 0.9.2, sdk 0.5.3), proton-cli, web SDK 5.1.0, pulse-cutover (HEAD 1c4613e); SimpleDEX llms files (launches v1.11, trading v1.12, reference v1.11); Metallicus newsroom, XPR Network news, Metal Dollar newsroom, Proton NZ feed, Cypher Gang sitemap; governance (newest proposal still #329); XPR Agents (73 agents, 68 active); creator websites (no launch above 471, no `community` record updated in the last 2 days). No open issues; suggestion box empty.
 - **2026-10-20 (daily source update):** each item read at its source today.
   - **§7 official status pages (safety):** Metal X Lending is back across all markets (incident in Monitoring since 2026-10-20 06:05 UTC; Loan Redemption not yet re-enabled). XPR Network and Metal Pay withdrawals are still paused (no update since 10-17). An explorer NFT-loading incident (10-17) is resolved. The 10-19 reading is kept below it.
   - **§10:** blocksforge, cindronet and luminaryvisn filled in from their own sites.
