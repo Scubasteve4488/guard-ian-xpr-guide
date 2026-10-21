@@ -172,7 +172,8 @@ async function getOnHost(base: URL, path: string, ctx?: ExecutionContext) {
 	}
 }
 
-async function readPage(key: StatusPage, ctx?: ExecutionContext) {
+/** One status page: incidents from its Atom feed, component states and banner from its HTML. Shared with whatsnew.ts. */
+export async function readPage(key: StatusPage, ctx?: ExecutionContext) {
 	const page = STATUS_PAGES[key];
 	const base = new URL(page.url);
 	if (!(await robotsAllows(new URL('/history.atom', base), ctx)) || !(await robotsAllows(base, ctx)))

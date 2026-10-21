@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
+import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
 let pass = 0,
@@ -970,6 +971,126 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const noComp = await tools.metallicus_status({ page: 'xpr', view: 'now', limit: 15 });
 	t('status: unreadable component list is said out loud, not hidden', !noComp.isError && /component list could not be read/.test(noComp.content[0].text) && /"openIncidents": "none in the feed"/.test(noComp.content[0].text));
 	t('status: three pages catalogued with what each covers', Object.keys(STATUS_PAGES).length === 3 && /withdrawals/.test(STATUS_PAGES.xpr.covers));
+}
+
+// ── 1.17.0: whats_new — what changed since a moment, from the sources' own time stamps (whatsnew.ts) ────────────────
+{
+	const NOW = new Date('2026-10-21T16:00:00Z');
+	// time handling: indexers give unix seconds, the chain gives ISO without a zone, Atom gives ISO with Z
+	t('whats_new: unix seconds, millis, zoneless ISO and Z ISO all become one ISO form', toIso(1791733513) === '2026-10-11T15:45:13.000Z' && toIso(1791733513000) === '2026-10-11T15:45:13.000Z' && toIso('2026-08-30T14:37:20.000') === '2026-08-30T14:37:20.000Z' && toIso('2026-09-17T00:33:16Z') === '2026-09-17T00:33:16.000Z' && toIso('nonsense') === '' && toIso(undefined) === '');
+	t('whats_new: default window is 24 h, hours capped at 30 days, since wins over hours', sinceFrom({}, NOW).toISOString() === '2026-10-20T16:00:00.000Z' && sinceFrom({ hours: 99999 }, NOW).toISOString() === '2026-09-21T16:00:00.000Z' && sinceFrom({ since: '2026-10-01T00:00Z', hours: 5 }, NOW).toISOString() === '2026-10-01T00:00:00.000Z');
+	let bad = '';
+	try { sinceFrom({ since: 'yesterday' }, NOW); } catch (e: any) { bad = e.message; }
+	let fut = '';
+	try { sinceFrom({ since: '2027-01-01T00:00Z' }, NOW); } catch (e: any) { fut = e.message; }
+	t('whats_new: a bad or future since is refused in plain words', /ISO date-time/.test(bad) && /in the future/.test(fut));
+
+	// fixtures shaped like the live reads of 2026-10-21 16:20-16:32 UTC
+	const since = new Date('2026-10-13T00:00:00Z');
+	const incidents = [
+		{ title: 'Metal X Lending Service Disruption', url: 'https://status.xprnetwork.org/incidents/rndfkhznl0hg', opened: '2026-10-17T03:57:00Z', lastUpdate: '2026-10-20T18:01:21Z', status: 'Monitoring', resolved: false, updates: [{ status: 'Monitoring', at: 'Oct 20, 06:05 UTC', text: 'Metal X Lending is now enabled across all markets.' }] },
+		{ title: 'NFTs are not Loading', url: 'https://status.xprnetwork.org/incidents/8xtz4fw8gv8s', opened: '2026-10-17T09:33:00Z', lastUpdate: '2026-10-18T09:42:50Z', status: 'Resolved', resolved: true, updates: [{ status: 'Resolved', at: 'Oct 18, 09:42 UTC', text: 'This incident has been resolved.' }] },
+		{ title: 'Old one', url: 'https://status.xprnetwork.org/incidents/old', opened: '2026-09-01T00:00:00Z', lastUpdate: '2026-09-02T00:00:00Z', status: 'Resolved', resolved: true, updates: [] },
+	];
+	const st = statusItems('XPR Network Status', incidents, since);
+	t('whats_new status: an incident opened or updated after since is listed with its latest step; older ones are not', st.length === 2 && st[0].title === 'XPR Network Status: Metal X Lending Service Disruption — new incident (Monitoring)' && st[0].at === '2026-10-20T18:01:21.000Z' && /Oct 20, 06:05 UTC/.test(st[0].detail) && st[1].kind === 'status');
+	const stUpd = statusItems('XPR Network Status', [{ ...incidents[0], opened: '2026-10-01T00:00:00Z' }], since);
+	t('whats_new status: an older incident with a new update is marked "updated", not "new"', stUpd.length === 1 && /— updated \(Monitoring\)/.test(stUpd[0].title));
+
+	const tokens = [
+		{ tokenId: 471, symbol: 'STARS', name: 'Star-Shell Hayner', creator: '[private account]', graduated: true, firstTradeAt: 1791733513, graduatedAt: 1791735820 },
+		{ tokenId: 470, symbol: 'KWYS', name: 'Know What You Sold', creator: '[private account]', graduated: true, firstTradeAt: 1790861000 },
+	];
+	const la = launchItems(tokens, new Date('2026-10-09T00:00:00Z'));
+	t('whats_new launches: first trade after since = a new launch; creator stays as the privacy filter left it', la.length === 1 && la[0].title === 'New SimpleDEX launch: STARS (Star-Shell Hayner, token 471)' && /creator \[private account\]; already graduated/.test(la[0].detail) && la[0].source === 'https://indexer.protonnz.com/api/tokens?symbol=STARS');
+	t('whats_new launches: nothing new when every first trade is before since', launchItems(tokens, since).length === 0);
+
+	const events = [
+		{ tokenId: 87, symbol: 'DOGE', name: 'Dogecoin', creator: '[private account]', dexPoolId: 1989, detectedAt: 1791836807 },
+		{ tokenId: 471, symbol: 'STARS', name: 'Star-Shell Hayner', creator: '[private account]', dexPoolId: 1979, detectedAt: 1791735820 },
+	];
+	const gr = graduationItems(events, new Date('2026-10-12T00:00:00Z'));
+	t('whats_new graduations: an old token graduating late is caught by the events feed', gr.length === 1 && gr[0].title === 'Graduated to the DEX: DOGE (Dogecoin, token 87, pool 1989)' && gr[0].at === '2026-10-12T20:26:47.000Z');
+
+	const proposals = [
+		{ id: 329, community_id: 5, start: '2026-08-30T14:37:20.000', end: '2026-11-30T14:37:00.000', status: 'Approved', candidates: [{ id: 0, name: 'Yes — Lower the quorum requirement from 25% to 20%' }, { id: 1, name: 'No — Keep the quorum requirement at 25%' }] },
+		{ id: 328, community_id: 4, start: '2026-08-26T09:56:35.000', end: '2026-09-30T09:11:00.000', status: 'Approved', candidates: [{ id: 0, name: 'Yes' }, { id: 1, name: 'No' }] },
+	];
+	const pr = proposalItems(proposals, new Date('2026-08-28T00:00:00Z'));
+	t('whats_new governance: a proposal whose voting started after since, with its choices and the gov link', pr.length === 1 && pr[0].title === 'New governance proposal #329 (community 5)' && /Lower the quorum requirement from 25% to 20% \/ No/.test(pr[0].detail) && pr[0].source === 'https://gov.xprnetwork.org/communities/5/proposals/329');
+
+	const agents = [{ account: 'charliebot', name: 'charliebot', description: 'Autonomous AI agent on XPR Network', endpoint: 'https://charliebot.dev', registered_at: 1771196169 }, { account: 'newbie', name: 'Newbie Agent', description: 'x', endpoint: 'https://n.example', registered_at: 1792000000 }];
+	const ag = agentItems(agents, new Date('2026-10-01T00:00:00Z'));
+	t('whats_new agents: only agents registered after since; agent accounts stay visible', ag.length === 1 && ag[0].title === 'New agent registered on XPR Agents: newbie (Newbie Agent)' && ag[0].source === 'https://indexer.xpragents.com/api/agents/newbie');
+
+	const jobs = [{ id: 80, client: '[private account]', agent: '', title: 'Twitter Marketing Campaign & Raid Operations for $MYST Meme Coin', amount: 50000000, symbol: 'XPR', deadline: 1795027724, created_at: 1792003765 }, { id: 79, client: '[private account]', agent: '[private account]', title: 'Report', amount: 4000000, symbol: 'XPR', deadline: 1792092498, created_at: 1790882908 }];
+	const jb = jobItems(jobs, new Date('2026-10-10T00:00:00Z'));
+	t('whats_new jobs: budget shown in whole XPR, assignment state said, client never named', jb.length === 1 && /New job posted on XPR Agents: #80 Twitter Marketing/.test(jb[0].title) && /budget 5,000 XPR/.test(jb[0].detail) && /not yet assigned/.test(jb[0].detail) && !/client/.test(jb[0].detail));
+
+	// GitHub releases.atom, shaped like github.com/XPRNetwork/xpr-agents/releases.atom read 2026-10-21 16:36 UTC
+	const FEED = `<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:media="http://search.yahoo.com/mrss/" xml:lang="en-US">
+  <id>tag:github.com,2008:https://github.com/XPRNetwork/xpr-agents/releases</id>
+  <link type="text/html" rel="alternate" href="https://github.com/XPRNetwork/xpr-agents/releases"/>
+  <link type="application/atom+xml" rel="self" href="https://github.com/XPRNetwork/xpr-agents/releases.atom"/>
+  <title>Release notes from xpr-agents</title>
+  <updated>2026-09-16T21:24:51Z</updated>
+  <entry>
+    <id>tag:github.com,2008:Repository/1150169209/v2026.09.17</id>
+    <updated>2026-09-17T00:33:16Z</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/XPRNetwork/xpr-agents/releases/tag/v2026.09.17"/>
+    <title>September 2026: agents sell services, and deliverables render in the page</title>
+    <content type="html">&lt;p&gt;Two weeks ago, the only way to hire an agent was to post a job. Now agents also sell fixed-price services.&lt;/p&gt;&lt;h2&gt;Security&lt;/h2&gt;&lt;p&gt;&lt;strong&gt;A stored XSS flaw is fixed.&lt;/strong&gt;&lt;/p&gt;</content>
+    <author><name>paulgnz</name></author>
+    <media:thumbnail height="30" width="30" url="https://avatars.githubusercontent.com/u/12118160?s=60&amp;v=4"/>
+  </entry>
+  <entry>
+    <id>tag:github.com,2008:Repository/1150169209/v2026.09.02</id>
+    <updated>2026-09-02T08:02:24Z</updated>
+    <link rel="alternate" type="text/html" href="https://github.com/XPRNetwork/xpr-agents/releases/tag/v2026.09.02"/>
+    <title>September 2026: agents can fix their deliveries</title>
+    <content type="html">&lt;p&gt;The last week of mainnet jobs showed the sharp edges.&lt;/p&gt;</content>
+  </entry>
+</feed>`;
+	const rel = parseReleaseFeed(FEED);
+	t('whats_new upstream: both releases read with title, link, time and plain-text notes', rel.length === 2 && rel[0].title === 'September 2026: agents sell services, and deliverables render in the page' && rel[0].url === 'https://github.com/XPRNetwork/xpr-agents/releases/tag/v2026.09.17' && rel[0].updated === '2026-09-17T00:33:16.000Z' && /Two weeks ago/.test(rel[0].text) && !/</.test(rel[0].text));
+	const up = upstreamItems('XPRNetwork/xpr-agents', rel, new Date('2026-09-10T00:00:00Z'));
+	t('whats_new upstream: only releases after since', up.length === 1 && /^Upstream release: XPRNetwork\/xpr-agents September 2026: agents sell services/.test(up[0].title) && up[0].source.endsWith('/v2026.09.17'));
+	t('whats_new: three upstream feeds, seven lanes', UPSTREAM_FEEDS.length === 3 && LANES.length === 7 && UPSTREAM_FEEDS.every((f) => f.url.startsWith('https://github.com/XPRNetwork/') && f.url.endsWith('/releases.atom')));
+	const mixed = sortNewestFirst([...st, ...gr, ...jb]);
+	t('whats_new: one list, newest first', mixed[0].at >= mixed[1].at && mixed[1].at >= mixed[2].at && mixed.length === 4);
+
+	// the tool end to end with a stubbed network: lanes that fail are named, the rest still answer; quiet day says so
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerWhatsNewTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	calls.length = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response(url.includes('github.com') ? 'User-agent: *\nDisallow: /*/*/pulse' : 'User-agent: *\nDisallow: /api/\nDisallow: /embed/', { status: 200 });
+		if (url.includes('get_producer_schedule')) return new Response(JSON.stringify({ active: { producers: [{ producer_name: 'protonnz' }] } }), { status: 200 });
+		if (url.includes('get_table_rows')) return new Response(JSON.stringify({ rows: proposals, more: false }), { status: 200 });
+		if (url.includes('/history.atom')) return new Response(url.includes('metall2') ? FEED.replace(/<entry>[\s\S]*<\/entry>/, '') : ATOM_STATUS, { status: 200, headers: { 'content-type': 'application/atom+xml' } });
+		if (url.startsWith('https://status.')) return new Response('<html><body>no components here</body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
+		if (url.includes('indexer.protonnz.com/api/tokens')) return new Response(JSON.stringify({ tokens }), { status: 200 });
+		if (url.includes('indexer.protonnz.com/api/events')) return new Response(JSON.stringify({ graduations: events }), { status: 200 });
+		if (url.includes('indexer.xpragents.com/api/agents')) return new Response(JSON.stringify({ agents: url.includes('offset=50') ? [] : agents }), { status: 200 });
+		if (url.includes('indexer.xpragents.com/api/jobs')) return new Response('oops', { status: 500 }); // one lane down
+		if (url.endsWith('/releases.atom')) return new Response(url.includes('xpr-agents') ? FEED : FEED.replace(/<entry>[\s\S]*<\/entry>/, ''), { status: 200, headers: { 'content-type': 'application/atom+xml' } });
+		return new Response('not found', { status: 404 });
+	});
+	const ATOM_STATUS = `<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><entry><published>2026-10-17T04:19:00Z</published><updated>2026-10-17T07:46:02Z</updated><link rel="alternate" type="text/html" href="https://status.xprnetwork.org/incidents/15hpstxlxng6"/><title>XPR Network Withdrawals Temporarily Paused</title><content type="html">&lt;p&gt;&lt;small&gt;Oct 17, 07:46 UTC&lt;/small&gt;&lt;br&gt;&lt;strong&gt;Update&lt;/strong&gt; - Our team is working to resolve the issue.&lt;/p&gt;</content></entry></feed>`;
+	const r1 = await tools.whats_new({ since: '2026-08-28T00:00:00Z', hours: 24 });
+	const t1 = r1.content[0].text;
+	t('whats_new tool: every lane that answered is listed newest first with its own time stamp', !r1.isError && /"newItems": [1-9]/.test(t1) && /New governance proposal #329/.test(t1) && /Withdrawals Temporarily Paused/.test(t1) && /New SimpleDEX launch: STARS/.test(t1) && /Graduated to the DEX: DOGE/.test(t1) && /New agent registered on XPR Agents: newbie/.test(t1) && /Upstream release: XPRNetwork\/xpr-agents/.test(t1) && t1.indexOf('Metal X') < 0);
+	t('whats_new tool: the lane that failed is named under notRead and the others still answer', /"notRead": \[\s*"jobs: indexer\.xpragents\.com returned HTTP 500"/.test(t1) && /"lanesRead": \[\s*"status",\s*"launches",\s*"graduations",\s*"governance",\s*"agents",\s*"upstream"/.test(t1));
+	t('whats_new tool: what is not covered is said in every answer, and the sources are the pages read', /notCovered/.test(t1) && /Metallicus newsroom/.test(t1) && /Source: .*status\.xprnetwork\.org\/history\.atom/.test(t1) && /github\.com\/XPRNetwork\/xpr-agents\/releases\.atom/.test(t1) && !calls.some((u) => u.includes('/api/v2/')));
+	const r2 = await tools.whats_new({ since: '2026-10-21T12:00:00Z', hours: 24, lanes: ['launches', 'governance', 'upstream'] });
+	const t2 = r2.content[0].text;
+	t('whats_new tool: a quiet window says so, and only the asked lanes were read', !r2.isError && /"newItems": 0/.test(t2) && /Nothing new in the lanes read since 2026-10-21T12:00:00.000Z/.test(t2) && !/agents\?limit/.test(calls.slice(-10).join(' ')) );
+	const r3 = await tools.whats_new({ since: 'last tuesday', hours: 24 });
+	t('whats_new tool: a bad since is a plain refusal with an example', r3.isError === true && /since must be an ISO date-time/.test(r3.content[0].text) && /Example: since 2026-10-20T16:00Z/.test(r3.content[0].text));
+	stub(() => new Response('down', { status: 503, headers: { 'retry-after': '2' } }));
+	const r4 = await tools.whats_new({ hours: 24, lanes: ['launches'] });
+	t('whats_new tool: when no source answers, the tool fails plainly instead of reporting a quiet day', r4.isError === true && /Could not complete/.test(r4.content[0].text) && /launches:/.test(r4.content[0].text));
 }
 
 console.log(`${pass} passed, ${failN} failed`);
