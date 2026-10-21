@@ -1290,6 +1290,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const bad = buildReport({ ...base, account: 'someoneelse1', cls: { pub: false, why: 'a private account' }, agent: null, amount: parseAmount('1000 XPR'), service: { id: 0, row: svcRow } });
 	const j2 = bad.whatDeservesAttention.join(' | ');
 	t('listing: belongs to a different agent and the quoted price differs -> both said plainly', /belongs to charliebot, not to someoneelse1/.test(j2) && /quoted 1,000 XPR; the on-chain listing price is 25 XPR/.test(j2));
+	t('listing: the confirm line names the listing terms (agentescrow, memo, listing price), never the quoted amount to the wallet', /receiver agentescrow, memo buy:0, amount 25 XPR \(the listing price\) — not the 1,000 XPR you were quoted/.test(bad.whatToConfirm.join(' ')) && !/1,000 XPR to someoneelse1/.test(bad.whatToConfirm.join(' ')));
 	const gone = buildReport({ ...base, account: 'charliebot', amount: null, service: { id: 99, row: null } });
 	t('listing: a number with no row is said, with the warning', /No XPR Agents listing #99 exists/.test(gone.whatICanVerify.join(' ')) && /no such listing/.test(gone.whatDeservesAttention.join(' ')));
 	const delisted = buildReport({ ...base, account: 'charliebot', amount: null, service: { id: 1, row: { ...svcRow, id: 1, active: 0, sales: 0 } } });

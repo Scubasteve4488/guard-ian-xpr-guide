@@ -240,11 +240,14 @@ export function buildReport(input: {
 		if (!input.site.listedInGuide && !input.site.looksLike) cannot.push('Whether the website is run by the account you are paying: nothing on chain links a domain to an account.');
 	} else if (input.site && 'error' in input.site) cannot.push(`The website: ${input.site.error}.`);
 
-	// amount
-	if (input.amount) {
-		verified.push(`You said the price is ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol}.`);
-		confirm.push(`Before approving, read the amount and the token in the WebAuth request itself: it must say ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol} to ${input.account}, nothing else and nothing extra in the same request.`);
-	} else confirm.push('Read the amount, the token and the receiving account inside the WebAuth request itself before approving; a request can carry more than one action.');
+	// amount. With a real listing the request must match the LISTING, not the quote and not the agent's wallet.
+	const svcRow = input.service?.row ?? null;
+	const svcPrice = svcRow && typeof svcRow.price === 'number' ? svcRow.price / 10_000 : null;
+	if (input.amount) verified.push(`You said the price is ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol}.`);
+	if (svcRow && svcPrice !== null)
+		confirm.push(`Before approving, the WebAuth request must show exactly: receiver agentescrow, memo buy:${input.service!.id}, amount ${svcPrice.toLocaleString('en-US')} XPR (the listing price)${input.amount && Math.abs(input.amount.amount - svcPrice) > 0.00005 ? ` — not the ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol} you were quoted` : ''}, and nothing extra in the same request.`);
+	else if (input.amount) confirm.push(`Before approving, read the amount and the token in the WebAuth request itself: it must say ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol} to ${input.account}, nothing else and nothing extra in the same request.`);
+	else confirm.push('Read the amount, the token and the receiving account inside the WebAuth request itself before approving; a request can carry more than one action.');
 
 	cannot.push('Whether the service or product will be delivered, or is worth the price. The chain records payments, not promises.');
 	cannot.push('Anything said off chain: chat messages, screenshots, reviews on the seller\'s own page.');
