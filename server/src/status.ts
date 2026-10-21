@@ -151,6 +151,61 @@ export function parseComponents(html: string): ComponentState[] | null {
 	return out.length ? out : null;
 }
 
+const MONTHS: Record<string, string> = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+const ZONES: Record<string, string> = { UTC: 'Z', GMT: 'Z', PDT: '-07:00', PST: '-08:00', MDT: '-06:00', MST: '-07:00', CDT: '-05:00', CST: '-06:00', EDT: '-04:00', EST: '-05:00' };
+
+/** "Oct 17 , 2026 - 01:47 PDT" (the page's own stamp, as rendered) → ISO, or '' when the zone or shape is unknown. */
+export function pageStampToIso(stamp: string): string {
+	const m = stamp.match(/^([A-Z][a-z]{2}) (\d{1,2})\s*,\s*(\d{4}) - (\d{2}):(\d{2}) ([A-Z]{2,4})$/);
+	if (!m) return '';
+	const mon = MONTHS[m[1].toLowerCase()];
+	const zone = ZONES[m[6]];
+	if (!mon || !zone) return '';
+	const d = new Date(`${m[3]}-${mon}-${m[2].padStart(2, '0')}T${m[4]}:${m[5]}:00${zone}`);
+	return Number.isNaN(d.getTime()) ? '' : d.toISOString();
+}
+
+/**
+ * Open incidents read from the status page ITSELF, for a page that offers no Atom feed. Live check 2026-10-21 (server
+ * 1.17.0): status.metalpay.com answers HTTP 404 for /history.atom and its Subscribe menu offers only Twitter, support
+ * and email, while the page shows the open incident in full. Rendered text, incident block: a title line ending in
+ * "(/incidents/<id>)", then pairs of "<Step> - <text>" and "Oct 17 , 2026 - 01:47 PDT" until the subscribe box ("×" or
+ * "# Subscribe"). Only the block above the uptime graph is read (that is where open incidents sit); the day-by-day
+ * "Past Incidents" list below is not a feed and is left alone. Times are kept as the page prints them AND converted to
+ * ISO where the zone is known (PDT/PST/UTC …), so whats_new can compare them.
+ */
+export function parseHomeIncidents(html: string): Incident[] {
+	const lines = htmlToText(html)
+		.split('\n')
+		.map((l) => l.replace(/\s+/g, ' ').trim())
+		.filter(Boolean);
+	const end = lines.findIndex((l) => /Uptime over the past 90 days/i.test(l));
+	const scan = end >= 0 ? lines.slice(0, end) : lines;
+	const out: Incident[] = [];
+	for (let i = 0; i < scan.length; i++) {
+		const head = scan[i].match(/^(.{3,160}) \((\/incidents\/[a-z0-9]+)\)$/);
+		if (!head) continue;
+		const inc: Incident = { title: head[1].trim(), url: `/${head[2].replace(/^\//, '')}`, opened: '', lastUpdate: '', status: '', resolved: false, updates: [] };
+		for (let j = i + 1; j < scan.length; j++) {
+			const l = scan[j];
+			if (/^×/.test(l) || /^#/.test(l) || /\(\/incidents\//.test(l)) break;
+			const step = l.match(/^([A-Z][a-z]+) - (.+)$/);
+			const stamp = scan[j + 1] ?? '';
+			if (step && /^[A-Z][a-z]{2} \d{1,2}\s*,\s*\d{4} - \d{2}:\d{2} [A-Z]{2,4}$/.test(stamp)) {
+				inc.updates.push({ status: step[1], at: stamp.replace(/\s+,/, ','), text: step[2].trim() });
+				j++;
+			}
+		}
+		if (!inc.updates.length) continue;
+		inc.status = inc.updates[0].status;
+		inc.resolved = /^(resolved|postmortem|completed)$/i.test(inc.status);
+		inc.lastUpdate = pageStampToIso(inc.updates[0].at);
+		inc.opened = pageStampToIso(inc.updates[inc.updates.length - 1].at);
+		out.push(inc);
+	}
+	return out;
+}
+
 /** The banner at the top of the page ("All Systems Operational", "Partial System Outage", ...), when present. */
 export function parseBanner(html: string): string | null {
 	const m = html.match(/class="page-status[^"]*"[\s\S]*?<span class="status[^"]*">([\s\S]*?)<\/span>/);
@@ -180,11 +235,14 @@ export async function readPage(key: StatusPage, ctx?: ExecutionContext) {
 		throw new UpstreamError(`${base.host} asks automated tools not to read these pages (robots.txt), so nothing was read`);
 	const readAt = new Date().toISOString();
 	const [atom, home] = await Promise.all([getOnHost(base, '/history.atom', ctx), getOnHost(base, '/', ctx)]);
-	if (atom.status !== 200) throw new UpstreamError(`${base.host}/history.atom answered HTTP ${atom.status}`);
-	const incidents = parseAtom(atom.text);
+	// 1.17.1: a page with no feed (status.metalpay.com, 404 on /history.atom, live 2026-10-21) is read from its own HTML.
+	const feedMissing = atom.status === 404;
+	if (atom.status !== 200 && !feedMissing) throw new UpstreamError(`${base.host}/history.atom answered HTTP ${atom.status}`);
+	if (feedMissing && home.status !== 200) throw new UpstreamError(`${base.host} offers no incident feed (HTTP 404) and its page answered HTTP ${home.status}`);
+	const incidents = feedMissing ? parseHomeIncidents(home.text).map((i) => ({ ...i, url: new URL(i.url, base).toString() })) : parseAtom(atom.text);
 	const components = home.status === 200 ? parseComponents(home.text) : null;
 	const banner = home.status === 200 ? parseBanner(home.text) : null;
-	return { page, readAt, incidents, components, banner, homeStatus: home.status };
+	return { page, readAt, incidents, components, banner, homeStatus: home.status, incidentsFrom: feedMissing ? ('page' as const) : ('feed' as const) };
 }
 
 function ok(data: unknown, source: string[], readAt: string, note?: string): Result {
@@ -227,6 +285,7 @@ export function registerStatusTool(register: Register, ctx?: ExecutionContext) {
 					const open = r.incidents.filter((i) => !i.resolved);
 					const notOk = r.components?.filter((c) => c.status !== 'Operational') ?? null;
 					const item: any = { page: r.page.name, url: r.page.url, covers: r.page.covers };
+					if (r.incidentsFrom === 'page') item.incidentsFrom = 'the page itself (this site offers no incident feed; times are the page\'s own, converted where the zone is known)';
 					if (view === 'now') {
 						item.banner = r.banner ?? 'no banner (the page shows one only when every component is Operational)';
 						item.componentsNotOperational = notOk ?? 'component list could not be read from the page (its layout may have changed; open the page to see component states)';
@@ -234,6 +293,7 @@ export function registerStatusTool(register: Register, ctx?: ExecutionContext) {
 						item.openIncidents = open.map((i) => ({ title: i.title, status: i.status, opened: i.opened, lastUpdate: i.lastUpdate, url: i.url, updates: i.updates }));
 						if (!open.length) item.openIncidents = 'none in the feed';
 					} else {
+						if (r.incidentsFrom === 'page') item.historyNote = 'without a feed only the incidents currently shown on the page can be read; the day-by-day past list is not read';
 						item.incidents = r.incidents.slice(0, limit).map((i) => ({ title: i.title, status: i.status, resolved: i.resolved, opened: i.opened, lastUpdate: i.lastUpdate, url: i.url, updates: i.updates }));
 						item.listed = Math.min(limit, r.incidents.length);
 						item.inFeed = r.incidents.length;

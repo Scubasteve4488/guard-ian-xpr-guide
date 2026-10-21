@@ -19,7 +19,7 @@ import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName 
 import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
-import { parseAtom, parseComponents, parseBanner, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
+import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
@@ -1091,6 +1091,51 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	stub(() => new Response('down', { status: 503, headers: { 'retry-after': '2' } }));
 	const r4 = await tools.whats_new({ hours: 24, lanes: ['launches'] });
 	t('whats_new tool: when no source answers, the tool fails plainly instead of reporting a quiet day', r4.isError === true && /Could not complete/.test(r4.content[0].text) && /launches:/.test(r4.content[0].text));
+}
+
+// ── 1.17.1: a status page with no feed is read from its own HTML (status.metalpay.com, live 2026-10-21 16:59 UTC) ─────
+{
+	t('status page stamp: PDT, PST and UTC stamps become ISO; unknown zones and shapes do not', pageStampToIso('Oct 17 , 2026 - 01:47 PDT') === '2026-10-17T08:47:00.000Z' && pageStampToIso('Jan 5, 2026 - 23:05 PST') === '2026-01-06T07:05:00.000Z' && pageStampToIso('Oct 17, 2026 - 07:46 UTC') === '2026-10-17T07:46:00.000Z' && pageStampToIso('Oct 17 , 2026 - 01:47 XYZ') === '' && pageStampToIso('yesterday') === '');
+	// shaped like status.metalpay.com as the Worker's htmlToText renders it (anchor → "text (href)", <p>/<div> → lines)
+	const PAGE = `<html><body><div class="page-status status-critical"><span class="status font-large">Partial System Outage</span></div>
+<div class="incident"><a href="/incidents/0zvltyz5vqyr">Metal Pay Withdrawals Temporarily Paused</a>
+<p><strong>Update</strong> - Our team is working to resolve the issue. Deposits and withdrawals may be delayed during this time. Thank you for your patience.</p>
+<p>Oct <var>17</var> , <var>2026</var> - <var>01:47</var> PDT</p>
+<p><strong>Investigating</strong> - Withdrawals on Metal Pay have been temporarily paused while our team investigates an ongoing issue.</p>
+<p>Oct <var>16</var> , <var>2026</var> - <var>21:20</var> PDT</p>
+<p>× <a href="#">close</a></p><h1>Subscribe to Incident</h1></div>
+<p>Uptime over the past 90 days. <a href="/uptime">View historical uptime.</a></p>
+<div>Metal Pay Application</div><div>Operational</div>
+<div>Cryptocurrency Services</div><div>Major Outage</div>
+<div>Withdrawals</div><div>Major Outage</div>
+<h2>Past Incidents</h2><h3>Oct 17, 2026</h3><p>Unresolved incident: <a href="/incidents/0zvltyz5vqyr">Metal Pay Withdrawals Temporarily Paused</a>.</p>
+</body></html>`;
+	const pi = parseHomeIncidents(PAGE);
+	t('status page incidents: the open incident block is read with every step, the page\'s own stamps and ISO times', pi.length === 1 && pi[0].title === 'Metal Pay Withdrawals Temporarily Paused' && pi[0].url === '/incidents/0zvltyz5vqyr' && pi[0].updates.length === 2 && pi[0].updates[0].status === 'Update' && pi[0].updates[0].at === 'Oct 17, 2026 - 01:47 PDT' && pi[0].updates[1].status === 'Investigating' && pi[0].status === 'Update' && pi[0].resolved === false && pi[0].lastUpdate === '2026-10-17T08:47:00.000Z' && pi[0].opened === '2026-10-17T04:20:00.000Z');
+	t('status page incidents: the day-by-day past list below the uptime graph is not read as a second incident', !pi.some((i) => /Unresolved incident/.test(i.title)) && parseHomeIncidents('<html><body><p>Uptime over the past 90 days.</p><p>Unresolved incident: <a href="/incidents/x1">Thing</a>.</p></body></html>').length === 0);
+	t('status page incidents: a page with nothing open gives an empty list, components still readable', parseHomeIncidents('<html><body><p>All Systems Operational</p><p>Uptime over the past 90 days.</p><div>A</div><div>Operational</div></body></html>').length === 0 && parseComponents(PAGE)?.length === 3);
+
+	// the tool end to end: Metal Pay's feed answers 404, so its incidents come from the page; the other pages keep their feed
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerStatusTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	const ATOM1 = `<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><entry><published>2026-10-17T04:19:00Z</published><updated>2026-10-17T07:46:02Z</updated><link rel="alternate" type="text/html" href="https://status.xprnetwork.org/incidents/15hpstxlxng6"/><title>XPR Network Withdrawals Temporarily Paused</title><content type="html">&lt;p&gt;&lt;small&gt;Oct 17, 07:46 UTC&lt;/small&gt;&lt;br&gt;&lt;strong&gt;Update&lt;/strong&gt; - Our team is working to resolve the issue.&lt;/p&gt;</content></entry></feed>`;
+	calls.length = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /api/\nDisallow: /embed/', { status: 200 });
+		if (url.includes('metalpay') && url.includes('/history.atom')) return new Response('Not Found', { status: 404 });
+		if (url.includes('/history.atom')) return new Response(ATOM1, { status: 200, headers: { 'content-type': 'application/atom+xml' } });
+		return new Response(PAGE, { status: 200, headers: { 'content-type': 'text/html' } });
+	});
+	const mp = await tools.metallicus_status({ page: 'metalpay', view: 'now', limit: 15 });
+	const mpText = mp.content[0].text;
+	t('status now (no feed): Metal Pay answers from its page, says so, and the incident link is absolute', !mp.isError && /"incidentsFrom": "the page itself/.test(mpText) && /Metal Pay Withdrawals Temporarily Paused/.test(mpText) && /https:\/\/status\.metalpay\.com\/incidents\/0zvltyz5vqyr/.test(mpText) && /"opened": "2026-10-17T04:20:00.000Z"/.test(mpText) && /Major Outage/.test(mpText));
+	const all = await tools.metallicus_status({ page: 'all', view: 'now', limit: 15 });
+	t('status now (no feed): the other pages still read from their feed, nothing under notRead', !all.isError && !/notRead/.test(all.content[0].text) && /XPR Network Withdrawals Temporarily Paused/.test(all.content[0].text) && /Metal Pay Withdrawals Temporarily Paused/.test(all.content[0].text));
+	const hist = await tools.metallicus_status({ page: 'metalpay', view: 'history', limit: 15 });
+	t('status history (no feed): the limit of a page-only read is said out loud', /historyNote/.test(hist.content[0].text) && /not read/.test(hist.content[0].text));
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : url.includes('/history.atom') ? new Response('Not Found', { status: 404 }) : new Response('gone', { status: 500 })));
+	const both = await tools.metallicus_status({ page: 'metalpay', view: 'now', limit: 15 });
+	t('status (no feed, page down): a plain refusal naming both failures', both.isError === true && /offers no incident feed \(HTTP 404\) and its page answered HTTP 500/.test(both.content[0].text));
 }
 
 console.log(`${pass} passed, ${failN} failed`);

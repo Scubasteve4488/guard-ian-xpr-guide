@@ -329,12 +329,15 @@ export function registerWhatsNewTool(register: Register, ctx?: ExecutionContext)
 			}
 			if (!sources.length) return fail(new UpstreamError(notRead.join('; ') || 'no source could be read'), 'Try one lane at a time, or ask again in a minute.');
 			const sorted = sortNewestFirst(items);
+			const read = new Set(results.filter((x) => !('e' in x) && x.r.sources.length).map((x) => x.l));
 			const data: any = {
 				since: since.toISOString(),
-				lanesRead: want.filter((l) => !notRead.some((n) => n.startsWith(`${l}:`))),
+				lanesRead: want.filter((l) => read.has(l)),
 				newItems: sorted.length,
 				items: sorted,
 			};
+			const partial = want.filter((l) => read.has(l) && notRead.some((n) => n.startsWith(`${l}:`)));
+			if (partial.length) data.partiallyRead = partial;
 			if (!sorted.length) data.verdict = `Nothing new in the lanes read since ${since.toISOString()}.`;
 			if (notRead.length) data.notRead = notRead;
 			data.notCovered = NOT_COVERED;
