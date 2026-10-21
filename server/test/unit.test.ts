@@ -20,7 +20,7 @@ import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
-import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS } from '../src/whatsnew.ts';
+import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, parseRss, parseNewsroom, newsItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS, NEWS_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
 let pass = 0,
@@ -1056,7 +1056,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('whats_new upstream: both releases read with title, link, time and plain-text notes', rel.length === 2 && rel[0].title === 'September 2026: agents sell services, and deliverables render in the page' && rel[0].url === 'https://github.com/XPRNetwork/xpr-agents/releases/tag/v2026.09.17' && rel[0].updated === '2026-09-17T00:33:16.000Z' && /Two weeks ago/.test(rel[0].text) && !/</.test(rel[0].text));
 	const up = upstreamItems('XPRNetwork/xpr-agents', rel, new Date('2026-09-10T00:00:00Z'));
 	t('whats_new upstream: only releases after since', up.length === 1 && /^Upstream release: XPRNetwork\/xpr-agents September 2026: agents sell services/.test(up[0].title) && up[0].source.endsWith('/v2026.09.17'));
-	t('whats_new: three upstream feeds, seven lanes', UPSTREAM_FEEDS.length === 3 && LANES.length === 7 && UPSTREAM_FEEDS.every((f) => f.url.startsWith('https://github.com/XPRNetwork/') && f.url.endsWith('/releases.atom')));
+	t('whats_new: three upstream feeds, eight lanes', UPSTREAM_FEEDS.length === 3 && LANES.length === 8 && UPSTREAM_FEEDS.every((f) => f.url.startsWith('https://github.com/XPRNetwork/') && f.url.endsWith('/releases.atom')));
 	const mixed = sortNewestFirst([...st, ...gr, ...jb]);
 	t('whats_new: one list, newest first', mixed[0].at >= mixed[1].at && mixed[1].at >= mixed[2].at && mixed.length === 4);
 
@@ -1136,6 +1136,60 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : url.includes('/history.atom') ? new Response('Not Found', { status: 404 }) : new Response('gone', { status: 500 })));
 	const both = await tools.metallicus_status({ page: 'metalpay', view: 'now', limit: 15 });
 	t('status (no feed, page down): a plain refusal naming both failures', both.isError === true && /offers no incident feed \(HTTP 404\) and its page answered HTTP 500/.test(both.content[0].text));
+}
+
+// ── 1.17.2: the news lane — Proton NZ RSS and the Metallicus newsroom (both read live 2026-10-21 17:28 UTC) ───────────
+{
+	const RSS = `<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>ProtonNZ - #1 Block Producer on XPR Network</title>
+    <link>https://protonnz.com</link>
+    <lastBuildDate>Wed, 21 Oct 2026 17:27:55 GMT</lastBuildDate>
+    <item>
+      <title>Anatomy of the proton.swaps Exploit: ~2.1B XPR Drained, Pools 100% Restored, and the Bugs Fixed for Good</title>
+      <link>https://protonnz.com/blog/proton-swaps-heist</link>
+      <guid isPermaLink="true">https://protonnz.com/blog/proton-swaps-heist</guid>
+      <pubDate>Tue, 15 Sep 2026 00:00:00 GMT</pubDate>
+      <description>On 12 September 2026 an attacker drained ~2.1 billion XPR from proton.swaps through a one-line accounting bug. Every pool has now been restored to the last unit. Here is the full on-chain breakdown &amp; the fixes so it can&apos;t happen the same way twice.</description>
+      <category>Security</category>
+    </item>
+    <item>
+      <title>Introducing Private Transactions on XPR Network</title>
+      <link>https://protonnz.com/blog/introducing-private-transactions</link>
+      <pubDate>Tue, 08 Sep 2026 00:00:00 GMT</pubDate>
+      <description><![CDATA[Confidential transfers with a <b>mandatory</b> auditor viewing key.]]></description>
+    </item>
+  </channel>
+</rss>`;
+	const rss = parseRss(RSS);
+	t('news rss: items read with title, link, ISO date and plain description (entities and CDATA handled)', rss.length === 2 && rss[0].title.startsWith('Anatomy of the proton.swaps Exploit') && rss[0].url === 'https://protonnz.com/blog/proton-swaps-heist' && rss[0].updated === '2026-09-15T00:00:00.000Z' && /breakdown & the fixes so it can't happen/.test(rss[0].text) && rss[1].text === 'Confidential transfers with a mandatory auditor viewing key.' && rss[1].updated === '2026-09-08T00:00:00.000Z');
+	const NEWSROOM = `<html><body><h1>Newsroom.</h1><div>Featured in</div><a href="https://www.americanbanker.com/x">AB</a>
+<div class="post"><div>Oct 5, 2026</div><h4>Metallicus - 2026 Q3 Report</h4><a href="./blog/metallicus---2026-q3-report">Read</a></div>
+<div class="post"><div>Aug 18, 2026</div><h4>Metallicus Completes SOC 2 Type I Assessment</h4><a href="./blog/metallicus-completes-soc-2-type-i-assessment">Read</a></div>
+<div class="post"><div>Jul 6, 2026</div><h4>Metallicus - 2026 Q2 Report</h4><a href="./blog/metallicus---2026-q2-report">Read</a></div>
+<div>Individuals</div><div>Metal Pay</div><a href="./individuals/metal-pay">x</a></body></html>`;
+	// htmlToText renders an anchor as "text (href)"; the live page renders the link on its own line as "(./blog/slug)"
+	const nr = parseNewsroom(NEWSROOM.replace(/<a href="(\.\/blog\/[^"]+)">Read<\/a>/g, '<p>($1)</p>'));
+	t('newsroom: date / heading / link triples become dated posts with absolute links; the nav and the press logos are ignored', nr.length === 3 && nr[0].title === 'Metallicus - 2026 Q3 Report' && nr[0].url === 'https://metallicus.com/blog/metallicus---2026-q3-report' && nr[0].updated === '2026-10-05T00:00:00.000Z' && nr[2].updated === '2026-07-06T00:00:00.000Z' && !nr.some((x) => /Metal Pay|Featured/.test(x.title)));
+	t('newsroom: a page without the date/heading/link shape gives no entries (the tool then says the page could not be read)', parseNewsroom('<html><body><h1>Newsroom.</h1><p>nothing dated here</p></body></html>').length === 0);
+	const ni = newsItems('Metallicus newsroom', nr, new Date('2026-09-01T00:00:00Z'));
+	t('news items: only posts after since, named by source', ni.length === 1 && ni[0].kind === 'news' && ni[0].title === 'Metallicus newsroom: Metallicus - 2026 Q3 Report' && ni[0].at === '2026-10-05T00:00:00.000Z' && ni[0].detail === 'see the post');
+	t('news feeds: two sources, both on allowed hosts', NEWS_FEEDS.length === 2 && NEWS_FEEDS[0].url === 'https://protonnz.com/feed.xml' && NEWS_FEEDS[1].url === 'https://metallicus.com/news');
+
+	// the lane end to end: RSS answers, the newsroom page has lost its shape -> named under notRead, RSS items still listed
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerWhatsNewTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	calls.length = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /private/', { status: 200 });
+		if (url === 'https://protonnz.com/feed.xml') return new Response(RSS, { status: 200, headers: { 'content-type': 'application/rss+xml' } });
+		if (url === 'https://metallicus.com/news') return new Response('<html><body><h1>Newsroom.</h1><p>redesigned</p></body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
+		return new Response('not found', { status: 404 });
+	});
+	const r = await tools.whats_new({ since: '2026-09-01T00:00:00Z', hours: 24, lanes: ['news'] });
+	const txt = r.content[0].text;
+	t('news lane: RSS posts listed with their dates, the unreadable newsroom named, nothing invented', !r.isError && /"newItems": 2/.test(txt) && /Proton NZ blog: Anatomy of the proton\.swaps Exploit/.test(txt) && /"at": "2026-09-15T00:00:00.000Z"/.test(txt) && /"notRead": \[\s*"news: Metallicus newsroom: no dated entries could be read/.test(txt) && /"partiallyRead": \[\s*"news"/.test(txt) && /Source: https:\/\/protonnz\.com\/feed\.xml/.test(txt) && /xprnetwork\.org\/news shows no dates/.test(txt));
 }
 
 console.log(`${pass} passed, ${failN} failed`);

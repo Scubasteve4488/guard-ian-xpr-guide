@@ -12,8 +12,10 @@
 // - XPR Agents: indexer.xpragents.com /api/agents (registered_at) and /api/jobs (created_at). Unix seconds.
 // - Upstream code: github.com/<owner>/<repo>/releases.atom for XPRNetwork/xpr-agents, XPRNetwork/xpr-network-dev-skill,
 //   XPRNetwork/proton-cli (Atom `updated`). github.com is an allowed host (sources.ts); robots.txt is checked first.
-// NOT covered (said in every answer): Metallicus newsroom, XPR Network news, Proton NZ blog, social posts — they carry
-// no machine-readable dates this server trusts yet; read them with source_fetch from ECOSYSTEM.md §11.
+// - News (1.17.2): Proton NZ's RSS feed https://protonnz.com/feed.xml (pubDate; SOURCES.md §3, verified RSS 2.0) and the
+//   Metallicus newsroom https://metallicus.com/news (rendered as date line / title / link, read 2026-10-21).
+// NOT covered (said in every answer): the XPR Network news page (its list shows no dates), social posts, npm publishes
+// without a GitHub release.
 // SOURCE (hand-built code): none found that a Worker can import for "what changed since"; this file only composes
 // reads that already exist here and compares their time stamps.
 //
@@ -32,7 +34,7 @@ type Register = (name: string, config: unknown, handler: Handler) => unknown;
 type Result = { isError?: boolean; content: Array<{ type: 'text'; text: string }> };
 const RO = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
 
-export const LANES = ['status', 'launches', 'graduations', 'governance', 'agents', 'jobs', 'upstream'] as const;
+export const LANES = ['status', 'launches', 'graduations', 'governance', 'agents', 'jobs', 'upstream', 'news'] as const;
 export type Lane = (typeof LANES)[number];
 
 export const UPSTREAM_FEEDS = [
@@ -42,11 +44,15 @@ export const UPSTREAM_FEEDS = [
 ] as const;
 
 const SIMPLEDEX = 'https://indexer.protonnz.com';
+export const NEWS_FEEDS = [
+	{ name: 'Proton NZ blog', url: 'https://protonnz.com/feed.xml', kind: 'rss' as const },
+	{ name: 'Metallicus newsroom', url: 'https://metallicus.com/news', kind: 'newsroom' as const },
+] as const;
 const AGENTS = 'https://indexer.xpragents.com/api';
 const CACHE_SEC = 120;
 const MAX_HOURS = 24 * 30;
 const NOT_COVERED =
-	'Metallicus newsroom, XPR Network news, Proton NZ blog and social posts are not in this list (no machine-readable dates); read them with source_fetch from ECOSYSTEM.md §11 if the question needs them. The upstream lane sees GitHub releases only: an npm publish without a GitHub release (e.g. @xpr-agents/openclaw 0.9.2, 2026-10-19) is not in it; check the package on npmjs.com for those.';
+	'Not in this list: the XPR Network news page (xprnetwork.org/news shows no dates, so it cannot be filtered by time; read it with source_fetch), social posts, and npm publishes without a GitHub release (e.g. @xpr-agents/openclaw 0.9.2, 2026-10-19; check npmjs.com for those).';
 
 export interface NewItem {
 	/** which lane produced it */
@@ -199,6 +205,47 @@ export function parseReleaseFeed(xml: string): Array<{ title: string; url: strin
 	return out;
 }
 
+/** RSS 2.0 (Proton NZ feed.xml) → entries. pubDate is RFC 822 ("Tue, 15 Sep 2026 00:00:00 GMT"), which Date parses. */
+export function parseRss(xml: string): Array<{ title: string; url: string; updated: string; text: string }> {
+	const out: Array<{ title: string; url: string; updated: string; text: string }> = [];
+	for (const it of xml.match(/<item>[\s\S]*?<\/item>/g) ?? []) {
+		const pick = (tag: string) => (it.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`)) ?? [])[1]?.trim() ?? '';
+		const strip = (v: string) => htmlToText(decodeEntities(v.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1'))).replace(/\s+/g, ' ').trim();
+		const d = new Date(pick('pubDate'));
+		out.push({ title: strip(pick('title')), url: strip(pick('link')), updated: Number.isNaN(d.getTime()) ? '' : d.toISOString(), text: strip(pick('description')).slice(0, 300) });
+	}
+	return out;
+}
+
+const NEWSROOM_MONTHS: Record<string, string> = { jan: '01', feb: '02', mar: '03', apr: '04', may: '05', jun: '06', jul: '07', aug: '08', sep: '09', oct: '10', nov: '11', dec: '12' };
+
+/** metallicus.com/news as the Worker's htmlToText renders it (read 2026-10-21): a date line "Oct 5, 2026", then the title
+ *  as a "#### " heading, then the link "(./blog/slug)". A date alone is a day, so the time is 00:00Z. */
+export function parseNewsroom(html: string, base = 'https://metallicus.com/'): Array<{ title: string; url: string; updated: string; text: string }> {
+	const lines = htmlToText(html)
+		.split('\n')
+		.map((l) => l.replace(/\s+/g, ' ').trim())
+		.filter(Boolean);
+	const out: Array<{ title: string; url: string; updated: string; text: string }> = [];
+	for (let i = 0; i + 2 < lines.length; i++) {
+		const d = lines[i].match(/^([A-Z][a-z]{2}) (\d{1,2}), (\d{4})$/);
+		if (!d) continue;
+		const h = lines[i + 1].match(/^#{1,6}\s+(.+)$/);
+		const l = lines[i + 2].match(/^\((\.?\/?blog\/[^)\s]+)\)$/);
+		const mon = NEWSROOM_MONTHS[d[1].toLowerCase()];
+		if (!h || !l || !mon) continue;
+		out.push({ title: h[1].trim(), url: new URL(l[1].replace(/^\.\//, ''), base).toString(), updated: `${d[3]}-${mon}-${d[2].padStart(2, '0')}T00:00:00.000Z`, text: '' });
+		i += 2;
+	}
+	return out;
+}
+
+export function newsItems(source: string, entries: Array<{ title: string; url: string; updated: string; text: string }>, since: Date): NewItem[] {
+	return entries
+		.filter((r) => after(r.updated, since))
+		.map((r) => ({ kind: 'news' as Lane, at: r.updated, title: `${source}: ${r.title}`.trim(), detail: r.text || 'see the post', source: r.url }));
+}
+
 export function upstreamItems(repo: string, entries: Array<{ title: string; url: string; updated: string; text: string }>, since: Date): NewItem[] {
 	return entries
 		.filter((r) => after(r.updated, since))
@@ -277,6 +324,30 @@ async function readLane(lane: Lane, since: Date, ctx?: ExecutionContext): Promis
 			}
 			return { items, sources };
 		}
+		case 'news': {
+			const items: NewItem[] = [];
+			const sources: string[] = [];
+			for (const f of NEWS_FEEDS) {
+				const u = new URL(f.url);
+				if (!(await robotsAllows(u, ctx))) {
+					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${u.host} asks automated tools not to read ${u.pathname} (robots.txt)`, source: f.url });
+					continue;
+				}
+				const r = await politeFetch([f.url], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 });
+				if (r.status !== 200) {
+					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${f.name} answered HTTP ${r.status}`, source: f.url });
+					continue;
+				}
+				sources.push(r.source);
+				const entries = f.kind === 'rss' ? parseRss(r.text) : parseNewsroom(r.text);
+				if (!entries.length) {
+					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${f.name}: no dated entries could be read from the page (its layout may have changed)`, source: f.url });
+					continue;
+				}
+				items.push(...newsItems(f.name, entries, since));
+			}
+			return { items, sources };
+		}
 	}
 }
 
@@ -295,11 +366,11 @@ export function registerWhatsNewTool(register: Register, ctx?: ExecutionContext)
 		{
 			title: "What's new in the ecosystem since a moment",
 			description:
-				'Anything new since yesterday? One dated, sourced list of what changed across the ecosystem, using each source\'s own time stamps: status-page incidents opened or updated (XPR Network, Metal Pay, Metal L2), new SimpleDEX launches and graduations, new governance proposals, new agents and jobs on XPR Agents, and upstream releases (xpr-agents, the XPR dev skill, proton-cli). Give `since` (ISO time) or `hours` back (default 24, max 720). If nothing changed, it says so — a quiet day is the honest answer. Read-only. Use this first for "what\'s new / recent alpha / anything today" and before drafting any post that must carry new information only.',
+				'Anything new since yesterday? One dated, sourced list of what changed across the ecosystem, using each source\'s own time stamps: status-page incidents opened or updated (XPR Network, Metal Pay, Metal L2), new SimpleDEX launches and graduations, new governance proposals, new agents and jobs on XPR Agents, upstream releases (xpr-agents, the XPR dev skill, proton-cli), and news posts (Metallicus newsroom, Proton NZ blog). Give `since` (ISO time) or `hours` back (default 24, max 720). If nothing changed, it says so — a quiet day is the honest answer. Read-only. Use this first for "what\'s new / recent alpha / anything today" and before drafting any post that must carry new information only.',
 			inputSchema: z.object({
 				since: z.string().optional().describe('ISO date-time to compare against, e.g. 2026-10-20T16:00Z. Overrides hours.'),
 				hours: z.number().int().min(1).max(MAX_HOURS).default(24).describe('How many hours back, when since is not given (default 24, max 720 = 30 days)'),
-				lanes: z.array(z.enum(LANES)).optional().describe('Which lanes to read; default all seven. Fewer lanes = fewer upstream requests.'),
+				lanes: z.array(z.enum(LANES)).optional().describe('Which lanes to read; default all eight. Fewer lanes = fewer upstream requests.'),
 			}),
 			annotations: { title: "What's new", ...RO },
 		},
