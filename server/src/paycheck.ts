@@ -173,16 +173,21 @@ export function buildReport(input: {
 		if (!input.cls.pub) attention.push('Another account controls this one. For a person\'s wallet that can be normal (a recovery setup) or a sign it is not what it seems; for a business it should be explained.');
 	} else verified.push('No other account is set to sign for it (only its own keys).');
 
-	// identity
+	// identity. A registered agent inherits its human owner's KYC level on XPR Agents (xpr-agents SKILL.md: "Agents inherit
+	// KYC from their human owner"), so an agent account with no KYC row of its own is not the same as an unverified seller.
 	const id = input.identity;
+	const ownerKyc = input.agent && typeof input.agent.kyc_level === 'number' ? input.agent.kyc_level : null;
+	const noKycLine = ownerKyc !== null && ownerKyc > 0
+		? `This account itself has no identity verification (KYC) record; XPR Agents records KYC level ${ownerKyc} for it, inherited from its human owner (that is how the registry works), so the person behind it was verified, not the agent account.`
+		: 'No identity verification (KYC) on this account. Many legitimate accounts have none; a seller asking for money usually has one.';
 	if (!id.profileFound) {
 		verified.push('No WebAuth profile row (eosio.proton usersinfo): no display name, no KYC record published for this account.');
-		attention.push('Metallicus has not recorded identity verification (KYC) for this account. Many legitimate accounts have none; a seller asking for money usually has one.');
+		attention.push(noKycLine);
 	} else {
 		if (id.kycRecord) verified.push(`Identity verification (KYC) recorded: ${id.kycClaims} claim${id.kycClaims === 1 ? '' : 's'} from ${id.kycProvider ?? 'a provider'}${id.kycDate ? `, latest ${id.kycDate.slice(0, 10)}` : ''}${id.idDocument ? ', including a government ID document' : ', without an ID-document claim'}.`);
 		else {
 			verified.push('WebAuth profile exists but carries no KYC record.');
-			attention.push('No identity verification (KYC) on this account. Many legitimate accounts have none; a seller asking for money usually has one.');
+			attention.push(noKycLine);
 		}
 		verified.push(id.verifiedCheckmark ? 'Shows WebAuth\'s verified checkmark (a display flag set by a verifier account; it is separate from KYC).' : 'No WebAuth verified checkmark (most KYC\'d accounts do not have one either; it is opt-in).');
 		if (id.displayName) verified.push(`Self-chosen display name: "${id.displayName}" (anyone can set any name; it proves nothing).`);
@@ -200,7 +205,7 @@ export function buildReport(input: {
 	if (input.agent) {
 		const g = input.agent;
 		verified.push(
-			`Registered on XPR Agents: trust score ${g.trust_score ?? '?'}, ${g.completed_jobs ?? 0} completed of ${g.total_jobs ?? 0} jobs, ${typeof g.earnings === 'number' ? (g.earnings / 10_000).toLocaleString('en-US') : '?'} XPR earned on the board, registered ${g.registered_at ? new Date(g.registered_at * 1000).toISOString().slice(0, 10) : '?'}${g.active === 1 || g.active === true ? ', active' : ', not active'}.`,
+			`Registered on XPR Agents: trust score ${g.trust_score ?? '?'}, ${g.completed_jobs ?? 0} completed of ${g.total_jobs ?? 0} jobs, ${typeof g.earnings === 'number' ? (g.earnings / 10_000).toLocaleString('en-US') : '?'} XPR earned on the board, registered ${g.registered_at ? new Date(g.registered_at * 1000).toISOString().slice(0, 10) : '?'}${g.active === 1 || g.active === true ? ', active' : ', not active'}${typeof g.kyc_level === 'number' ? `, owner KYC level ${g.kyc_level}` : ''}.`,
 		);
 		confirm.push('If you are buying this agent\'s service, pay THROUGH xpragents.com (the buy:<id> memo creates an escrow job) and not by a plain transfer: escrow holds the money until you accept the work.');
 	} else if (input.cls.why.includes('Agent')) verified.push('Registered in the agentcore contract, but the XPR Agents indexer had no record to show.');
