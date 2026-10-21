@@ -86,6 +86,7 @@ How to use this guide (read RULES.md first):
 - [DefiLlama: XPR Network chain](https://defillama.com/chain/xpr-network)
 - [CoinGecko: XPR Network](https://www.coingecko.com/en/coins/xpr-network)
 - The live chain, through an official endpoint: `get_info`, `get_account`, `get_table_rows`, `get_producer_schedule`
+- With the GUARD.IAN connector (since 2026-10-21): is something down? `metallicus_status` reads the three official status pages live (XPR Network, Metal Pay, Metal L2): components not Operational and open incidents, in the page's own words and time stamps. The pages do not state causes; quote them, never supply a cause.
 - With the GUARD.IAN connector (since 2026-10-16): LOAN Protocol rates, APY and TVL (`loan_protocol`); Metal L2, Ethereum and BNB Chain, including XPR's ERC-20/BEP-20 tokens (`evm_chains`); pages that only build in a browser (`source_fetch` loads them in a real browser)
 
 ## Optional

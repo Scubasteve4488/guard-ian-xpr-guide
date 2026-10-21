@@ -19,6 +19,7 @@ import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName 
 import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
+import { parseAtom, parseComponents, parseBanner, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 
 let pass = 0,
 	failN = 0;
@@ -889,5 +890,69 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const f = favicon();
 	t('edge: favicon is an empty 204 with the headers', f.status === 204 && f.headers.get('x-content-type-options') === 'nosniff' && (await f.text()) === '');
 }
+// ── 1.16.0: the three official status pages, in their own words (status.ts) ─────────────────────────────────────
+{
+	// Shaped exactly like status.xprnetwork.org/history.atom as read 2026-10-21 06:28 UTC (two incidents, one resolved).
+	const ATOM = `<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>XPR Network Status - Incident History</title>
+  <updated>2026-10-21T05:34:46Z</updated>
+  <entry>
+    <id>tag:status.xprnetwork.org,2005:Incident/31690702</id>
+    <published>2026-10-17T09:33:00Z</published>
+    <updated>2026-10-18T09:42:50Z</updated>
+    <link rel="alternate" type="text/html" href="https://status.xprnetwork.org/incidents/8xtz4fw8gv8s"/>
+    <title>NFTs are not Loading</title>
+    <content type="html">&lt;p&gt; &lt;small&gt;Oct &lt;var data-var='date'&gt;18&lt;/var&gt;, &lt;var data-var='time'&gt;09:42&lt;/var&gt; UTC&lt;/small&gt;&lt;br&gt; &lt;strong&gt;Resolved&lt;/strong&gt; - This incident has been resolved. &lt;/p&gt; &lt;p&gt; &lt;small&gt;Oct &lt;var data-var='date'&gt;17&lt;/var&gt;, &lt;var data-var='time'&gt;09:33&lt;/var&gt; UTC&lt;/small&gt;&lt;br&gt; &lt;strong&gt;Investigating&lt;/strong&gt; - NFTs are currently not loading on the XPR Network Explorer. &lt;/p&gt;</content>
+  </entry>
+  <entry>
+    <id>tag:status.xprnetwork.org,2005:Incident/31688649</id>
+    <published>2026-10-17T04:19:00Z</published>
+    <updated>2026-10-17T07:46:02Z</updated>
+    <link rel="alternate" type="text/html" href="https://status.xprnetwork.org/incidents/15hpstxlxng6"/>
+    <title>XPR Network Withdrawals Temporarily Paused</title>
+    <content type="html">&lt;p&gt; &lt;small&gt;Oct &lt;var data-var='date'&gt;17&lt;/var&gt;, &lt;var data-var='time'&gt;07:46&lt;/var&gt; UTC&lt;/small&gt;&lt;br&gt; &lt;strong&gt;Update&lt;/strong&gt; - Our team is working to resolve the issue. Deposits and withdrawals may be delayed during this time. &lt;/p&gt; &lt;p&gt; &lt;small&gt;Oct &lt;var data-var='date'&gt;17&lt;/var&gt;, &lt;var data-var='time'&gt;04:19&lt;/var&gt; UTC&lt;/small&gt;&lt;br&gt; &lt;strong&gt;Investigating&lt;/strong&gt; - Withdrawals on XPR Network have been temporarily paused while our team investigates an ongoing issue. &lt;/p&gt;</content>
+  </entry>
+</feed>`;
+	const inc = parseAtom(ATOM);
+	t('status: every incident read, newest update first', inc.length === 2 && inc[0].title === 'NFTs are not Loading' && inc[1].title === 'XPR Network Withdrawals Temporarily Paused');
+	t('status: resolved vs open decided by the newest step word', inc[0].resolved === true && inc[0].status === 'Resolved' && inc[1].resolved === false && inc[1].status === 'Update');
+	t('status: updates keep the page\'s own time stamps and words, HTML stripped', inc[1].updates.length === 2 && inc[1].updates[0].at === 'Oct 17, 07:46 UTC' && inc[1].updates[0].text === 'Our team is working to resolve the issue. Deposits and withdrawals may be delayed during this time.' && inc[1].updates[1].status === 'Investigating' && !/</.test(JSON.stringify(inc)));
+	t('status: incident link, opened and lastUpdate carried through', inc[1].url === 'https://status.xprnetwork.org/incidents/15hpstxlxng6' && inc[1].opened === '2026-10-17T04:19:00Z' && inc[1].lastUpdate === '2026-10-17T07:46:02Z');
+
+	const HTML = `<div class="page-status status-critical"><span class="status font-large">Partial System Outage</span></div>
+<div class="component-inner-container status-operational showcased"><span class="name">WebAuth Wallet</span><span class="component-status">Operational</span></div>
+<div class="component-inner-container status-major_outage"><span class="name">
+  XPR Network Bridge &amp; Deposits
+</span><span class="component-status">Major Outage</span></div>
+<div class="component-inner-container status-degraded_performance"><span class="name">Transactions</span></div>`;
+	const comps = parseComponents(HTML)!;
+	t('status: components read with Statuspage\'s state words', comps.length === 3 && comps[0].status === 'Operational' && comps[1].name === 'XPR Network Bridge & Deposits' && comps[1].status === 'Major Outage' && comps[2].status === 'Degraded Performance');
+	t('status: banner read', parseBanner(HTML) === 'Partial System Outage');
+	t('status: unknown markup is null, never an empty "all fine" list', parseComponents('<html><body>hello</body></html>') === null && parseBanner('<p>x</p>') === null);
+
+	// the tool end to end: robots.txt is honoured and a page that cannot be read is named, not dropped
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerStatusTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response(url.includes('metall2') ? 'User-agent: *\nDisallow: /' : 'User-agent: *\nDisallow: /api/\nDisallow: /embed/', { status: 200 });
+		if (url.endsWith('/history.atom')) return new Response(url.includes('metalpay') ? ATOM.replace('XPR Network Withdrawals', 'Metal Pay Withdrawals') : ATOM, { status: 200, headers: { 'content-type': 'application/atom+xml' } });
+		return new Response(HTML, { status: 200, headers: { 'content-type': 'text/html' } });
+	});
+	const now = await tools.metallicus_status({ page: 'all', view: 'now', limit: 15 });
+	const nowText = now.content[0].text;
+	t('status now: open incidents and non-operational components only, per page', !now.isError && /"componentsNotOperational"/.test(nowText) && /Major Outage/.test(nowText) && /Withdrawals Temporarily Paused/.test(nowText) && !/"title": "NFTs are not Loading"/.test(nowText) && /"componentsOperational": 1/.test(nowText));
+	t('status now: a page whose robots.txt forbids reading is named under notRead, the others still answer', /notRead/.test(nowText) && /Metal L2 Status: status\.metall2\.com asks automated tools not to read/.test(nowText) && /Metal Pay Status/.test(nowText) && !calls.some((u) => u.includes('metall2.com/history.atom')));
+	t('status now: never the closed API, and the note says to quote the page', !calls.some((u) => u.includes('/api/')) && /do not state causes/.test(nowText) && /Source: https:\/\/status\.xprnetwork\.org\/history\.atom/.test(nowText));
+	const hist = await tools.metallicus_status({ page: 'xpr', view: 'history', limit: 1 });
+	t('status history: resolved incidents included, limit honoured', /"resolved": true/.test(hist.content[0].text) && /"listed": 1/.test(hist.content[0].text) && /"inFeed": 2/.test(hist.content[0].text));
+	const one = await tools.metallicus_status({ page: 'metal_l2', view: 'now', limit: 15 });
+	t('status: a single forbidden page is a plain refusal', one.isError === true && /robots\.txt/.test(one.content[0].text));
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response('<html>no feed here</html>', { status: 200, headers: { 'content-type': 'text/html' } })));
+	const noComp = await tools.metallicus_status({ page: 'xpr', view: 'now', limit: 15 });
+	t('status: unreadable component list is said out loud, not hidden', !noComp.isError && /component list could not be read/.test(noComp.content[0].text) && /"openIncidents": "none in the feed"/.test(noComp.content[0].text));
+	t('status: three pages catalogued with what each covers', Object.keys(STATUS_PAGES).length === 3 && /withdrawals/.test(STATUS_PAGES.xpr.covers));
+}
+
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
