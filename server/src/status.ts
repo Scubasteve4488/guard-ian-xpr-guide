@@ -120,15 +120,33 @@ export interface ComponentState {
 	status: string;
 }
 
-/** Read component states from the status page's HTML. Returns null when the page carried no recognisable component markup. */
+/** Statuspage's five component states, exactly as the page prints them (case matters: the page legend prints
+ *  "Major outage" / "Partial outage" in lower case, and those must NOT be read as components). */
+const STATE_LINES = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
+
+/**
+ * Read component states from the status page. Live check 2026-10-21 (server 1.16.0): the markup guess in 1.16.0 read
+ * nothing on all three pages, so this reads the page the way a person does: the rendered text, where every component
+ * is a line with its name followed by a line with its state ("Withdrawals" / "Major Outage"). The list sits after the
+ * uptime link and before the legend; a state word is never a name, which keeps the legend out. A group header
+ * ("Cryptocurrency Services" / "Major Outage") is kept as a component too, which is how the page shows it.
+ * Returns null when no name/state pair was found, so a changed page is reported, never shown as "all fine".
+ */
 export function parseComponents(html: string): ComponentState[] | null {
+	const lines = htmlToText(html)
+		.split('\n')
+		.map((l) => l.replace(/\s+/g, ' ').trim())
+		.filter(Boolean);
+	const from = lines.findIndex((l) => /View historical uptime/i.test(l));
+	const scan = from >= 0 ? lines.slice(from + 1) : lines;
 	const out: ComponentState[] = [];
-	const re = /component-inner-container[^"]*\bstatus-([a-z_]+)[\s\S]*?<span class="name">([\s\S]*?)<\/span>/g;
-	let m: RegExpExecArray | null;
-	while ((m = re.exec(html))) {
-		const name = clean(decodeEntities(m[2]));
-		if (!name) continue;
-		out.push({ name, status: STATE_WORDS[m[1]] ?? m[1] });
+	for (let i = 0; i + 1 < scan.length; i++) {
+		const name = scan[i];
+		const status = scan[i + 1];
+		if (STATE_LINES.has(status) && !STATE_LINES.has(name) && name.length <= 80 && !/^[#\-]/.test(name) && !/\(http/.test(name)) {
+			out.push({ name, status });
+			i++;
+		}
 	}
 	return out.length ? out : null;
 }
@@ -139,16 +157,28 @@ export function parseBanner(html: string): string | null {
 	return m ? clean(decodeEntities(m[1])) : null;
 }
 
+const MAX_HOPS = 3;
+/** GET one path on a status page, following up to 3 redirects that stay on the same host (nothing else is followed). */
+async function getOnHost(base: URL, path: string, ctx?: ExecutionContext) {
+	let url = new URL(path, base);
+	for (let hop = 0; ; hop++) {
+		const r = await politeFetch([url.toString()], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0, returnRedirects: true });
+		if (r.status < 300 || r.status >= 400) return r;
+		if (hop >= MAX_HOPS) throw new UpstreamError(`${base.host} redirected more than ${MAX_HOPS} times`);
+		if (!r.location) throw new UpstreamError(`${base.host} redirected without saying where`);
+		const next = new URL(r.location, url);
+		if (next.host !== base.host) throw new UpstreamError(`${base.host} redirected to ${next.host}, which this tool does not follow`);
+		url = next;
+	}
+}
+
 async function readPage(key: StatusPage, ctx?: ExecutionContext) {
 	const page = STATUS_PAGES[key];
 	const base = new URL(page.url);
 	if (!(await robotsAllows(new URL('/history.atom', base), ctx)) || !(await robotsAllows(base, ctx)))
 		throw new UpstreamError(`${base.host} asks automated tools not to read these pages (robots.txt), so nothing was read`);
 	const readAt = new Date().toISOString();
-	const [atom, home] = await Promise.all([
-		politeFetch([page.url], '/history.atom', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 }),
-		politeFetch([page.url], '/', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 }),
-	]);
+	const [atom, home] = await Promise.all([getOnHost(base, '/history.atom', ctx), getOnHost(base, '/', ctx)]);
 	if (atom.status !== 200) throw new UpstreamError(`${base.host}/history.atom answered HTTP ${atom.status}`);
 	const incidents = parseAtom(atom.text);
 	const components = home.status === 200 ? parseComponents(home.text) : null;
@@ -197,7 +227,7 @@ export function registerStatusTool(register: Register, ctx?: ExecutionContext) {
 					const notOk = r.components?.filter((c) => c.status !== 'Operational') ?? null;
 					const item: any = { page: r.page.name, url: r.page.url, covers: r.page.covers };
 					if (view === 'now') {
-						item.banner = r.banner ?? 'not readable from the page';
+						item.banner = r.banner ?? 'no banner (the page shows one only when every component is Operational)';
 						item.componentsNotOperational = notOk ?? 'component list could not be read from the page (its layout may have changed; open the page to see component states)';
 						item.componentsOperational = r.components ? r.components.length - (notOk?.length ?? 0) : null;
 						item.openIncidents = open.map((i) => ({ title: i.title, status: i.status, opened: i.opened, lastUpdate: i.lastUpdate, url: i.url, updates: i.updates }));

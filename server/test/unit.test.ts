@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
+const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
 let pass = 0,
 	failN = 0;
@@ -920,32 +921,49 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('status: updates keep the page\'s own time stamps and words, HTML stripped', inc[1].updates.length === 2 && inc[1].updates[0].at === 'Oct 17, 07:46 UTC' && inc[1].updates[0].text === 'Our team is working to resolve the issue. Deposits and withdrawals may be delayed during this time.' && inc[1].updates[1].status === 'Investigating' && !/</.test(JSON.stringify(inc)));
 	t('status: incident link, opened and lastUpdate carried through', inc[1].url === 'https://status.xprnetwork.org/incidents/15hpstxlxng6' && inc[1].opened === '2026-10-17T04:19:00Z' && inc[1].lastUpdate === '2026-10-17T07:46:02Z');
 
-	const HTML = `<div class="page-status status-critical"><span class="status font-large">Partial System Outage</span></div>
-<div class="component-inner-container status-operational showcased"><span class="name">WebAuth Wallet</span><span class="component-status">Operational</span></div>
-<div class="component-inner-container status-major_outage"><span class="name">
-  XPR Network Bridge &amp; Deposits
-</span><span class="component-status">Major Outage</span></div>
-<div class="component-inner-container status-degraded_performance"><span class="name">Transactions</span></div>`;
+	// The page as the Worker's htmlToText renders it (live shape 2026-10-21: name line, state line; the legend's
+	// "Major outage" / "Partial outage" are lower case; two groups can repeat a child name).
+	const HTML = `<html><body><div class="page-status status-critical"><span class="status font-large">Partial System Outage</span></div>
+<p>Uptime over the past 90 days. <a href="/uptime">View historical uptime.</a></p>
+<div>WebAuth Wallet</div><div>Operational</div>
+<div>Cryptocurrency Services</div><div>Major Outage</div>
+<div>Deposits</div><div>Major Outage</div>
+<div>Withdrawals</div><div>Major Outage</div>
+<div>Fiat Currency Services</div><div>Operational</div>
+<div>Withdrawals</div><div>Operational</div>
+<div>Transactions</div><div>Degraded Performance</div>
+<div>Operational</div><div>Degraded Performance</div><div>Partial Outage</div><div>Major Outage</div><div>Maintenance</div><div>Major outage</div><div>Partial outage</div>
+<p>No downtime recorded on this day.</p></body></html>`;
 	const comps = parseComponents(HTML)!;
-	t('status: components read with Statuspage\'s state words', comps.length === 3 && comps[0].status === 'Operational' && comps[1].name === 'XPR Network Bridge & Deposits' && comps[1].status === 'Major Outage' && comps[2].status === 'Degraded Performance');
+	t('status: components read as name/state pairs, groups and repeated names kept', comps.length === 7 && comps[0].name === 'WebAuth Wallet' && comps[0].status === 'Operational' && comps[1].name === 'Cryptocurrency Services' && comps[1].status === 'Major Outage' && comps.filter((c) => c.name === 'Withdrawals').length === 2 && comps[6].status === 'Degraded Performance');
+	t('status: the legend is never read as components', !comps.some((c) => STATE_LINES_TEST.has(c.name)) && !comps.some((c) => /outage$/.test(c.status)));
 	t('status: banner read', parseBanner(HTML) === 'Partial System Outage');
-	t('status: unknown markup is null, never an empty "all fine" list', parseComponents('<html><body>hello</body></html>') === null && parseBanner('<p>x</p>') === null);
+	t('status: unknown page is null, never an empty "all fine" list', parseComponents('<html><body>hello</body></html>') === null && parseBanner('<p>x</p>') === null);
 
 	// the tool end to end: robots.txt is honoured and a page that cannot be read is named, not dropped
 	const tools: Record<string, (a: any) => Promise<any>> = {};
 	registerStatusTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
 	stub((url) => {
 		if (url.endsWith('/robots.txt')) return new Response(url.includes('metall2') ? 'User-agent: *\nDisallow: /' : 'User-agent: *\nDisallow: /api/\nDisallow: /embed/', { status: 200 });
-		if (url.endsWith('/history.atom')) return new Response(url.includes('metalpay') ? ATOM.replace('XPR Network Withdrawals', 'Metal Pay Withdrawals') : ATOM, { status: 200, headers: { 'content-type': 'application/atom+xml' } });
+		if (url === 'https://status.metalpay.com/history.atom') return new Response('', { status: 301, headers: { Location: '/history.atom/' } }); // same-host hop, followed
+		if (url.includes('/history.atom')) return new Response(url.includes('metalpay') ? ATOM.replace('XPR Network Withdrawals', 'Metal Pay Withdrawals') : ATOM, { status: 200, headers: { 'content-type': 'application/atom+xml' } });
 		return new Response(HTML, { status: 200, headers: { 'content-type': 'text/html' } });
 	});
 	const now = await tools.metallicus_status({ page: 'all', view: 'now', limit: 15 });
 	const nowText = now.content[0].text;
-	t('status now: open incidents and non-operational components only, per page', !now.isError && /"componentsNotOperational"/.test(nowText) && /Major Outage/.test(nowText) && /Withdrawals Temporarily Paused/.test(nowText) && !/"title": "NFTs are not Loading"/.test(nowText) && /"componentsOperational": 1/.test(nowText));
+	t('status now: open incidents and non-operational components only, per page', !now.isError && /"componentsNotOperational"/.test(nowText) && /Major Outage/.test(nowText) && /Withdrawals Temporarily Paused/.test(nowText) && !/"title": "NFTs are not Loading"/.test(nowText) && /"componentsOperational": 3/.test(nowText));
+	t('status now: a same-host redirect is followed, and Metal Pay answers', /Metal Pay Withdrawals Temporarily Paused/.test(nowText) && calls.some((u) => u === 'https://status.metalpay.com/history.atom/'));
 	t('status now: a page whose robots.txt forbids reading is named under notRead, the others still answer', /notRead/.test(nowText) && /Metal L2 Status: status\.metall2\.com asks automated tools not to read/.test(nowText) && /Metal Pay Status/.test(nowText) && !calls.some((u) => u.includes('metall2.com/history.atom')));
 	t('status now: never the closed API, and the note says to quote the page', !calls.some((u) => u.includes('/api/')) && /do not state causes/.test(nowText) && /Source: https:\/\/status\.xprnetwork\.org\/history\.atom/.test(nowText));
 	const hist = await tools.metallicus_status({ page: 'xpr', view: 'history', limit: 1 });
 	t('status history: resolved incidents included, limit honoured', /"resolved": true/.test(hist.content[0].text) && /"listed": 1/.test(hist.content[0].text) && /"inFeed": 2/.test(hist.content[0].text));
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response('', { status: 302, headers: { Location: 'https://elsewhere.example/x' } })));
+	const off = await tools.metallicus_status({ page: 'xpr', view: 'now', limit: 15 });
+	t('status: a redirect off the host is refused, not followed', off.isError === true && /redirected to elsewhere\.example, which this tool does not follow/.test(off.content[0].text) && !calls.some((u) => u.includes('elsewhere.example')));
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response(url.includes('metall2') ? 'User-agent: *\nDisallow: /' : '', { status: url.includes('metall2') ? 200 : 404 });
+		return new Response(url.includes('/history.atom') ? ATOM : HTML, { status: 200 });
+	});
 	const one = await tools.metallicus_status({ page: 'metal_l2', view: 'now', limit: 15 });
 	t('status: a single forbidden page is a plain refusal', one.isError === true && /robots\.txt/.test(one.content[0].text));
 	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response('<html>no feed here</html>', { status: 200, headers: { 'content-type': 'text/html' } })));
