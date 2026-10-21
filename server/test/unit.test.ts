@@ -20,6 +20,7 @@ import { z } from 'zod';
 import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, registerLoanTool } from '../src/loan.ts';
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
+import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
 import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, parseRss, parseNewsroom, newsItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS, NEWS_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
@@ -1190,6 +1191,73 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const r = await tools.whats_new({ since: '2026-09-01T00:00:00Z', hours: 24, lanes: ['news'] });
 	const txt = r.content[0].text;
 	t('news lane: RSS posts listed with their dates, the unreadable newsroom named, nothing invented', !r.isError && /"newItems": 2/.test(txt) && /Proton NZ blog: Anatomy of the proton\.swaps Exploit/.test(txt) && /"at": "2026-09-15T00:00:00.000Z"/.test(txt) && /"notRead": \[\s*"news: Metallicus newsroom: no dated entries could be read/.test(txt) && /"partiallyRead": \[\s*"news"/.test(txt) && /Source: https:\/\/protonnz\.com\/feed\.xml/.test(txt) && /xprnetwork\.org\/news shows no dates/.test(txt));
+}
+
+// ── 1.18.0: xpr_account_check — "who am I about to pay?" (paycheck.ts) ───────────────────────────────────────────────
+{
+	const NOW = new Date('2026-10-21T20:00:00Z');
+	// website check
+	const w1 = checkSite('https://webauth.com/login') as any;
+	const w2 = checkSite('webauth-login.com') as any;
+	const w3 = checkSite('https://www.simpledex.fun/token/471') as any;
+	const w4 = checkSite('https://ksto.world/x') as any;
+	const w5 = checkSite('https://totally-new-site.example') as any;
+	const w6 = checkSite('not a url at all!!') as any;
+	t('site: an official host is named as official; a host containing the brand but not the site is a look-alike', w1.official === 'webauth.com' && w1.listedInGuide && w2.looksLike === 'webauth.com' && /NOT webauth\.com/.test(w2.note) && w2.official === null);
+	t('site: subdomains of official sites count as official; listed community sites are called community, not Metallicus', w3.official === 'www.simpledex.fun'.replace('www.', '') && w4.listedInGuide && w4.official === null && /community site/.test(w4.note));
+	t('site: an unknown host is "not in the directory", never a verdict; garbage is an error', w5.listedInGuide === false && /not a verdict/.test(w5.note) && 'error' in w6);
+	t('site: a look-alike of metalpay with punctuation is still caught', (checkSite('metal-pay.app') as any).looksLike === 'metalpay.com' && OFFICIAL_SITES.length >= 10);
+
+	// identity (webauth-identity.md shape: kyc_level is a claim list)
+	const row = { acc: 'seller12345', name: 'Honest Seller', avatar: '', verified: false, date: 1704567890, kyc: [{ kyc_provider: 'metal.kyc', kyc_level: 'metal.kyc:address,metal.kyc:birthdate,metal.kyc:selfie,metal.kyc:frontofid,metal.kyc:backofid,metal.kyc:firstname,metal.kyc:lastname', kyc_date: 1705123456 }] };
+	const id = identitySummary(row);
+	t('identity: claims are split on commas, never parsed as a number; ID document detected; checkmark separate', kycClaims(row).length === 7 && id.kycRecord && id.kycClaims === 7 && id.idDocument && id.verifiedCheckmark === false && id.displayName === 'Honest Seller' && id.kycProvider === 'metal.kyc' && id.kycDate === '2024-01-13T05:24:16.000Z');
+	const legacy = identitySummary({ acc: 'x', name: '', verified: true, kyc: [{ kyc_provider: 'metal.kyc', kyc_level: 'trulioo:address,trulioo:firstname,trulioo:lastname', kyc_date: 1650000000 }] });
+	t('identity: legacy trulioo claims count as KYC without an ID document; checkmark true is reported as such', legacy.kycRecord && legacy.idDocument === false && legacy.verifiedCheckmark === true && legacy.displayName === null);
+	t('identity: no row = no profile; a row with empty kyc = profile without KYC', identitySummary(null).profileFound === false && identitySummary({ acc: 'y', kyc: [] }).profileFound === true && identitySummary({ acc: 'y', kyc: [] }).kycRecord === false);
+	t('helpers: age in days from a zoneless chain date; amount parsing with commas and default XPR', ageDays('2026-10-01T00:00:00.000', NOW) === 20 && parseAmount('1,000 XPR')?.amount === 1000 && parseAmount('250')?.symbol === 'XPR' && parseAmount('lots') === null);
+
+	// the report, pure
+	const acct = { account_name: 'seller12345', created: '2026-10-15T12:00:00.000', last_code_update: '1970-01-01T00:00:00.000', permissions: [{ perm_name: 'active', parent: 'owner', threshold: 1, keys: 0, accounts: ['hiddenguy111@active'] }, { perm_name: 'owner', parent: '', threshold: 1, keys: 1, accounts: [] }] };
+	const keep = new Set(['seller12345', 'protonnz']);
+	const rep = buildReport({ account: 'seller12345', acct, cls: { pub: false, why: 'a private account' }, identity: identitySummary(null), blocklisted: false, agent: null, site: checkSite('webauth-login.com') as any, amount: parseAmount('1000 XPR'), keep, now: NOW });
+	const all = JSON.stringify(rep);
+	t('report: four parts, facts only, no verdict word', rep.exists && rep.whatICanVerify.length >= 4 && rep.whatDeservesAttention.length >= 3 && rep.whatICannotVerify.length >= 3 && rep.whatToConfirm.length >= 3 && !/\b(safe|scam)\b/i.test(all.replace(/"safe"\/"scam"/g, '')));
+	t('report: age, controller, missing KYC and the look-alike site each get a line; the controller\'s name is hidden', /6 days ago/.test(all) && /\[private account\]@?/.test(all) && !/hiddenguy111/.test(all) && /Metallicus has not recorded identity verification/.test(all) && /resembles webauth\.com/.test(all) && /1,000 XPR to seller12345/.test(all));
+	const rep2 = buildReport({ account: 'protonnz', acct: { ...acct, account_name: 'protonnz', created: '2021-01-01T00:00:00.000', permissions: [] }, cls: { pub: true, why: 'a system, exchange or block-producer account' }, identity: identitySummary(row), blocklisted: false, agent: { account: 'protonnz', trust_score: 98, completed_jobs: 29, total_jobs: 31, earnings: 1591220000, registered_at: 1771196169, active: 1 }, site: checkSite('https://protonnz.com') as any, amount: null, keep, now: NOW });
+	const all2 = JSON.stringify(rep2);
+	t('report: a public account with KYC, an agent record and an official site reads as such; escrow advice given', /block-producer account/.test(all2) && /7 claims from metal\.kyc/.test(all2) && /government ID document/.test(all2) && /trust score 98, 29 completed of 31 jobs, 159,122 XPR earned/.test(all2) && /pay THROUGH xpragents\.com/.test(all2) && /official Proton NZ site/.test(all2) && /Nothing in the on-chain record stood out/.test(all2));
+	const rep3 = buildReport({ account: 'badactor1234', acct: { ...acct, permissions: [] }, cls: { pub: false, why: 'a private account' }, identity: identitySummary(null), blocklisted: true, agent: null, site: null, amount: null, keep, now: NOW });
+	t('report: a blocklisted account is said plainly and put first among the warnings', /IS on the XPR Network blocklist/.test(JSON.stringify(rep3)) && /strongest on-chain warning/.test(rep3.whatDeservesAttention.join(' ')));
+	const rep4 = buildReport({ account: 'nobodyhere12', acct: null, cls: { pub: false, why: 'unknown' }, identity: identitySummary(null), blocklisted: null, agent: null, site: null, amount: null, keep, now: NOW });
+	t('report: a name that does not exist is said, with the one-letter-off warning', rep4.exists === false && /does not exist/.test(rep4.whatICanVerify[0]) && /one letter away/.test(rep4.whatDeservesAttention[0]));
+
+	// the tool end to end with a stubbed chain
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	let budgetOk = true;
+	registerAccountCheckTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined), undefined, { classify: async (n) => (n === 'protonnz' ? { pub: true, why: 'a system, exchange or block-producer account' } : { pub: false, why: 'a private account' }), budget: async () => budgetOk, slowDown: () => ({ isError: true, content: [{ type: 'text', text: 'Too many account lookups' }] }) });
+	calls.length = 0;
+	stub((url, init) => {
+		const body = init?.body ? JSON.parse(init.body) : {};
+		if (url.includes('get_account')) return body.account_name === 'nobodyhere12' ? new Response(JSON.stringify({ code: 500, error: { what: 'unknown key' } }), { status: 500 }) : new Response(JSON.stringify({ account_name: body.account_name, created: '2026-10-15T12:00:00.000', last_code_update: '1970-01-01T00:00:00.000', permissions: [], ram_quota: 1, ram_usage: 1, cpu_limit: {}, net_limit: {} }), { status: 200 });
+		if (url.includes('get_producer_schedule')) return new Response(JSON.stringify({ active: { producers: [{ producer_name: 'protonnz' }] } }), { status: 200 });
+		if (url.includes('get_table_rows')) return new Response(JSON.stringify({ rows: body.code === 'eosio.proton' ? (body.lower_bound === 'seller12345' ? [row] : []) : body.code === 'blocklist' ? (body.lower_bound === 'badactor1234' ? [{ account: 'badactor1234' }] : []) : [], more: false }), { status: 200 });
+		if (url.includes('indexer.xpragents.com/api/agents/')) return new Response(url.endsWith('/protonnz') ? JSON.stringify({ account: 'protonnz', trust_score: 98, completed_jobs: 29, total_jobs: 31, earnings: 1591220000, registered_at: 1771196169, active: 1 }) : JSON.stringify({ error: 'not found' }), { status: url.endsWith('/protonnz') ? 200 : 404 });
+		return new Response('not found', { status: 404 });
+	});
+	const r1 = await tools.xpr_account_check({ account: '@Seller12345', amount: '1000 XPR', url: 'webauth-login.com' });
+	const t1 = r1.content[0].text;
+	t('tool: a seller with KYC but no agent record; look-alike site; amount echoed; sources are the chain reads', !r1.isError && /7 claims from metal\.kyc/.test(t1) && /Not on the XPR Network blocklist/.test(t1) && /resembles webauth\.com/.test(t1) && /1,000 XPR to seller12345/.test(t1) && /Source: .*get_account.*get_table_rows/.test(t1) && /never says "safe" or "scam"/.test(t1));
+	const r2 = await tools.xpr_account_check({ account: 'badactor1234' });
+	t('tool: a blocklisted account is reported as such from the blocklist table read', /IS on the XPR Network blocklist/.test(r2.content[0].text) && calls.some((u) => u.includes('get_table_rows')));
+	const r3 = await tools.xpr_account_check({ account: 'nobodyhere12' });
+	t('tool: a missing account is a plain report, not an error', !r3.isError && /"exists": false/.test(r3.content[0].text));
+	const r4 = await tools.xpr_account_check({ account: 'Not Valid!' });
+	t('tool: an invalid name is refused with the naming rule', r4.isError === true && /not a valid XPR account name/.test(r4.content[0].text));
+	budgetOk = false;
+	const r5 = await tools.xpr_account_check({ account: 'seller12345' });
+	t('tool: the per-connection wallet-lookup budget applies', r5.isError === true && /Too many account lookups/.test(r5.content[0].text));
+	budgetOk = true;
 }
 
 console.log(`${pass} passed, ${failN} failed`);
