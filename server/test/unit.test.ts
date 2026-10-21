@@ -1176,7 +1176,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('newsroom: a page without the date/heading/link shape gives no entries (the tool then says the page could not be read)', parseNewsroom('<html><body><h1>Newsroom.</h1><p>nothing dated here</p></body></html>').length === 0);
 	const ni = newsItems('Metallicus newsroom', nr, new Date('2026-09-01T00:00:00Z'));
 	t('news items: only posts after since, named by source', ni.length === 1 && ni[0].kind === 'news' && ni[0].title === 'Metallicus newsroom: Metallicus - 2026 Q3 Report' && ni[0].at === '2026-10-05T00:00:00.000Z' && ni[0].detail === 'see the post');
-	t('news feeds: two sources, both on allowed hosts', NEWS_FEEDS.length === 2 && NEWS_FEEDS[0].url === 'https://protonnz.com/feed.xml' && NEWS_FEEDS[1].url === 'https://metallicus.com/news');
+	t('news feeds: two sources, both on allowed hosts', NEWS_FEEDS.length === 2 && NEWS_FEEDS[0].url === 'https://www.protonnz.com/feed.xml' && NEWS_FEEDS[1].url === 'https://metallicus.com/news');
 
 	// the lane end to end: RSS answers, the newsroom page has lost its shape -> named under notRead, RSS items still listed
 	const tools: Record<string, (a: any) => Promise<any>> = {};
@@ -1184,13 +1184,13 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	calls.length = 0;
 	stub((url) => {
 		if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /private/', { status: 200 });
-		if (url === 'https://protonnz.com/feed.xml') return new Response(RSS, { status: 200, headers: { 'content-type': 'application/rss+xml' } });
+		if (url === 'https://www.protonnz.com/feed.xml') return new Response(RSS, { status: 200, headers: { 'content-type': 'application/rss+xml' } });
 		if (url === 'https://metallicus.com/news') return new Response('<html><body><h1>Newsroom.</h1><p>redesigned</p></body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
 		return new Response('not found', { status: 404 });
 	});
 	const r = await tools.whats_new({ since: '2026-09-01T00:00:00Z', hours: 24, lanes: ['news'] });
 	const txt = r.content[0].text;
-	t('news lane: RSS posts listed with their dates, the unreadable newsroom named, nothing invented', !r.isError && /"newItems": 2/.test(txt) && /Proton NZ blog: Anatomy of the proton\.swaps Exploit/.test(txt) && /"at": "2026-09-15T00:00:00.000Z"/.test(txt) && /"notRead": \[\s*"news: Metallicus newsroom: no dated entries could be read/.test(txt) && /"partiallyRead": \[\s*"news"/.test(txt) && /Source: https:\/\/protonnz\.com\/feed\.xml/.test(txt) && /xprnetwork\.org\/news shows no dates/.test(txt));
+	t('news lane: RSS posts listed with their dates, the unreadable newsroom named, nothing invented', !r.isError && /"newItems": 2/.test(txt) && /Proton NZ blog: Anatomy of the proton\.swaps Exploit/.test(txt) && /"at": "2026-09-15T00:00:00.000Z"/.test(txt) && /"notRead": \[\s*"news: Metallicus newsroom: no dated entries could be read/.test(txt) && /"partiallyRead": \[\s*"news"/.test(txt) && /Source: https:\/\/www\.protonnz\.com\/feed\.xml/.test(txt) && /xprnetwork\.org\/news shows no dates/.test(txt));
 }
 
 // ── 1.18.0: xpr_account_check — "who am I about to pay?" (paycheck.ts) ───────────────────────────────────────────────
@@ -1258,6 +1258,21 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const r5 = await tools.xpr_account_check({ account: 'seller12345' });
 	t('tool: the per-connection wallet-lookup budget applies', r5.isError === true && /Too many account lookups/.test(r5.content[0].text));
 	budgetOk = true;
+}
+
+{
+	// 1.18.1: a feed that redirects (or is cooling down) is named under notRead; the other feed still answers
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerWhatsNewTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /private/', { status: 200 });
+		if (url === 'https://www.protonnz.com/feed.xml') return new Response('', { status: 301, headers: { Location: 'https://elsewhere.example/feed.xml' } });
+		if (url === 'https://metallicus.com/news') return new Response('<html><body><div>Oct 5, 2026</div><h4>Metallicus - 2026 Q3 Report</h4><p>(./blog/metallicus---2026-q3-report)</p><p>Uptime over the past 90 days.</p></body></html>', { status: 200, headers: { 'content-type': 'text/html' } });
+		return new Response('not found', { status: 404 });
+	});
+	const r = await tools.whats_new({ since: '2026-09-01T00:00:00Z', hours: 24, lanes: ['news'] });
+	const txt = r.content[0].text;
+	t('news lane: a redirecting feed is named under notRead and the newsroom still answers', !r.isError && /"newItems": 1/.test(txt) && /Metallicus newsroom: Metallicus - 2026 Q3 Report/.test(txt) && /"notRead": \[\s*"news: Proton NZ blog: .*redirect/.test(txt));
 }
 
 console.log(`${pass} passed, ${failN} failed`);

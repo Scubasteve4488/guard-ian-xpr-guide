@@ -45,7 +45,7 @@ export const UPSTREAM_FEEDS = [
 
 const SIMPLEDEX = 'https://indexer.protonnz.com';
 export const NEWS_FEEDS = [
-	{ name: 'Proton NZ blog', url: 'https://protonnz.com/feed.xml', kind: 'rss' as const },
+	{ name: 'Proton NZ blog', url: 'https://www.protonnz.com/feed.xml', kind: 'rss' as const }, // the bare host redirects to www (live 2026-10-21 20:40 UTC); redirects are not followed, so the canonical address is used
 	{ name: 'Metallicus newsroom', url: 'https://metallicus.com/news', kind: 'newsroom' as const },
 ] as const;
 const AGENTS = 'https://indexer.xpragents.com/api';
@@ -314,7 +314,13 @@ async function readLane(lane: Lane, since: Date, ctx?: ExecutionContext): Promis
 					items.push({ kind: 'upstream', at: '', title: 'Not read', detail: `${u.host} asks automated tools not to read ${u.pathname} (robots.txt)`, source: f.url });
 					continue;
 				}
-				const r = await politeFetch([f.url], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 });
+				let r;
+				try {
+					r = await politeFetch([f.url], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 });
+				} catch (e) {
+					items.push({ kind: 'upstream', at: '', title: 'Not read', detail: `${f.repo}: ${e instanceof UpstreamError ? e.message : 'could not be read'}`, source: f.url });
+					continue;
+				}
 				if (r.status !== 200) {
 					items.push({ kind: 'upstream', at: '', title: 'Not read', detail: `${f.repo} releases feed answered HTTP ${r.status}`, source: f.url });
 					continue;
@@ -333,7 +339,14 @@ async function readLane(lane: Lane, since: Date, ctx?: ExecutionContext): Promis
 					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${u.host} asks automated tools not to read ${u.pathname} (robots.txt)`, source: f.url });
 					continue;
 				}
-				const r = await politeFetch([f.url], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 });
+				let r;
+				try {
+					r = await politeFetch([f.url], '', { method: 'GET' }, { ttlSec: CACHE_SEC, ctx, startAt: 0 });
+				} catch (e) {
+					// one feed failing (a redirect, a ban cool-down) must not take the whole lane down (live 2026-10-21 20:40 UTC)
+					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${f.name}: ${e instanceof UpstreamError ? e.message : 'could not be read'}`, source: f.url });
+					continue;
+				}
 				if (r.status !== 200) {
 					items.push({ kind: 'news', at: '', title: 'Not read', detail: `${f.name} answered HTTP ${r.status}`, source: f.url });
 					continue;
