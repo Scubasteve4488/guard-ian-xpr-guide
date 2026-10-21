@@ -20,6 +20,9 @@
 //   named this account themselves, so a yes/no about it is theirs to have.
 // - XPR Agents indexer /api/agents/<account> (ecosystem.ts source): registered agent record — trust score, jobs,
 //   earnings, registered date, the indexer's own kyc_level.
+// - agentescrow::services (xpr-agents SKILL.md "Services Market": a listing is bought with ONE transfer to `agentescrow`,
+//   memo `buy:<service_id>`, which creates a funded escrow job): the optional listing check — does it exist, whose is it,
+//   what does it cost, is it active.
 // - The guide's host directory (sources.ts ALLOWED_HOSTS) for the optional website check: listed / not listed, and a
 //   look-alike warning when the host contains an official brand name but is not that site.
 // SOURCE (hand-built code): none found upstream that composes these; each read is upstream's own endpoint.
@@ -139,6 +142,7 @@ export function buildReport(input: {
 	agent: any | null; // indexer record or null
 	site: SiteCheck | { error: string } | null;
 	amount: { amount: number; symbol: string } | null;
+	service?: { id: number; row: any | null } | null; // agentescrow services row, or null when the id has no row
 	keep: Set<string>;
 	now?: Date;
 }) {
@@ -207,8 +211,27 @@ export function buildReport(input: {
 		verified.push(
 			`Registered on XPR Agents: trust score ${g.trust_score ?? '?'}, ${g.completed_jobs ?? 0} completed of ${g.total_jobs ?? 0} jobs, ${typeof g.earnings === 'number' ? (g.earnings / 10_000).toLocaleString('en-US') : '?'} XPR earned on the board, registered ${g.registered_at ? new Date(g.registered_at * 1000).toISOString().slice(0, 10) : '?'}${g.active === 1 || g.active === true ? ', active' : ', not active'}${typeof g.kyc_level === 'number' ? `, owner KYC level ${g.kyc_level}` : ''}.`,
 		);
-		confirm.push('If you are buying this agent\'s service, pay THROUGH xpragents.com (the buy:<id> memo creates an escrow job) and not by a plain transfer: escrow holds the money until you accept the work.');
+		if (!input.service) confirm.push('If you are buying this agent\'s service, pay THROUGH xpragents.com (the buy:<id> memo creates an escrow job) and not by a plain transfer: escrow holds the money until you accept the work.');
 	} else if (input.cls.why.includes('Agent')) verified.push('Registered in the agentcore contract, but the XPR Agents indexer had no record to show.');
+
+	// XPR Agents listing (service)
+	if (input.service) {
+		const sv = input.service.row;
+		if (!sv) {
+			verified.push(`No XPR Agents listing #${input.service.id} exists on chain (agentescrow services table).`);
+			attention.push(`You were pointed at listing #${input.service.id}, and there is no such listing. Nothing to buy under that number.`);
+		} else {
+			const price = typeof sv.price === 'number' ? sv.price / 10_000 : null;
+			const owner = String(sv.agent ?? '');
+			verified.push(
+				`XPR Agents listing #${input.service.id}: "${String(sv.title ?? '').slice(0, 120)}" by ${owner || '?'}, price ${price !== null ? price.toLocaleString('en-US') : '?'} XPR, turnaround ${typeof sv.turnaround === 'number' ? Math.round(sv.turnaround / 3600) : '?'} h, ${sv.active === 1 || sv.active === true ? 'active' : 'NOT active (delisted)'}, ${sv.sales ?? 0} sale${sv.sales === 1 ? '' : 's'}, listed ${sv.created_at ? new Date(Number(sv.created_at) * 1000).toISOString().slice(0, 10) : '?'}.`,
+			);
+			if (owner && owner !== input.account) attention.push(`The listing belongs to ${owner}, not to ${input.account}. Paying ${input.account} does not buy listing #${input.service.id}.`);
+			if (!(sv.active === 1 || sv.active === true)) attention.push(`Listing #${input.service.id} is not active. Do not pay for a delisted listing.`);
+			if (input.amount && price !== null && Math.abs(input.amount.amount - price) > 0.00005) attention.push(`You were quoted ${input.amount.amount.toLocaleString('en-US')} ${input.amount.symbol}; the on-chain listing price is ${price.toLocaleString('en-US')} XPR.`);
+			confirm.push(`The only way to buy listing #${input.service.id} is ONE transfer to the account agentescrow with the memo buy:${input.service.id} (the WebAuth request must show agentescrow as the receiver, not ${owner || 'the agent'}); the money then sits in escrow until you accept the work. A request that sends the price straight to an agent's account is not a purchase of this listing.`);
+		}
+	}
 
 	// website
 	if (input.site && !('error' in input.site)) {
@@ -249,6 +272,12 @@ async function readBlocklisted(account: string, ctx?: ExecutionContext): Promise
 	}
 }
 
+async function readService(id: number, ctx?: ExecutionContext): Promise<{ row: any | null; source: string }> {
+	const r = await rpc('/v1/chain/get_table_rows', { code: 'agentescrow', scope: 'agentescrow', table: 'services', json: true, limit: 1, lower_bound: String(id), upper_bound: String(id) }, CACHE_SEC, ctx);
+	const row = (r.json?.rows ?? []).find((x: any) => Number(x?.id) === id) ?? null;
+	return { row, source: r.source };
+}
+
 async function readAgent(account: string, ctx?: ExecutionContext): Promise<{ agent: any | null; source: string | null }> {
 	try {
 		const r = await getJson(`${AGENTS}/agents/${encodeURIComponent(account)}`, CACHE_SEC, ctx);
@@ -281,15 +310,16 @@ export function registerAccountCheckTool(
 		{
 			title: 'Who am I about to pay?',
 			description:
-				'Before you send XPR or buy a service: the public record of ONE account you name, in plain facts — does it exist and how old is it; is it a contract, exchange, block producer, registered XPR Agent or a person\'s wallet; who else can sign for it; whether Metallicus has recorded identity verification (KYC) for it and whether that includes an ID document; whether it is on the XPR Network blocklist; its XPR Agents record (trust score, jobs, earnings) if any; and, when you give the website, whether that site is official, community-listed, a look-alike of an official name, or unknown. Answers in four parts: what I can verify, what deserves attention, what I cannot verify, what to confirm. Never a "safe"/"scam" verdict. Read-only.',
+				'Before you send XPR or buy a service: the public record of ONE account you name, in plain facts — does it exist and how old is it; is it a contract, exchange, block producer, registered XPR Agent or a person\'s wallet; who else can sign for it; whether Metallicus has recorded identity verification (KYC) for it and whether that includes an ID document; whether it is on the XPR Network blocklist; its XPR Agents record (trust score, jobs, earnings) if any; when you give the website, whether that site is official, community-listed, a look-alike of an official name, or unknown; and, when you give an XPR Agents listing number, whether that listing exists, belongs to this account, is active and costs what you were told. Answers in four parts: what I can verify, what deserves attention, what I cannot verify, what to confirm. Never a "safe"/"scam" verdict. Read-only.',
 			inputSchema: z.object({
 				account: z.string().describe('The XPR account you are about to pay (as the site or seller shows it)'),
 				amount: z.string().optional().describe('The price you were quoted, e.g. "1000 XPR" (optional; it is echoed into "what to confirm")'),
 				url: z.string().optional().describe('The website asking for the payment (optional): checked against the guide\'s directory and official brand names'),
+				service_id: z.number().int().min(0).optional().describe('An XPR Agents listing number (optional): the listing is read from chain and checked against the account and the price'),
 			}),
 			annotations: { title: 'Who am I about to pay?', ...RO },
 		},
-		async ({ account, amount, url }: { account: string; amount?: string; url?: string }) => {
+		async ({ account, amount, url, service_id }: { account: string; amount?: string; url?: string; service_id?: number }) => {
 			const name = account.trim().toLowerCase().replace(/^@/, '');
 			if (!isAccountName(name)) return fail(new UpstreamError(`"${account}" is not a valid XPR account name (1-12 characters, a-z, 1-5 and dots)`), 'Copy the name exactly as WebAuth shows it.');
 			if (!(await deps.budget())) return deps.slowDown();
@@ -309,12 +339,22 @@ export function registerAccountCheckTool(
 				const report = buildReport({ account: name, acct: null, cls: { pub: false, why: 'unknown' }, identity: identitySummary(null), blocklisted: null, agent: null, site, amount: amt, keep: new Set() });
 				return ok(report, sources.length ? sources : ['XPR Network RPC (get_account)'], readAt, NOTE);
 			}
-			const [cls, idr, bl, ag, producers] = await Promise.all([deps.classify(name), readIdentity(name, ctx), readBlocklisted(name, ctx), readAgent(name, ctx), producerNames(ctx)]);
+			const [cls, idr, bl, ag, producers, svc] = await Promise.all([
+				deps.classify(name),
+				readIdentity(name, ctx),
+				readBlocklisted(name, ctx),
+				readAgent(name, ctx),
+				producerNames(ctx),
+				service_id !== undefined ? readService(service_id, ctx).catch(() => null) : Promise.resolve(null),
+			]);
 			sources.push(idr.source);
 			if (bl.source) sources.push(bl.source);
 			if (ag.source) sources.push(ag.source);
-			const keep = makeKeep([name], producers);
-			const report = buildReport({ account: name, acct, cls, identity: identitySummary(idr.row), blocklisted: bl.listed, agent: ag.agent, site, amount: amt, keep });
+			if (svc?.source) sources.push(svc.source);
+			const keep = makeKeep([name, ...(svc?.row?.agent ? [String(svc.row.agent)] : [])], producers);
+			const service = service_id === undefined ? null : svc ? { id: service_id, row: svc.row } : { id: service_id, row: null };
+			if (service_id !== undefined && !svc) sources.push('agentescrow services (read failed)');
+			const report = buildReport({ account: name, acct, cls, identity: identitySummary(idr.row), blocklisted: bl.listed, agent: ag.agent, site, amount: amt, service, keep });
 			return ok(report, [...new Set(sources)], readAt, NOTE);
 		},
 	);

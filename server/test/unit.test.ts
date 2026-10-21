@@ -1277,5 +1277,39 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('news lane: a redirecting feed is named under notRead and the newsroom still answers', !r.isError && /"newItems": 1/.test(txt) && /Metallicus newsroom: Metallicus - 2026 Q3 Report/.test(txt) && /"notRead": \[\s*"news: Proton NZ blog: .*redirect/.test(txt));
 }
 
+// ── 1.19.0: the listing check inside xpr_account_check (agentescrow services, read live 2026-10-21 20:34 UTC) ───────────
+{
+	const NOW = new Date('2026-10-21T20:00:00Z');
+	const keep = new Set(['charliebot', 'protonnz']);
+	const svcRow = { id: 0, agent: 'charliebot', title: 'XPR account health report', price: 250000, turnaround: 86400, category: 'research', active: 1, sales: 5, created_at: 1788394559 };
+	const acct = { account_name: 'charliebot', created: '2026-02-01T00:00:00.000', last_code_update: '1970-01-01T00:00:00.000', permissions: [] };
+	const base = { acct, cls: { pub: true, why: 'a registered XPR Agent' }, identity: identitySummary(null), blocklisted: false, agent: { account: 'charliebot', trust_score: 98, completed_jobs: 29, total_jobs: 31, earnings: 1591220000, registered_at: 1771196169, active: 1, kyc_level: 3 }, site: null, keep, now: NOW };
+	const ok1 = buildReport({ ...base, account: 'charliebot', amount: parseAmount('25 XPR'), service: { id: 0, row: svcRow } });
+	const j1 = JSON.stringify(ok1);
+	t('listing: exists, belongs to the account, price matches -> one verified line and the escrow memo instruction, no price warning', /XPR Agents listing #0: \\?"XPR account health report\\?" by charliebot, price 25 XPR, turnaround 24 h, active, 5 sales, listed 2026-09-03/.test(j1) && /ONE transfer to the account agentescrow with the memo buy:0/.test(j1) && !/quoted/.test(j1) && !/pay THROUGH xpragents\.com/.test(j1));
+	const bad = buildReport({ ...base, account: 'someoneelse1', cls: { pub: false, why: 'a private account' }, agent: null, amount: parseAmount('1000 XPR'), service: { id: 0, row: svcRow } });
+	const j2 = bad.whatDeservesAttention.join(' | ');
+	t('listing: belongs to a different agent and the quoted price differs -> both said plainly', /belongs to charliebot, not to someoneelse1/.test(j2) && /quoted 1,000 XPR; the on-chain listing price is 25 XPR/.test(j2));
+	const gone = buildReport({ ...base, account: 'charliebot', amount: null, service: { id: 99, row: null } });
+	t('listing: a number with no row is said, with the warning', /No XPR Agents listing #99 exists/.test(gone.whatICanVerify.join(' ')) && /no such listing/.test(gone.whatDeservesAttention.join(' ')));
+	const delisted = buildReport({ ...base, account: 'charliebot', amount: null, service: { id: 1, row: { ...svcRow, id: 1, active: 0, sales: 0 } } });
+	t('listing: a delisted listing is flagged', /NOT active \(delisted\), 0 sales/.test(delisted.whatICanVerify.join(' ')) && /Do not pay for a delisted listing/.test(delisted.whatDeservesAttention.join(' ')));
+
+	// end to end: the services table is read by id and the listing's agent stays visible
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerAccountCheckTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined), undefined, { classify: async () => ({ pub: true, why: 'a registered XPR Agent' }), budget: async () => true, slowDown: () => ({ isError: true, content: [{ type: 'text', text: 'slow' }] }) });
+	stub((url, init) => {
+		const body = init?.body ? JSON.parse(init.body) : {};
+		if (url.includes('get_account')) return new Response(JSON.stringify({ account_name: body.account_name, created: '2026-02-01T00:00:00.000', last_code_update: '1970-01-01T00:00:00.000', permissions: [], ram_quota: 1, ram_usage: 1, cpu_limit: {}, net_limit: {} }), { status: 200 });
+		if (url.includes('get_producer_schedule')) return new Response(JSON.stringify({ active: { producers: [{ producer_name: 'protonnz' }] } }), { status: 200 });
+		if (url.includes('get_table_rows')) return new Response(JSON.stringify({ rows: body.code === 'agentescrow' && body.lower_bound === '0' ? [svcRow] : [], more: false }), { status: 200 });
+		if (url.includes('indexer.xpragents.com/api/agents/')) return new Response(JSON.stringify({ account: 'charliebot', trust_score: 98, completed_jobs: 29, total_jobs: 31, earnings: 1591220000, registered_at: 1771196169, active: 1, kyc_level: 3 }), { status: 200 });
+		return new Response('not found', { status: 404 });
+	});
+	const r = await tools.xpr_account_check({ account: 'charliebot', amount: '25 XPR', service_id: 0 });
+	const txt = r.content[0].text;
+	t('tool: service_id reads agentescrow services by id; listing agent named; memo instruction present', !r.isError && /listing #0: \\?"XPR account health report\\?" by charliebot/.test(txt) && /memo buy:0/.test(txt) && calls.some((u) => u.includes('get_table_rows')));
+}
+
 console.log(`${pass} passed, ${failN} failed`);
 if (failN) process.exit(1);
