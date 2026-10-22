@@ -58,6 +58,11 @@ const guideText = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'RULES.md', 'GLOSSA
 	.join('\n');
 const links = extractLinks(guideText);
 t('guide links extracted (100+ hosts)', links.hosts.size >= 100);
+// ── 1.20.1 ECOSYSTEM §16 comparison sources: linked, so source_fetch may read them; unlinked hosts stay refused
+for (const u of ['https://l2beat.com/scaling/projects/metal', 'https://docs.avax.network/', 'https://eips.ethereum.org/EIPS/eip-8004', 'https://www.circle.com/transparency', 'https://www.paxos.com/pyusd-transparency', 'https://www.govinfo.gov/app/details/PLAW-119publ27', 'https://defillama.com/hacks'])
+	t(`§16 host allowed: ${new URL(u).hostname}`, checkSourceUrl(u, links).ok);
+t('§16: congress.gov is not linked (robots disallow), so it stays refused', !checkSourceUrl('https://www.congress.gov/bill/119th-congress/senate-bill/1582', links).ok);
+t('§16: a look-alike of a comparison host is refused', !checkSourceUrl('https://l2beat.com.evil.example/', links).ok);
 t('guide links include official sites the floor list missed', ['webauth.com', 'explorer.xprnetwork.org', 'gov.xprnetwork.org', 'app.metalx.com'].every((h) => links.hosts.has(h)));
 t('webauth.com refused without guide links', !checkSourceUrl('https://webauth.com/').ok);
 t('webauth.com allowed with guide links', checkSourceUrl('https://webauth.com/', links).ok);
