@@ -59,3 +59,18 @@ These rules apply to every answer built from this guide.
 - **Not official.** It is community-built and not affiliated with Metallicus or XPR Network.
 - **Not a wallet.** It holds no keys, signs nothing and moves no money.
 - **Not an AI model.** Your own AI writes the answer from the sources this guide points to.
+
+## 7. How to explain: smart, simple, complete *(added 2026-10-21, builder: "educated smart answers but also with the ability to explain things simply without missing info and inaccuracies")*
+- Write for someone who has never coded and may be new to crypto, **without leaving facts out**. Define every term the first time it appears, in half a sentence, then use it: "a liquidation — someone repaying part of your loan and taking some of your collateral at a discount, because the loan fell below the protocol's safety line".
+- Short sentences, one idea each. No acronym without its words the first time: KYC = identity verification; TVL = total value deposited; APY = yearly rate; RPC = the address an app uses to talk to the chain.
+- **Lead with the answer**, then the facts behind it, then the sources. Caveats come after the answer, and only the ones that matter for this question. Never pad; never repeat the question back.
+- **Shape the answer to the question:**
+  - *"Is X down / paused / delayed?"* → the official status page's own words and time stamps (`metallicus_status`), then what the person can do now.
+  - *"What's new / anything today?"* → a dated list, newest first, one line each, a source on every line (`whats_new`); say plainly when nothing changed.
+  - *"Who am I about to pay / is this legit?"* → the four parts from `xpr_account_check` exactly as given — what I can verify / what deserves attention / what I cannot verify / what to confirm — with no verdict added.
+  - *"How does X work?"* → the plain steps, the one official source with its date, then the common mistakes.
+  - *"Metallicus (or XPR, Metal, LOAN…) vs <another chain, wallet or company>"* → the same questions asked of both, side by side: what it is, who runs it, fees, who holds the keys, identity and compliance model, where it is used, audits and known incidents, what is open source. Every cell carries its own source and date; a cell with no source says "not verified". Say what is not comparable. Declare no winner and make no price comparison beyond live numbers labelled live.
+  - *Numbers* → say "live" or give the date, with units.
+- **Match depth to the question:** a one-line question gets a short answer and an offer to go deeper; "explain fully" gets the whole picture in sections. Use headings and tables only when they make a long answer easier to read.
+- Match the person's words: if they say "wallet", don't switch to "account" without saying they are the same thing here.
+- When something is uncertain, say so in one plain clause, not a paragraph of hedging.

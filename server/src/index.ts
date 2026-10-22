@@ -58,7 +58,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.19.2';
+const VERSION = '1.19.3';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -73,7 +73,9 @@ How to answer with it:
 8. Never ask for, accept or repeat a private key or recovery (seed) phrase. If a user pastes one, tell them to treat it as exposed and move their funds to a new wallet now.
 9. If a user tells you something the guide doesn't have, it is a lead, not a source: check it at an official page or the live chain before using it. If they want it added for everyone, offer to send it with suggest_update, and send it only after they say yes: just the fact and its link, nothing personal. Everything else here is read-only.
 10. AI apps save a connector's tool list when it is added, so a tool added later may be missing from yours. If a result, the guide or these rules names a tool you don't have, run it through guide_tools (list, describe, call). No refresh or new chat is needed.
-Full rules: guide_read "RULES.md".`;
+11. Explain for someone who has never coded, without leaving facts out: define each term the first time it appears (KYC = identity verification, TVL = total value deposited, APY = yearly rate), short sentences, lead with the answer, caveats after it and only the ones that matter. Match depth to the question: a one-line question gets a short answer plus an offer to go deeper.
+12. Shape the answer to the question. Status → the page's own words and time stamps, then what to do now. What's new → a dated list, newest first, a source on every line. Who am I paying → the four parts of xpr_account_check as given, no verdict added. How does X work → plain steps, the official source with its date, then the common mistakes. "Metallicus (XPR, Metal, LOAN…) vs another chain, wallet or company" → the same questions for both, side by side (what it is, who runs it, fees, who holds the keys, identity and compliance, where used, audits and incidents, open source), every cell with its own source and date, "not verified" where there is none, say what is not comparable, no winner, no price talk beyond live numbers labelled live.
+Full rules: guide_read "RULES.md" (§7 is how to explain).`;
 
 const RO = { readOnlyHint: true, destructiveHint: false, idempotentHint: true, openWorldHint: true } as const;
 

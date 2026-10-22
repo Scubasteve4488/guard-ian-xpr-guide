@@ -117,7 +117,7 @@ export function launchItems(tokens: any[], since: Date): NewItem[] {
 			out.push({
 				kind: 'launches',
 				at: first,
-				title: `New SimpleDEX launch: ${t.symbol ?? '?'} (${t.name ?? 'no name'}, token ${t.tokenId ?? '?'})`,
+				title: `New SimpleDEX launch (a new token sold on a price curve): ${t.symbol ?? '?'} (${t.name ?? 'no name'}, token ${t.tokenId ?? '?'})`,
 				detail: `creator ${t.creator ?? '[private account]'}; ${t.graduated ? 'already graduated' : 'on the curve'}; first trade ${first}`,
 				source: `${SIMPLEDEX}/api/tokens?symbol=${encodeURIComponent(String(t.symbol ?? ''))}`,
 			});
@@ -133,7 +133,7 @@ export function graduationItems(events: any[], since: Date): NewItem[] {
 			out.push({
 				kind: 'graduations',
 				at,
-				title: `Graduated to the DEX: ${g.symbol ?? '?'} (${g.name ?? 'no name'}, token ${g.tokenId ?? '?'}, pool ${g.dexPoolId ?? '?'})`,
+				title: `Graduated to the DEX (moved from the launch curve to a normal trading pool): ${g.symbol ?? '?'} (${g.name ?? 'no name'}, token ${g.tokenId ?? '?'}, pool ${g.dexPoolId ?? '?'})`,
 				detail: `creator ${g.creator ?? '[private account]'}; detected by the indexer ${at}`,
 				source: `${SIMPLEDEX}/api/events`,
 			});

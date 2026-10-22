@@ -1003,7 +1003,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		{ tokenId: 470, symbol: 'KWYS', name: 'Know What You Sold', creator: '[private account]', graduated: true, firstTradeAt: 1790861000 },
 	];
 	const la = launchItems(tokens, new Date('2026-10-09T00:00:00Z'));
-	t('whats_new launches: first trade after since = a new launch; creator stays as the privacy filter left it', la.length === 1 && la[0].title === 'New SimpleDEX launch: STARS (Star-Shell Hayner, token 471)' && /creator \[private account\]; already graduated/.test(la[0].detail) && la[0].source === 'https://indexer.protonnz.com/api/tokens?symbol=STARS');
+	t('whats_new launches: first trade after since = a new launch; creator stays as the privacy filter left it', la.length === 1 && la[0].title === 'New SimpleDEX launch (a new token sold on a price curve): STARS (Star-Shell Hayner, token 471)' && /creator \[private account\]; already graduated/.test(la[0].detail) && la[0].source === 'https://indexer.protonnz.com/api/tokens?symbol=STARS');
 	t('whats_new launches: nothing new when every first trade is before since', launchItems(tokens, since).length === 0);
 
 	const events = [
@@ -1011,7 +1011,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		{ tokenId: 471, symbol: 'STARS', name: 'Star-Shell Hayner', creator: '[private account]', dexPoolId: 1979, detectedAt: 1791735820 },
 	];
 	const gr = graduationItems(events, new Date('2026-10-12T00:00:00Z'));
-	t('whats_new graduations: an old token graduating late is caught by the events feed', gr.length === 1 && gr[0].title === 'Graduated to the DEX: DOGE (Dogecoin, token 87, pool 1989)' && gr[0].at === '2026-10-12T20:26:47.000Z');
+	t('whats_new graduations: an old token graduating late is caught by the events feed', gr.length === 1 && gr[0].title === 'Graduated to the DEX (moved from the launch curve to a normal trading pool): DOGE (Dogecoin, token 87, pool 1989)' && gr[0].at === '2026-10-12T20:26:47.000Z');
 
 	const proposals = [
 		{ id: 329, community_id: 5, start: '2026-08-30T14:37:20.000', end: '2026-11-30T14:37:00.000', status: 'Approved', candidates: [{ id: 0, name: 'Yes — Lower the quorum requirement from 25% to 20%' }, { id: 1, name: 'No — Keep the quorum requirement at 25%' }] },
@@ -1081,7 +1081,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const ATOM_STATUS = `<?xml version="1.0" encoding="UTF-8"?><feed xmlns="http://www.w3.org/2005/Atom"><entry><published>2026-10-17T04:19:00Z</published><updated>2026-10-17T07:46:02Z</updated><link rel="alternate" type="text/html" href="https://status.xprnetwork.org/incidents/15hpstxlxng6"/><title>XPR Network Withdrawals Temporarily Paused</title><content type="html">&lt;p&gt;&lt;small&gt;Oct 17, 07:46 UTC&lt;/small&gt;&lt;br&gt;&lt;strong&gt;Update&lt;/strong&gt; - Our team is working to resolve the issue.&lt;/p&gt;</content></entry></feed>`;
 	const r1 = await tools.whats_new({ since: '2026-08-28T00:00:00Z', hours: 24 });
 	const t1 = r1.content[0].text;
-	t('whats_new tool: every lane that answered is listed newest first with its own time stamp', !r1.isError && /"newItems": [1-9]/.test(t1) && /New governance proposal #329/.test(t1) && /Withdrawals Temporarily Paused/.test(t1) && /New SimpleDEX launch: STARS/.test(t1) && /Graduated to the DEX: DOGE/.test(t1) && /New agent registered on XPR Agents: newbie/.test(t1) && /Upstream release: XPRNetwork\/xpr-agents/.test(t1) && t1.indexOf('Metal X') < 0);
+	t('whats_new tool: every lane that answered is listed newest first with its own time stamp', !r1.isError && /"newItems": [1-9]/.test(t1) && /New governance proposal #329/.test(t1) && /Withdrawals Temporarily Paused/.test(t1) && /New SimpleDEX launch \(a new token sold on a price curve\): STARS/.test(t1) && /Graduated to the DEX \(moved from the launch curve to a normal trading pool\): DOGE/.test(t1) && /New agent registered on XPR Agents: newbie/.test(t1) && /Upstream release: XPRNetwork\/xpr-agents/.test(t1) && t1.indexOf('Metal X') < 0);
 	t('whats_new tool: the lane that failed is named under notRead and the others still answer', /"notRead": \[\s*"jobs: indexer\.xpragents\.com returned HTTP 500"/.test(t1) && /"lanesRead": \[\s*"status",\s*"launches",\s*"graduations",\s*"governance",\s*"agents",\s*"upstream"/.test(t1));
 	t('whats_new tool: what is not covered is said in every answer, and the sources are the pages read', /notCovered/.test(t1) && /Metallicus newsroom/.test(t1) && /Source: .*status\.xprnetwork\.org\/history\.atom/.test(t1) && /github\.com\/XPRNetwork\/xpr-agents\/releases\.atom/.test(t1) && !calls.some((u) => u.includes('/api/v2/')));
 	const r2 = await tools.whats_new({ since: '2026-10-21T12:00:00Z', hours: 24, lanes: ['launches', 'governance', 'upstream'] });
