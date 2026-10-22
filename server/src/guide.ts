@@ -3,7 +3,7 @@
 
 import { politeFetch, UpstreamError } from './net.ts';
 
-export const GUIDE_FILES = ['llms.txt', 'RULES.md', 'ECOSYSTEM.md', 'SOURCES.md', 'KSTO.md', 'README.md', 'CHANGELOG.md'] as const;
+export const GUIDE_FILES = ['llms.txt', 'RULES.md', 'ECOSYSTEM.md', 'SOURCES.md', 'GLOSSARY.md', 'KSTO.md', 'README.md', 'CHANGELOG.md'] as const;
 export type GuideFile = (typeof GUIDE_FILES)[number];
 
 const GUIDE_TTL_SEC = 300;

@@ -86,7 +86,7 @@ export function extractLinks(text: string, into: GuideLinks = { hosts: new Set()
 	return into;
 }
 
-const LINK_FILES = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'KSTO.md'] as const satisfies readonly (typeof GUIDE_FILES)[number][];
+export const LINK_FILES = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'KSTO.md'] as const satisfies readonly (typeof GUIDE_FILES)[number][];
 
 let memo: { at: number; links: GuideLinks } | null = null;
 const MEMO_MS = 5 * 60 * 1000;

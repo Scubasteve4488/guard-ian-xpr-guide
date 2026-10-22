@@ -2,9 +2,9 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { isAccountName, isSymbol, nameToU64, safeName, boundFor, table, scopeFor, symbolScope } from '../src/chain.ts';
-import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted, dataApiRefusal } from '../src/sources.ts';
+import { checkSourceUrl, htmlToText, extractLinks, isPublicHostname, fetchSource, guideLinks, labelUntrusted, dataApiRefusal, LINK_FILES } from '../src/sources.ts';
 import { parseRobotsTxt, isPathAllowed, robotsAllows } from '../src/robots.ts';
-import { splitSections, searchSections, tokenize } from '../src/guide.ts';
+import { splitSections, searchSections, tokenize, GUIDE_FILES } from '../src/guide.ts';
 import { registryLookup, tokenCheck } from '../src/tokens.ts';
 import { helpSearch, helpArticle } from '../src/help.ts';
 import { maskData, makeKeep, maskName, isFilter, PRIVATE, NESTED_HIDDEN, personNames, maskRows, TABLE_PUBLIC_CHECKS, cursorName, isAlwaysPrivateTable } from '../src/history.ts';
@@ -53,7 +53,7 @@ t('refuse odd port', !checkSourceUrl('https://simpledex.fun:8443/').ok);
 t('refuse lookalike host', !checkSourceUrl('https://simpledex.fun.evil.com/').ok);
 
 // ── self-updating allow-list: hosts come from the guide's own links (operator ruling 2026-10-15)
-const guideText = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'RULES.md', 'KSTO.md', 'README.md', 'CHANGELOG.md']
+const guideText = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'RULES.md', 'GLOSSARY.md', 'KSTO.md', 'README.md', 'CHANGELOG.md']
 	.map((f) => readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8'))
 	.join('\n');
 const links = extractLinks(guideText);
@@ -92,7 +92,7 @@ t('html strips script', !h.includes('alert') && !h.includes('x{}'));
 t('html keeps text + link', h.includes('## Title') && h.includes('Hello') && h.includes('(https://a.b/c)'));
 
 // ── guide search over the real files in this repo
-const files = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'RULES.md', 'KSTO.md'];
+const files = ['llms.txt', 'ECOSYSTEM.md', 'SOURCES.md', 'RULES.md', 'GLOSSARY.md', 'KSTO.md'];
 const sections = files.flatMap((f) => splitSections(f, readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8')));
 t('sections parsed', sections.length > 30);
 const vib = searchSections(sections, 'What is Vibrr?');
@@ -102,6 +102,21 @@ t('search finds XMD contract', xmd.some((s) => s.text.includes('xmd.token')));
 const ksto = searchSections(sections, 'KSTO vetted tokens');
 t('search finds vetted tokens', ksto.some((s) => s.text.includes('SNIPPY')));
 t('tokenize drops stop words', tokenize('What is the XPR Network LOAN protocol?').join(',') === 'loan,protocol');
+// ── 1.20.0 GLOSSARY.md: plain definitions, each with its source, searchable (builder 2026-10-21: "explain things simply without missing info and inaccuracies. Sourced.")
+{
+	const gl = readFileSync(new URL('../../GLOSSARY.md', import.meta.url), 'utf8');
+	const entries = gl.split('\n').filter((l) => l.startsWith('- **'));
+	t('glossary: 50+ entries', entries.length >= 50);
+	t('glossary: every entry ends with its source', entries.every((l) => /\*Source: .+\.\*\s*$/.test(l)));
+	t('glossary: no bare https links (it points into the guide; it cannot widen source_fetch)', !/https?:\/\//.test(gl));
+	t('glossary: no private key or seed phrase shape', !containsPrivateKey(gl) && !looksLikeRecoveryPhrase(gl));
+	const hf = searchSections(sections, 'what is a health factor');
+	t('glossary: search finds health factor in GLOSSARY', hf.some((x) => x.file === 'GLOSSARY.md' && /Health factor/.test(x.text)));
+	const kyc = searchSections(sections, 'KYC claim list verified checkmark');
+	t('glossary: search finds KYC in GLOSSARY', kyc.some((x) => x.file === 'GLOSSARY.md' && /claim list, not a level/.test(x.text)));
+	t('glossary: GUIDE_FILES carries it', (GUIDE_FILES as readonly string[]).includes('GLOSSARY.md'));
+	t('glossary: not a link file (LINK_FILES excludes it)', !(LINK_FILES as readonly string[]).includes('GLOSSARY.md'));
+}
 // The builder's wallet account must never appear in the guide. It is checked by hash so the test itself doesn't name it.
 const PRIVATE_NAME_HASHES = new Set(['91b15a99688585cf4c25abb607466e72bdcfbb7e271ae841e70148d776e04f1f']);
 t('no private wallet name in guide files', !files.some((f) => (readFileSync(new URL(`../../${f}`, import.meta.url), 'utf8').toLowerCase().match(/[a-z0-9._-]+/g) ?? []).some((w) => PRIVATE_NAME_HASHES.has(createHash('sha256').update(w).digest('hex')))));

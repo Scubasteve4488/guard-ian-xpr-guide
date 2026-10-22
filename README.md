@@ -45,6 +45,7 @@ Then ask, for example: *"Using the GUARD.IAN XPR Guide, how does a SimpleDEX lau
 - `llms.txt`: the index the connector reads first. It links to the official docs.
 - `RULES.md`: how every answer must be built.
 - `SOURCES.md`: the tiered source catalog (official, community, press, data, regulators, credit unions).
+- `GLOSSARY.md`: every term in plain English, one or two sentences each, with the source the meaning comes from.
 - `KSTO.md`: the KSTO community, in our own words, linked to ksto.world.
 - `ECOSYSTEM.md`: the ecosystem directory. Metallicus products, DeFi, social platforms, agents, games, NFTs, tools, tokens (symbol + contract), live token feeds, governance, communities and GitHub.
 - `CHANGELOG.md`: every change, dated.
