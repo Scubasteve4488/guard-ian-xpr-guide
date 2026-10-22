@@ -315,9 +315,9 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext, ga
 		{
 			title: 'XPR Network governance (gov.xprnetwork.org)',
 			description:
-				'Read XPR Network governance from the on-chain `gov` contract (the gov.xprnetwork.org portal): communities (XPR Network, Metal DAO, LOAN Protocol, XPR Grants, Metal X, D.O.G.E.) with their voting strategy, proposal fee and quorum; recent proposals, filtered by community and status; one proposal with its title, description and vote totals from the official Gov API; the global counts. Voters are not listed; authors and admins show as "[private account]". Read-only.',
+				'Read XPR Network governance from the on-chain `gov` contract (the gov.xprnetwork.org portal): communities (XPR Network, Metal DAO, LOAN Protocol, XPR Grants, Metal X, D.O.G.E.) with their voting strategy, proposal fee and quorum; recent proposals, filtered by community and status; one proposal with its title, description and vote totals from the official Gov API; the global counts. Voters are not listed; authors and admins show as "[private account]". Read-only. View "open": the votes open today with turnout vs quorum and days left (what a community member can act on now).',
 			inputSchema: z.object({
-				view: z.enum(['communities', 'proposals', 'proposal', 'config']).describe('What to read'),
+				view: z.enum(['communities', 'proposals', 'proposal', 'config', 'open']).describe('What to read. "open" = every vote anyone can cast right now, across all communities: title, Yes/No so far, turnout against that community\'s quorum rule, days left'),
 				community_id: z.number().int().min(0).max(100000).optional().describe('proposals: only this community (e.g. 3 = XPR Network)'),
 				status: z.enum(STATUSES).optional().describe('proposals: only this status'),
 				proposal_id: z.number().int().min(0).max(100000000).optional().describe('proposal: its ID'),
@@ -354,6 +354,54 @@ export function registerMoreTools(register: Register, ctx?: ExecutionContext, ga
 						r.source,
 						r.readAt,
 						'Live. The "next" IDs are counters, so they show how many communities, proposals and votes have ever been created (upstream reads them the same way).',
+					);
+				}
+				if (a.view === 'open') {
+					// Votes anyone can cast right now: start <= now <= end and not Declined by the community's admins. Each one is
+					// joined with its community's quorum rule (gov `communities.quorum`, hundredths of a percent) and the Gov API's
+					// detail (title, votes so far, its own `quorum` figure). The API's figure is reported as it comes; its basis is not
+					// documented, so the answer says so instead of calling it turnout. (Builder 2026-10-22: the LOAN quorum vote #329 —
+					// 98% Yes, not at quorum — was alpha nobody could see without joining these three reads by hand.)
+					const nowSec = Math.floor(Date.now() / 1000);
+					const [pr, cr] = await Promise.all([table({ code: GOV, table: 'proposals', reverse: true, limit: 50 }, ctx), table({ code: GOV, table: 'communities', limit: 50 }, ctx)]);
+					const communities = new Map<number, any>(cr.data.rows.map((c: any) => [Number(c.id), c]));
+					const openRows = pr.data.rows.filter((p: any) => p.approve !== 'Declined' && nowSec >= Number(p.startTime) && nowSec <= Number(p.endTime));
+					const sources = [pr.source, cr.source];
+					const votes = await Promise.all(
+						openRows.map(async (p: any) => {
+							const row = proposalRow(p, keep);
+							const c = communities.get(Number(p.communityId));
+							const quorumPct = c && typeof c.quorum === 'number' ? c.quorum / 100 : null;
+							const daysLeft = Math.max(0, Math.round(((Number(p.endTime) - nowSec) / 86400) * 10) / 10);
+							let detail: any = { title: null, options: null, total_votes: null, gov_api_quorum_figure: null, note: 'The Gov API did not answer; open the link for the title and votes.' };
+							if (p.content) {
+								try {
+									const g = await getJson(GOV_API, `/api/v1/proposals/${encodeURIComponent(String(p.content))}`, 120, ctx);
+									sources.push(g.source);
+									const cands: any[] = Array.isArray(g.json?.candidates) ? g.json.candidates : [];
+									const total = cands.reduce((n: number, x: any) => n + (Number(x.tokenAmount) || 0), 0);
+									detail = {
+										title: typeof g.json?.title === 'string' ? g.json.title.slice(0, 300) : null,
+										options: cands.map((x: any) => ({ name: x.name, votes: x.tokenAmount ?? null, share_percent: total > 0 ? Math.round(((Number(x.tokenAmount) || 0) / total) * 1000) / 10 : null })),
+										total_votes: g.json?.tokenAmount ?? total,
+										gov_api_quorum_figure: g.json?.quorum ?? null,
+									};
+								} catch (e) {
+									detail.note = `The Gov API did not answer (${e instanceof UpstreamError ? e.message : 'error'}); open the link for the title and votes.`;
+								}
+							}
+							const fig = detail.gov_api_quorum_figure;
+							const quorum_status =
+								quorumPct === null || typeof fig !== 'number' ? 'unknown (one of the two figures is missing)' : fig >= quorumPct ? `reached (the Gov API figure ${fig} is at or above the community rule of ${quorumPct}%)` : `not reached (the Gov API figure ${fig} is below the community rule of ${quorumPct}%)`;
+							return { ...row, status: 'Open', community: c ? c.name : null, community_quorum_percent: quorumPct, days_left: daysLeft, ...detail, quorum_status };
+						}),
+					);
+					votes.sort((x: any, y: any) => x.days_left - y.days_left);
+					return ok(
+						{ count: votes.length, votes },
+						sources,
+						pr.readAt,
+						'Live. Soonest to close first. Quorum: each community sets a percent of its voting weight that must take part; the Gov API\'s quorum figure is given as the API reports it (its basis is not documented), so say "the Gov API shows X" rather than "X% turnout". Votes are totals only; who voted is not listed.',
 					);
 				}
 				if (a.view === 'proposal') {
