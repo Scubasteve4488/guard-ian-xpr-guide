@@ -185,15 +185,15 @@ export function buildReport(input: {
 		? `This account itself has no identity verification (KYC) record; XPR Agents records KYC level ${ownerKyc} for it, inherited from its human owner (that is how the registry works), so the person behind it was verified, not the agent account.`
 		: 'No identity verification (KYC) on this account. Many legitimate accounts have none; a seller asking for money usually has one.';
 	if (!id.profileFound) {
-		verified.push('No WebAuth profile row (eosio.proton usersinfo): no display name, no KYC record published for this account.');
+		verified.push('No public on-chain profile row for this account (the eosio.proton usersinfo table, which anyone can read on the explorer): no display name, no KYC record published.');
 		attention.push(noKycLine);
 	} else {
 		if (id.kycRecord) verified.push(`Identity verification (KYC) recorded: ${id.kycClaims} claim${id.kycClaims === 1 ? '' : 's'} from ${id.kycProvider ?? 'a provider'}${id.kycDate ? `, latest ${id.kycDate.slice(0, 10)}` : ''}${id.idDocument ? ', including a government ID document' : ', without an ID-document claim'}.`);
 		else {
-			verified.push('WebAuth profile exists but carries no KYC record.');
+			verified.push('Public on-chain profile row exists (eosio.proton usersinfo) but carries no KYC record.');
 			attention.push(noKycLine);
 		}
-		verified.push(id.verifiedCheckmark ? 'Shows WebAuth\'s verified checkmark (a display flag set by a verifier account; it is separate from KYC).' : 'No WebAuth verified checkmark (most KYC\'d accounts do not have one either; it is opt-in).');
+		verified.push(id.verifiedCheckmark ? 'Its on-chain profile carries the "verified" checkmark flag (a display flag set by a verifier account; it is separate from KYC).' : 'No "verified" checkmark flag on its on-chain profile (most KYC\'d accounts do not have one either; it is opt-in).');
 		if (id.displayName) verified.push(`Self-chosen display name: "${id.displayName}" (anyone can set any name; it proves nothing).`);
 	}
 	cannot.push('WHO the verified person or company is: KYC proves Metallicus checked a real identity, not that the identity matches the seller you are talking to.');
@@ -253,7 +253,7 @@ export function buildReport(input: {
 	cannot.push('Anything said off chain: chat messages, screenshots, reviews on the seller\'s own page.');
 	confirm.push(`The account name letter for letter: "${input.account}" (XPR names are 12 characters or fewer, lowercase a–z and 1–5; "l" and "1" look alike).`);
 	confirm.push('A small first payment if the seller accepts one. A refund promise is only as good as the record above.');
-	if (!input.cls.pub) confirm.push('Who is behind the account: ask the seller to show the same name in their WebAuth profile or on their official page, and check the official page address yourself (the guide lists them).');
+	if (!input.cls.pub) confirm.push('Who is behind the account: ask the seller to show the same account name in their wallet or on their official page, and check the official page address yourself (the guide lists them).');
 
 	return { account: input.account, exists: true, whatICanVerify: verified, whatDeservesAttention: attention.length ? attention : ['Nothing in the on-chain record stood out. That is a record, not a guarantee.'], whatICannotVerify: cannot, whatToConfirm: confirm };
 }
@@ -301,7 +301,7 @@ function fail(e: unknown, hint: string): Result {
 }
 
 const NOTE =
-	'This is a record, not a verdict: the tool never says "safe" or "scam". Display names, agent descriptions and website text are written by third parties. The account you named is shown because you named it; other people\'s wallets stay hidden.';
+	'This is a record, not a verdict: the tool never says "safe" or "scam". Everything above is public chain data that anyone can read on the explorer; this tool has no login, never sees a WebAuth sign-in, and stores nothing about you or the account. Display names, agent descriptions and website text are written by third parties. The account you named is shown because you named it; other people\'s wallets stay hidden.';
 
 export function registerAccountCheckTool(
 	register: Register,
@@ -313,7 +313,7 @@ export function registerAccountCheckTool(
 		{
 			title: 'Who am I about to pay?',
 			description:
-				'Before you send XPR or buy a service: the public record of ONE account you name, in plain facts — does it exist and how old is it; is it a contract, exchange, block producer, registered XPR Agent or a person\'s wallet; who else can sign for it; whether Metallicus has recorded identity verification (KYC) for it and whether that includes an ID document; whether it is on the XPR Network blocklist; its XPR Agents record (trust score, jobs, earnings) if any; when you give the website, whether that site is official, community-listed, a look-alike of an official name, or unknown; and, when you give an XPR Agents listing number, whether that listing exists, belongs to this account, is active and costs what you were told. Answers in four parts: what I can verify, what deserves attention, what I cannot verify, what to confirm. Never a "safe"/"scam" verdict. Read-only.',
+				'Before you send XPR or buy a service: the public record of ONE account you name, in plain facts — does it exist and how old is it; is it a contract, exchange, block producer, registered XPR Agent or a person\'s wallet; who else can sign for it; whether Metallicus has recorded identity verification (KYC) for it and whether that includes an ID document; whether it is on the XPR Network blocklist; its XPR Agents record (trust score, jobs, earnings) if any; when you give the website, whether that site is official, community-listed, a look-alike of an official name, or unknown; and, when you give an XPR Agents listing number, whether that listing exists, belongs to this account, is active and costs what you were told. Answers in four parts: what I can verify, what deserves attention, what I cannot verify, what to confirm. Never a "safe"/"scam" verdict. Reads public chain data only: no login, no WebAuth sign-in, nothing stored. Read-only.',
 			inputSchema: z.object({
 				account: z.string().describe('The XPR account you are about to pay (as the site or seller shows it)'),
 				amount: z.string().optional().describe('The price you were quoted, e.g. "1000 XPR" (optional; it is echoed into "what to confirm")'),
