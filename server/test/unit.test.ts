@@ -1388,10 +1388,12 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		{ url: 'https://www.example-news.com/c', title: 'XRP rallies as markets turn', seendate: '20261022T090000Z', domain: 'example-news.com', language: 'English', sourcecountry: 'United States' },
 		{ url: 'https://www.paper.example/d', title: 'Credit union pilots XPR Network payments', seendate: '20261022T120000Z', domain: 'paper.example', language: 'English', sourcecountry: 'United States' },
 		{ url: 'https://www.paper.example/d', title: 'duplicate', seendate: '20261022T120000Z', domain: 'paper.example' },
+		{ url: 'https://loudwire.com/venom-mantas-tribute/', title: 'Venom Co-Founder + More Metal Musicians Pay Tribute', seendate: '20261001T233000Z', domain: 'loudwire.com' },
+		{ url: 'https://www.biz.example/news/metal-pay-adds-card', title: 'New card launched', seendate: '20261019T000000Z', domain: 'biz.example' },
 	] };
 	const na = newsArticles(G, true);
-	t('news: collisions (Metallica, XRP) dropped, duplicates removed, newest first', na.articles.length === 2 && na.dropped === 2 && na.articles[0].title === 'Credit union pilots XPR Network payments' && na.articles[1].seenByGdelt === '2026-10-20T14:30:00.000Z');
-	t('news: a user query is not collision-filtered', newsArticles(G, false).articles.length === 4);
+	t('news: collisions and stories not naming the ecosystem in title or link dropped (live 2026-10-23 shape), duplicates removed, newest first', na.articles.length === 3 && na.dropped === 3 && na.articles[0].title === 'Credit union pilots XPR Network payments' && na.articles[1].seenByGdelt === '2026-10-20T14:30:00.000Z' && na.articles[2].url.includes('metal-pay-adds-card'));
+	t('news: a user query is not filtered', newsArticles(G, false).articles.length === 6);
 	t('news: default query ORs the ecosystem names in quotes', DEFAULT_NEWS_QUERY.startsWith('("Metallicus" OR "XPR Network"') && DEFAULT_NEWS_QUERY.includes('"LOAN Protocol"'));
 
 	// EDGAR full-text search reply (Elasticsearch envelope; _id "<accession>:<file>")
@@ -1525,7 +1527,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
 	}
 	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
-	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.0, 23 tools/.test(g.result.content.at(-1).text));
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.1, 23 tools/.test(g.result.content.at(-1).text));
 	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
 	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
 	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });

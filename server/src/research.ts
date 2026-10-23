@@ -90,7 +90,9 @@ export function newsArticles(json: any, usedDefault: boolean) {
 		const title = String(a?.title ?? '').replace(/\s+/g, ' ').trim();
 		const url = String(a?.url ?? '');
 		if (!/^https?:\/\//.test(url) || seen.has(url)) continue;
-		if (usedDefault && COLLISION.test(`${title} ${url}`) && !ECO_WORDS.test(title)) {
+		// 1.25.1: live, GDELT's phrase search returned unrelated stories ("Metal Musicians Pay…", jewellery prices), so with
+		// the default query an article is kept only when its title or address names the ecosystem.
+		if (usedDefault && (!ECO_WORDS.test(`${title} ${decodeURIComponent(url).replace(/[-_/]+/g, ' ')}`) || (COLLISION.test(`${title} ${url}`) && !ECO_WORDS.test(title)))) {
 			dropped++;
 			continue;
 		}
@@ -203,7 +205,7 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 	const q = query?.trim() || DEFAULT_NEWS_QUERY;
 	const now = new Date();
 	const start = new Date(now.getTime() - Math.min(90, Math.max(1, days ?? 30)) * 86400_000);
-	const url = `${GDELT}?query=${encodeURIComponent(q)}&mode=ArtList&format=json&maxrecords=${Math.min(250, (limit ?? 25) * 3)}&sort=DateDesc&startdatetime=${gdeltStamp(start)}&enddatetime=${gdeltStamp(now)}`;
+	const url = `${GDELT}?query=${encodeURIComponent(q)}&mode=ArtList&format=json&maxrecords=${query?.trim() ? Math.min(250, (limit ?? 25) * 3) : 250}&sort=DateDesc&startdatetime=${gdeltStamp(start)}&enddatetime=${gdeltStamp(now)}`;
 	try {
 		const r = await getText(url, 900, ctx, undefined, 20_000);
 		const body = r.text.trim();
@@ -217,8 +219,8 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 		}
 		const { articles, dropped } = newsArticles(json, !query?.trim());
 		const data: any = { query: q, from: start.toISOString(), to: now.toISOString(), count: Math.min(articles.length, limit ?? 25), articles: articles.slice(0, limit ?? 25) };
-		if (dropped) data.filteredOut = `${dropped} article(s) about something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
-		if (!articles.length) data.verdict = 'No matching articles in the GDELT news index for this window.';
+		if (dropped) data.filteredOut = `${dropped} article(s) left out: the title and link did not name the ecosystem, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
+		if (!articles.length) data.verdict = 'No article in the GDELT news index for this window names the ecosystem in its title or link.';
 		return ok(data, url, r.readAt, `The time shown is when GDELT first saw each article, not the outlet's own publish date (GDELT does not give that); open the link for the article's date. GDELT covers web news in many languages but not every outlet, and no social media. ${DATA_NOTE}`);
 	} catch (e) {
 		return fail(e, 'GDELT allows about one request every 5 seconds; wait a little and try again.');
