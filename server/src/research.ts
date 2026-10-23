@@ -399,7 +399,8 @@ async function readFallback(f: (typeof NEWS_FALLBACKS)[number], q: string, days:
 }
 
 export async function newsView({ query, days, limit }: { query?: string; days?: number; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
-	const d = Math.min(90, Math.max(1, days ?? 30));
+	// 1.25.5: up to 365 days; GDELT itself lists only the last 3 months, so it is asked for at most 90.
+	const d = Math.min(365, Math.max(1, days ?? 30));
 	const lim = Math.min(75, limit ?? 25);
 	const userQuery = !!query?.trim();
 	const q = query?.trim() || DEFAULT_NEWS_QUERY;
@@ -413,13 +414,13 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 		const rel = relevantNews(r.items, !userQuery);
 		dropped += rel.dropped;
 		all = all.concat(rel.items);
-		answered.push(r.cached ? `${name} (shared copy, refreshed at most hourly)` : name);
+		answered.push(r.cached ? `${name} (shared recent copy)` : name);
 		sources.push(r.source);
 		return rel.items.length;
 	};
 	let gdeltCount = 0;
 	try {
-		gdeltCount = take('GDELT', await readGdelt(q, d, userQuery, ctx));
+		gdeltCount = take('GDELT', await readGdelt(q, Math.min(90, d), userQuery, ctx));
 	} catch (e) {
 		notRead.push(`GDELT: ${e instanceof UpstreamError ? e.message : 'could not be read'}`);
 	}
@@ -444,7 +445,7 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 	const data: any = { query: q, days: d, answeredBy: answered, count: merged.length, articles: merged };
 	if (dropped) data.filteredOut = `${dropped} item(s) left out: they did not name the ecosystem in title or link, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
 	if (notRead.length) data.notRead = notRead;
-	if (!merged.length) data.verdict = `No news item from ${answered.join(' / ')} names the ecosystem in its title or link for the last ${d} days.`;
+	if (!merged.length) data.verdict = userQuery ? `No news item from ${answered.join(' / ')} matched in the last ${d} days.` : `No news item from ${answered.join(' / ')} names the ecosystem in its title or link in the last ${d} days${d < 365 ? ' (try days 365 for older coverage)' : ''}.`;
 	else await newsPut(lastKey, { ...data, readAt, sources }, LAST_GOOD_TTL, ctx);
 	return ok(
 		data,
@@ -566,7 +567,7 @@ export function registerResearchTools(register: Register, ctx?: ExecutionContext
 			inputSchema: z.object({
 				view: z.enum(OUTSIDE_VIEWS),
 				query: z.string().min(2).max(200).optional().describe('news: your own search words (default: the ecosystem names); filings: company name or term, e.g. "Metallicus" (required)'),
-				days: z.number().int().min(1).max(90).optional().describe('news: days back (default 30, max 90)'),
+				days: z.number().int().min(1).max(365).optional().describe('news: days back (default 30, max 365; GDELT covers only the last 90)'),
 				forms: z.string().max(60).optional().describe('filings: comma-separated form types, e.g. "D,8-K"'),
 				from: z.string().max(10).optional().describe('filings: filed on or after YYYY-MM-DD'),
 				to: z.string().max(10).optional().describe('filings: filed on or before YYYY-MM-DD'),
