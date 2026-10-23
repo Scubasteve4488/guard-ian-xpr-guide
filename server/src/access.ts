@@ -106,13 +106,20 @@ export function u64ToName(v: string): string | null {
 
 /** Does this account exist on chain? Unknown counts as yes, so a failed read cannot open a lookup. */
 export async function accountExists(name: string, net: Network | undefined, ctx?: ExecutionContext): Promise<boolean> {
-	try {
-		await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, undefined, rpcPool(net));
-		return true;
-	} catch (e: any) {
-		// 1.22.4: nodeos reports a missing account as "Account Query Exception" (seen live 2026-10-23, ondastream on mainnet).
-		return !/unknown key|does not exist|not found|account query exception|\b500\b/i.test(String(e?.message ?? e));
+	// 1.22.5: the live check after 1.22.4 still answered "exists" for a missing account on some reads, because the RPC
+	// pool starts at a random host and a host that is busy, banned or worded differently gave an unclear answer. Ask up
+	// to two hosts; only a clear chain answer ("Account Query Exception" / account_query_exception / unknown key) counts
+	// as missing. Anything else stays "exists", which keeps the private refusal.
+	const pool = rpcPool(net);
+	for (let i = 0; i < Math.min(2, pool.length); i++) {
+		try {
+			await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, i, pool);
+			return true;
+		} catch (e: any) {
+			if (/unknown key|does not exist|account query exception|account_query_exception/i.test(String(e?.message ?? e))) return false;
+		}
 	}
+	return true;
 }
 
 /**
