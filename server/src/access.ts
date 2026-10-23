@@ -159,6 +159,31 @@ export function accessGate(pathname: string, secret?: string, lock?: string): 'p
 	return pathname === '/' || pathname === '' ? 'open-landing' : 'pass';
 }
 
+/**
+ * 1.22.3 (builder 2026-10-23 "Fix it"): an account that does not exist on this network was refused as "a private
+ * person's account" (found with ondastream: a testnet-only contract, absent on mainnet). Existence is public and is
+ * not a profile, so say plainly that there is no such account and where to look instead. accountExists() fails toward
+ * "exists", so a failed read still ends in the ordinary private refusal.
+ */
+export function missingAccount(name: string, net?: Network) {
+	const where = net === 'testnet' ? 'the XPR testnet' : 'XPR Network mainnet';
+	const other = net === 'testnet' ? 'mainnet (network "mainnet", the default)' : 'the testnet (xpr_testnet, view "account")';
+	return {
+		isError: true,
+		content: [
+			{
+				type: 'text' as const,
+				text: `No account named "${name}" exists on ${where} (checked live). Check the spelling; a project still in testing may only exist on ${other}.`,
+			},
+		],
+	};
+}
+
+/** The refusal for a non-public account: "no such account" when the chain says so, otherwise the private refusal. */
+export async function declineAccount(name: string, net: Network | undefined, ctx?: ExecutionContext) {
+	return (await accountExists(name, net, ctx)) ? privateRefusal(name, net) : missingAccount(name, net);
+}
+
 export function privateRefusal(name: string, net?: Network) {
 	const host = net === 'testnet' ? 'https://testnet.explorer.xprnetwork.org' : 'https://explorer.xprnetwork.org';
 	return {
