@@ -1534,7 +1534,7 @@ Builder, 2026-10-21: "Ppl might want to cross analyze megallicus with other cryp
 |---|---|---|---|---|
 | Aave | Lending protocol docs; the liquidations concept page: "identify a position with a health factor below 1.0 that is eligible for liquidation" (same 1.0 line as LOAN Protocol, §12b; the parameters differ, read each) | https://aave.com/docs/concepts/liquidations | undated | LIVE |
 | Compound III | "Developer documentation for Compound III, an EVM-compatible protocol for collateralized borrowing and base-asset lending" (docs moved from docs.compound.finance to docs.compound.xyz) | https://docs.compound.xyz | 2026-09-16 | LIVE |
-| Uniswap | Support article "How does the Uniswap protocol work?" (AMM, liquidity pools) and the protocol glossary. Metal X Swap and SimpleDEX are AMMs too (§2) | https://support.uniswap.org/hc/en-us/articles/8671577468813-How-does-Uniswap-work · https://docs.uniswap.org/concepts/glossary | article updated 2025-04-17 | LIVE (article opened; glossary listed from search, not opened) |
+| Uniswap | Support article "How does the Uniswap protocol work?" (AMM, liquidity pools) and the protocol glossary. Metal X Swap and SimpleDEX are AMMs too (§2) | https://support.uniswap.org/hc/en-us/articles/8671577468813-How-does-Uniswap-work · https://docs.uniswap.org/concepts/glossary · v2 "Understanding Returns" (impermanent-loss formula and table, opened 2026-10-22): https://developers.uniswap.org/docs/protocols/v2/concepts/understanding-returns | article updated 2025-04-17 | LIVE (article opened; glossary listed from search, not opened) |
 
 ### 16d. Wallets and exchanges people compare WebAuth, Metal X and Metal Pay with (their education hubs)
 
