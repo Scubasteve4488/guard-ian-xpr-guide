@@ -1527,7 +1527,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
 	}
 	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
-	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.3, 23 tools/.test(g.result.content.at(-1).text));
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.4, 23 tools/.test(g.result.content.at(-1).text));
 	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
 	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
 	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });
@@ -1554,6 +1554,8 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 </channel></rss>`;
 	const gn = parseNewsRss(GN, 'Google News RSS');
 	t('news rss: Google News items read with outlet, title without " - Outlet", pubDate, and marked viaGoogleNews', gn.length === 2 && gn[0].outlet === 'Example Times' && gn[0].title === 'Metallicus launches Metal Dollar pilot with credit union' && gn[0].published === '2026-10-22T14:00:00.000Z' && gn[0].viaGoogleNews === true);
+	const PRICE = [{ outlet: 'Investing.com México', title: 'XPR Network Won - XPR/KRW', url: 'https://mx.investing.com/crypto/proton/xpr-krw', feed: 'Bing News RSS' }, { outlet: 'Goodreturns', title: 'XPR Network Price Today in India', url: 'https://www.goodreturns.in/crypto-currency/proton-price-in-india.html', feed: 'Bing News RSS' }, { outlet: 'Paper', title: 'XPR Network adds bank partner', url: 'https://paper.example/xpr-bank', feed: 'Bing News RSS' }];
+	t('news: price-quote pages are not news (live Bing shapes)', relevantNews(PRICE as any, true).items.length === 1 && relevantNews(PRICE as any, true).items[0].title === 'XPR Network adds bank partner');
 	t('news rss: relevance + collision filter applies to RSS items', relevantNews(gn, true).items.length === 1 && relevantNews(gn, true).dropped === 1);
 	t('news: fallback order is Google News RSS, then Bing News RSS', NEWS_FALLBACKS.map((f) => f.name).join() === 'Google News RSS,Bing News RSS' && NEWS_FALLBACKS[0].url('"XPR Network"', 30).startsWith('https://news.google.com/rss/search?q=') && /format=rss/.test(NEWS_FALLBACKS[1].url('x', 1)));
 

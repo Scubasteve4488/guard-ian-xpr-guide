@@ -283,6 +283,9 @@ export function parseNewsRss(xml: string, feed: string): NewsItem[] {
 	return out;
 }
 
+const PRICE_PAGE = /\bprice (today|in [a-z]+|chart|prediction|index)\b|\bhistorical data\b|\b[A-Z]{2,6}\/(USD|USDT|KRW|EUR|BTC|INR|BRL|MXN)\b|\bto (USD|INR|EUR)\b|\bconverter\b/i;
+const PRICE_URL = /investing\.com\/crypto\/|coinmarketcap\.com\/currencies\/|coingecko\.com\/[a-z]{2}\/coins\/|\/price-(in|today|prediction)|-price-(in|today|prediction)|\/historical-data/i;
+
 /** Keep items that name the ecosystem (title, or link words for direct links); drop name collisions; de-duplicate. */
 export function relevantNews(items: NewsItem[], usedDefault: boolean) {
 	const kept: NewsItem[] = [];
@@ -292,6 +295,11 @@ export function relevantNews(items: NewsItem[], usedDefault: boolean) {
 	for (const n of items) {
 		const linkWords = n.viaGoogleNews ? '' : decodeURIComponent(n.url).replace(/[-_/]+/g, ' ');
 		if (usedDefault && (!ECO_WORDS.test(`${n.title} ${linkWords}`) || (COLLISION.test(`${n.title} ${n.url}`) && !ECO_WORDS.test(n.title)))) {
+			dropped++;
+			continue;
+		}
+		// Price-quote pages are not news (live 2026-10-23: Bing returned investing.com "XPR/USD" and "Price Today" pages).
+		if (PRICE_PAGE.test(n.title) || PRICE_URL.test(n.url)) {
 			dropped++;
 			continue;
 		}
