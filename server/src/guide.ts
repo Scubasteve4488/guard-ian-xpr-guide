@@ -81,6 +81,9 @@ export function searchSections(sections: Section[], query: string, limit = 6) {
 		}
 		// Prefer sections that contain more of the distinct terms.
 		score *= 1 + matched / terms.length;
+		// CHANGELOG is one long dated log that mentions almost everything, so it used to outrank the page that holds the
+		// fact. Halve it: it still answers "when did this change?" and still shows when nothing else matches.
+		if (s.file === 'CHANGELOG.md') score *= 0.5;
 		return { s, score, matched };
 	});
 	return scored

@@ -119,6 +119,13 @@ t('tokenize drops stop words', tokenize('What is the XPR Network LOAN protocol?'
 	t('glossary: search finds health factor in GLOSSARY', hf.some((x) => x.file === 'GLOSSARY.md' && /Health factor/.test(x.text)));
 	const kyc = searchSections(sections, 'KYC claim list verified checkmark');
 	t('glossary: search finds KYC in GLOSSARY', kyc.some((x) => x.file === 'GLOSSARY.md' && /claim list, not a level/.test(x.text)));
+	{
+		// 1.22.1: a long CHANGELOG entry no longer outranks the content section that holds the same words.
+		const mk = (file: string, heading: string, text: string) => ({ file, heading, startLine: 1, text });
+		const hits = searchSections([mk('CHANGELOG.md', 'Changelog', 'impermanent loss liquidity farm, impermanent loss again'), mk('GLOSSARY.md', 'Trading', 'impermanent loss liquidity farm')], 'impermanent loss liquidity farm');
+		t('search: content beats CHANGELOG on the same words', hits[0]?.file === 'GLOSSARY.md' && hits.length === 2);
+		t('search: CHANGELOG still found alone', searchSections([mk('CHANGELOG.md', 'Changelog', 'updatesvc fix')], 'updatesvc').length === 1);
+	}
 	t('glossary: GUIDE_FILES carries it', (GUIDE_FILES as readonly string[]).includes('GLOSSARY.md'));
 	t('glossary: not a link file (LINK_FILES excludes it)', !(LINK_FILES as readonly string[]).includes('GLOSSARY.md'));
 }
