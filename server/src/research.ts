@@ -543,6 +543,19 @@ async function directPart(q: string, d: number, userQuery: boolean, ctx?: Execut
 	return { items: relevantNews(items, false).items, answered, sources, notRead, dropped };
 }
 
+export function interleaveByTopic<T extends { topic?: string }>(items: T[]): T[] {
+	const groups = new Map<string, T[]>();
+	for (const n of items) {
+		const k = n.topic ?? '';
+		if (!groups.has(k)) groups.set(k, []);
+		groups.get(k)!.push(n);
+	}
+	const lists = [...groups.values()];
+	const out: T[] = [];
+	for (let i = 0; out.length < items.length; i++) for (const l of lists) if (l[i]) out.push(l[i]);
+	return out;
+}
+
 export const NEWS_MODES = ['both', 'direct', 'related'] as const;
 export async function newsView({ query, days, limit, mode, topic }: { query?: string; days?: number; limit?: number; mode?: (typeof NEWS_MODES)[number]; topic?: string }, ctx?: ExecutionContext): Promise<Result> {
 	// 1.25.5: up to 365 days; GDELT itself lists only the last 3 months, so it is asked for at most 90.
@@ -570,7 +583,8 @@ export async function newsView({ query, days, limit, mode, topic }: { query?: st
 	if (m !== 'direct') {
 		rel = await relatedPart(d, topic, ctx);
 		const seen = new Set(direct.map((n) => n.url));
-		related = relevantNews(rel.items.filter((n) => !seen.has(n.url)), false).items;
+		// 1.26.1: newest first inside each topic, then taken in turns across topics, so one busy topic can't fill the list.
+		related = interleaveByTopic(relevantNews(rel.items.filter((n) => !seen.has(n.url)), false).items);
 		if (rel.sources.length) answered.push(`Bing News RSS (related topics${rel.cachedAll ? ', shared recent copy' : ''})`);
 		sources.push(...rel.sources);
 		notRead.push(...rel.notRead);

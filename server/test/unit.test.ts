@@ -21,7 +21,7 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
-import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, BING_TERMS, parseTopicTable, pickTopics, relatedItems, setGuideRef, MAX_TOPIC_QUERIES, BUILTIN_TOPICS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, BING_TERMS, parseTopicTable, pickTopics, relatedItems, interleaveByTopic, setGuideRef, MAX_TOPIC_QUERIES, BUILTIN_TOPICS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
 import { MERGES, HIDDEN_TOOLS, ALIAS_NAMES, translateOld } from '../src/merge.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
@@ -1636,6 +1636,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const ri = relatedItems(items, fed, 30, now);
 	t('related: kept only when title/summary has a topic term, inside the window, not a name collision; labelled with topic and why', ri.kept.length === 1 && ri.dropped === 3 && ri.kept[0].relation === 'related topic — does not name Metallicus' && ri.kept[0].topic === 'FedNow and instant payments' && /FedNow Request for Payment/.test(ri.kept[0].whyRelated!) && /ECOSYSTEM §1/.test(ri.kept[0].guideSource!));
 
+	t('related: topics take turns so one busy topic cannot fill the list', interleaveByTopic([{ topic: 'A', n: 1 }, { topic: 'A', n: 2 }, { topic: 'A', n: 3 }, { topic: 'B', n: 4 }] as any[]).map((x: any) => x.n).join() === '1,4,2,3');
 	// end to end, mode both: topic map read from the guide, direct items first, related labelled, Bing calls capped
 	const tools: Record<string, (a: any) => Promise<any>> = {};
 	registerResearchTools((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
