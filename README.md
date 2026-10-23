@@ -14,23 +14,17 @@ AI apps don't know the XPR / Metallicus ecosystem deeply, and they guess. This g
 
 ## Connect it
 
-Connector URL:
-
-```
-https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
-```
-
-Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
-
-**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live tools: the XPR chain (accounts, tokens, contract tables, transactions, blocks, producers, governance, testnet), **"is this the real token?"**, SimpleDEX, Metal X, **LOAN Protocol** (rates, APY, TVL), NFTs, XPR Agents, Metal Blockchain with BTCVM/LTCVM/DogecoinVM, and **Metal L2, Ethereum and BNB Chain**. Pages that build themselves in the browser are read in a real browser. Code: [`server/`](server/).
+Connector URL (paste this one):
 
 ```
 https://guide.standguard.net/mcp
 ```
 
+**GUARD.IAN's own server (live since 2026-10-15).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live tools: the XPR chain (accounts, tokens, contract tables, transactions, blocks, producers, governance, testnet), **"is this the real token?"**, SimpleDEX, Metal X, **LOAN Protocol** (rates, APY, TVL), NFTs, XPR Agents, Metal Blockchain with BTCVM/LTCVM/DogecoinVM, and **Metal L2, Ethereum and BNB Chain**. Pages that build themselves in the browser are read in a real browser. Code: [`server/`](server/).
+
 (Since 2026-10-16. The older address `https://guard-ian-guide.rangelt88.workers.dev/mcp` reaches the same server, so apps already connected keep working.)
 
-The GitMCP URL above also works (docs only, cached).
+Fallback, docs only and cached, no live tools: `https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide`, served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
 - **Claude** (claude.ai): Customize → Connectors → Add custom connector → paste the URL.
 - **Grok** (grok.com): **Plugins** (bottom left of the sidebar) → Connectors → New Connector → Custom → name + paste the URL → Add Connector. Tested 2026-10-15.
