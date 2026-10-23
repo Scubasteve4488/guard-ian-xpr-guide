@@ -25,7 +25,7 @@ import { registerEvmTool } from './evm.ts';
 import { registerStatusTool } from './status.ts';
 import { registerWhatsNewTool } from './whatsnew.ts';
 import { registerAccountCheckTool } from './paycheck.ts';
-import { registerResearchTools, alcorView, setNewsLimiter } from './research.ts';
+import { registerResearchTools, alcorView, setNewsLimiter, setGuideRef } from './research.ts';
 import { HIDDEN_TOOLS, MERGES, MERGED, registerMerged, installAliases } from './merge.ts';
 import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
@@ -61,7 +61,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.25.6';
+const VERSION = '1.26.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -909,6 +909,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
 	if (!env.CHAIN_LIMITER || !env.HOST_LIMITER) return new Response('Server misconfigured: upstream rate limits missing.', { status: 503 });
 	setUpstreamLimiters(env.CHAIN_LIMITER, env.HOST_LIMITER);
 	setNewsLimiter(env.NEWS_LIMITER);
+	setGuideRef({ repo: env.GUIDE_REPO || 'Scubasteve4488/guard-ian-xpr-guide', branch: env.GUIDE_BRANCH || 'main', token: env.GITHUB_TOKEN });
 	const handler = createMcpHandler(() => createServer(env, ctx, ip));
 	return handler(request, env, ctx);
 }

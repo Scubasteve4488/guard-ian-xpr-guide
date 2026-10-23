@@ -252,7 +252,7 @@ export function __resetNewsCache() {
 }
 const sleepMs = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-type NewsItem = { outlet: string; title: string; url: string; published?: string; seenByGdelt?: string; feed: string; viaGoogleNews?: boolean };
+type NewsItem = { outlet: string; title: string; url: string; published?: string; seenByGdelt?: string; feed: string; viaGoogleNews?: boolean; summary?: string; relation?: string; topic?: string; whyRelated?: string; guideSource?: string };
 
 /** RSS 2.0 news items (Google News / Bing News): title, link, pubDate, <source> outlet. */
 export function parseNewsRss(xml: string, feed: string): NewsItem[] {
@@ -278,7 +278,8 @@ export function parseNewsRss(xml: string, feed: string): NewsItem[] {
 		const d = new Date(pick('pubDate'));
 		const google = /(^|\.)news\.google\.com$/.test(new URL(url).hostname);
 		if (!outlet) outlet = google ? 'unknown outlet' : new URL(url).hostname;
-		out.push({ outlet, title, url, ...(Number.isNaN(d.getTime()) ? {} : { published: d.toISOString() }), feed, ...(google ? { viaGoogleNews: true } : {}) });
+		const summary = htmlToText(pick('description')).replace(/\s+/g, ' ').trim().slice(0, 300);
+		out.push({ outlet, title, url, ...(Number.isNaN(d.getTime()) ? {} : { published: d.toISOString() }), feed, ...(google ? { viaGoogleNews: true } : {}), ...(summary ? { summary } : {}) });
 	}
 	return out;
 }
@@ -398,22 +399,127 @@ async function readFallback(f: (typeof NEWS_FALLBACKS)[number], q: string, days:
 	return { items: items.filter((n) => !n.published || Date.parse(n.published) >= from), source: used.join(' ; '), cached: cachedAll };
 }
 
-export async function newsView({ query, days, limit }: { query?: string; days?: number; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
-	// 1.25.5: up to 365 days; GDELT itself lists only the last 3 months, so it is asked for at most 90.
-	const d = Math.min(365, Math.max(1, days ?? 30));
-	const lim = Math.min(75, limit ?? 25);
-	const userQuery = !!query?.trim();
-	const q = query?.trim() || DEFAULT_NEWS_QUERY;
-	const readAt = new Date().toISOString();
+// ── related topics (1.26.0, owner 14:24 MT: news "tied to" Metallicus even when it is not named) ──────────────────────
+// The topic map lives in the guide, SOURCES.md §8 "Related news topics", so it can be edited without code; it is read
+// live (cached 5 minutes like every guide file) and this built-in copy is used only when the file can't be read.
+export interface NewsTopic { topic: string; terms: string[]; why: string; source: string }
+export const TOPICS_HEADING = 'Related news topics';
+export function parseTopicTable(md: string): NewsTopic[] {
+	const start = md.search(new RegExp(`^#{2,3} .*${TOPICS_HEADING}`, 'm'));
+	if (start < 0) return [];
+	const rest = md.slice(start).split('\n');
+	const out: NewsTopic[] = [];
+	for (const line of rest.slice(1)) {
+		if (/^#{1,3} /.test(line)) break;
+		const cells = line.split('|').slice(1, -1).map((c) => c.trim());
+		if (cells.length < 4 || /^-+$/.test(cells[0]) || cells[0] === 'Topic') continue;
+		const terms = cells[1].split(';').map((t) => t.trim()).filter((t) => t.length >= 3);
+		if (terms.length) out.push({ topic: cells[0], terms, why: cells[2], source: cells[3] });
+	}
+	return out;
+}
+let guideRef: { repo: string; branch: string; token?: string } | undefined;
+export function setGuideRef(r: typeof guideRef) {
+	guideRef = r;
+}
+export const BUILTIN_TOPICS: NewsTopic[] = [
+	{ topic: 'US stablecoin law and rules', terms: ['GENIUS Act', 'stablecoin regulation', 'stablecoin bill', 'stablecoin rules'], why: 'Metallicus issues Metal Dollar (XMD) and runs a Stablecoin Pilot; its own Metal Dollar blog explains the GENIUS Act', source: 'ECOSYSTEM §1, §1c, §15a' },
+	{ topic: 'Credit unions and stablecoins', terms: ['credit union stablecoin', 'credit unions stablecoins', 'credit union digital assets', 'credit union crypto'], why: "Metallicus's Stablecoin Pilot is for credit unions; CrossState pilot with 50 credit unions", source: 'ECOSYSTEM §1a, §1c' },
+	{ topic: 'FedNow and instant payments', terms: ['FedNow', 'instant payments', 'real-time payments', 'request for payment'], why: 'Metallicus has a FedNow Request for Payment certification and a FedNow integration', source: 'ECOSYSTEM §1, §1a, §1c' },
+	{ topic: "XMD's reserve stablecoins", terms: ['PYUSD', 'USDC', 'Pax Dollar', 'RLUSD', 'Circle stablecoin', 'Paxos'], why: 'Metal Dollar is backed by a basket of USDC, PYUSD and USDP', source: 'ECOSYSTEM §1, §1c' },
+	{ topic: 'AI agents that pay', terms: ['agentic payments', 'AI agent payments', 'agentic commerce', 'x402'], why: 'XPR Agents is an on-chain registry with escrowed paid jobs', source: 'ECOSYSTEM §4' },
+	{ topic: 'Bitcoin, Litecoin and Dogecoin on other chains', terms: ['Dogecoin bridge', 'Bitcoin bridge', 'wrapped Bitcoin', 'Litecoin bridge', 'Dogecoin Foundation'], why: 'BTCVM, LTCVM and DogecoinVM run those coins on Metal Blockchain (alpha)', source: 'ECOSYSTEM §1' },
+];
+async function loadTopics(ctx?: ExecutionContext): Promise<{ topics: NewsTopic[]; from: string }> {
+	if (guideRef) {
+		try {
+			const { readGuideFile } = await import('./guide.ts');
+			const r = await readGuideFile(guideRef.repo, guideRef.branch, 'SOURCES.md', ctx, guideRef.token);
+			const t = parseTopicTable(r.text);
+			if (t.length) return { topics: t, from: `${r.source} §8 "${TOPICS_HEADING}"` };
+		} catch {
+			/* fall back below */
+		}
+	}
+	return { topics: BUILTIN_TOPICS, from: 'built-in copy (SOURCES.md could not be read)' };
+}
+export const MAX_TOPIC_QUERIES = 6;
+/** Which topics one call reads: those matching `want`, else a rotating window of MAX_TOPIC_QUERIES (moves every hour). */
+export function pickTopics(all: NewsTopic[], want?: string, now = Date.now()): NewsTopic[] {
+	if (want?.trim()) {
+		const w = want.trim().toLowerCase();
+		return all.filter((t) => t.topic.toLowerCase().includes(w) || t.terms.some((x) => x.toLowerCase().includes(w))).slice(0, MAX_TOPIC_QUERIES);
+	}
+	if (all.length <= MAX_TOPIC_QUERIES) return all;
+	const offset = (Math.floor(now / 3600_000) * MAX_TOPIC_QUERIES) % all.length;
+	return Array.from({ length: MAX_TOPIC_QUERIES }, (_, i) => all[(offset + i) % all.length]);
+}
+const RELATED_COLLISION = /metallica\b|proton ?(?:mail|vpn|drive|pass)|webauthn/i;
+const termRe = (t: string) => new RegExp(`(^|[^a-z0-9])${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '[\\s-]+')}($|[^a-z0-9])`, 'i');
+/** Keep a related item when its title or summary contains one of the topic's terms; label it. */
+export function relatedItems(items: NewsItem[], t: NewsTopic, days: number, now = Date.now()) {
+	const res = t.terms.map(termRe);
+	const from = now - days * 86400_000;
+	let dropped = 0;
+	const kept: NewsItem[] = [];
+	for (const n of items) {
+		const text = `${n.title} ${n.summary ?? ''}`;
+		if (!res.some((r) => r.test(text)) || RELATED_COLLISION.test(n.title) || PRICE_PAGE.test(n.title) || PRICE_URL.test(n.url) || (n.published && Date.parse(n.published) < from)) {
+			dropped++;
+			continue;
+		}
+		const named = ECO_WORDS.test(`${n.title} ${n.summary ?? ''}`);
+		kept.push({ ...n, relation: named ? 'related topic — the text names the ecosystem' : 'related topic — does not name Metallicus', topic: t.topic, whyRelated: t.why, guideSource: t.source });
+	}
+	return { kept, dropped };
+}
+
+async function relatedPart(days: number, want: string | undefined, ctx?: ExecutionContext) {
+	const { topics, from } = await loadTopics(ctx);
+	const chosen = pickTopics(topics, want);
+	const bing = NEWS_FALLBACKS.find((f) => f.name === 'Bing News RSS')!;
+	const items: NewsItem[] = [];
+	const sources: string[] = [];
+	const notRead: string[] = [];
+	let dropped = 0;
+	let cachedAll = true;
+	for (const t of chosen) {
+		const url = bing.url(t.terms[0]);
+		try {
+			let got = await newsGet(`rss|${url}`);
+			if (!got) {
+				cachedAll = false;
+				const u = new URL(url);
+				if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
+				const r = await politeFetch([url], '', { method: 'GET', headers: { Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5' } }, { ttlSec: 0, ctx, startAt: 0, timeoutMs: 12_000 });
+				if (r.status !== 200) throw new UpstreamError(`answered HTTP ${r.status}`);
+				if (!/<rss\b|<channel\b/i.test(r.text)) throw new UpstreamError('did not answer with an RSS feed');
+				got = parseNewsRss(r.text, bing.name);
+				await newsPut(`rss|${url}`, got, NEWS_TTL, ctx);
+			}
+			const rel = relatedItems(got, t, days);
+			dropped += rel.dropped;
+			items.push(...rel.kept);
+			sources.push(url);
+		} catch (e) {
+			notRead.push(`related "${t.topic}": ${e instanceof UpstreamError ? e.message : 'could not be read'}`);
+			if (e instanceof UpstreamError && /robots\.txt|cooling down|budget/.test(e.message)) break;
+		}
+	}
+	const all = topics.length;
+	return { items, sources, notRead, dropped, cachedAll, topicsRead: chosen.map((t) => t.topic), topicMap: from, topicCount: all };
+}
+
+async function directPart(q: string, d: number, userQuery: boolean, ctx?: ExecutionContext) {
 	const answered: string[] = [];
 	const sources: string[] = [];
 	const notRead: string[] = [];
-	let all: NewsItem[] = [];
+	let items: NewsItem[] = [];
 	let dropped = 0;
 	const take = (name: string, r: { items: NewsItem[]; source: string; cached: boolean }) => {
 		const rel = relevantNews(r.items, !userQuery);
 		dropped += rel.dropped;
-		all = all.concat(rel.items);
+		items = items.concat(rel.items);
 		answered.push(r.cached ? `${name} (shared recent copy)` : name);
 		sources.push(r.source);
 		return rel.items.length;
@@ -434,25 +540,67 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 			}
 		}
 	}
-	const lastKey = `last|${q}|${d}`;
+	return { items: relevantNews(items, false).items, answered, sources, notRead, dropped };
+}
+
+export const NEWS_MODES = ['both', 'direct', 'related'] as const;
+export async function newsView({ query, days, limit, mode, topic }: { query?: string; days?: number; limit?: number; mode?: (typeof NEWS_MODES)[number]; topic?: string }, ctx?: ExecutionContext): Promise<Result> {
+	// 1.25.5: up to 365 days; GDELT itself lists only the last 3 months, so it is asked for at most 90.
+	const d = Math.min(365, Math.max(1, days ?? 30));
+	const lim = Math.min(75, limit ?? 25);
+	const m = mode ?? 'both';
+	const userQuery = !!query?.trim();
+	const q = query?.trim() || DEFAULT_NEWS_QUERY;
+	const readAt = new Date().toISOString();
+	const answered: string[] = [];
+	const sources: string[] = [];
+	const notRead: string[] = [];
+	let direct: NewsItem[] = [];
+	let related: NewsItem[] = [];
+	let dropped = 0;
+	let rel: Awaited<ReturnType<typeof relatedPart>> | null = null;
+	if (m !== 'related') {
+		const dp = await directPart(q, d, userQuery, ctx);
+		direct = dp.items;
+		answered.push(...dp.answered.map((a) => `${a} (direct)`));
+		sources.push(...dp.sources);
+		notRead.push(...dp.notRead);
+		dropped += dp.dropped;
+	}
+	if (m !== 'direct') {
+		rel = await relatedPart(d, topic, ctx);
+		const seen = new Set(direct.map((n) => n.url));
+		related = relevantNews(rel.items.filter((n) => !seen.has(n.url)), false).items;
+		if (rel.sources.length) answered.push(`Bing News RSS (related topics${rel.cachedAll ? ', shared recent copy' : ''})`);
+		sources.push(...rel.sources);
+		notRead.push(...rel.notRead);
+	}
+	const lastKey = `last|${m}|${q}|${topic ?? ''}|${d}`;
 	if (!answered.length) {
 		const last = await newsGet(lastKey);
 		if (last)
 			return ok({ ...last, staleCopy: `Every news feed failed just now, so this is the last good answer, from ${last.readAt}.`, notRead }, last.sources ?? [], readAt, `Not live: a copy from ${last.readAt}. ${DATA_NOTE}`);
 		return fail(new UpstreamError(`news feeds unavailable right now, try later (${notRead.join('; ')})`), 'This is a temporary limit of the free news feeds.');
 	}
-	const merged = relevantNews(all, false).items.slice(0, lim);
-	const data: any = { query: q, days: d, answeredBy: answered, count: merged.length, articles: merged };
-	if (dropped) data.filteredOut = `${dropped} item(s) left out: they did not name the ecosystem in title or link, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
+	const articles = direct.slice(0, lim).map((n) => ({ ...n, relation: n.relation ?? 'names the ecosystem' }));
+	const relatedOut = related.slice(0, Math.max(0, lim - articles.length));
+	const data: any = { query: m === 'related' ? undefined : q, mode: m, days: d, answeredBy: answered, count: articles.length + relatedOut.length };
+	if (m !== 'related') data.articles = articles;
+	if (m !== 'direct') {
+		data.related = relatedOut;
+		data.relatedTopicsRead = rel?.topicsRead;
+		data.topicMap = `${rel?.topicMap}; ${rel?.topicCount} topics, at most ${MAX_TOPIC_QUERIES} read per call (they rotate every hour; pass "topic" to pick)`;
+	}
+	if (dropped) data.filteredOut = `${dropped} direct item(s) left out: they did not name the ecosystem in title or link, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
 	if (notRead.length) data.notRead = notRead;
 	// 1.25.6 (builder 2026-10-23: "Just say nothing new last 30 days"): an empty window is said plainly, nothing more.
-	if (!merged.length) data.verdict = `Nothing new in the last ${d} days.`;
+	if (!data.count) data.verdict = `Nothing new in the last ${d} days.`;
 	else await newsPut(lastKey, { ...data, readAt, sources }, LAST_GOOD_TTL, ctx);
 	return ok(
 		data,
 		sources,
 		readAt,
-		`Dates: "published" is the item's own date from its feed (RSS pubDate); "seenByGdelt" is when GDELT first saw it (GDELT gives no publish date). Links marked viaGoogleNews go through Google News to the outlet. Coverage is web news, not social media. ${DATA_NOTE}`,
+		`"articles" name the ecosystem. "related" items are about a topic Metallicus is tied to (see whyRelated and guideSource) and usually do not name Metallicus: they are context. If you connect one to Metallicus, say it is your reading and why, and never say Metallicus is involved unless the article itself says so. Dates: "published" is the item's own date from its feed (RSS pubDate); "seenByGdelt" is when GDELT first saw it. Links marked viaGoogleNews go through Google News. Social media (X etc.) is not covered: there is no free API; if your own AI can search X, do that separately. ${DATA_NOTE}`,
 	);
 }
 
@@ -564,11 +712,13 @@ export function registerResearchTools(register: Register, ctx?: ExecutionContext
 		{
 			title: 'Outside sources: news, SEC filings, XMD reserves',
 			description:
-				'Sources outside the chain, one view at a time. "news": outside press mentions of Metallicus, XPR Network, Metal Pay, Metal Dollar (XMD), Metal Blockchain, WebAuth and LOAN Protocol, newest first (outlet, title, link, time the GDELT news index first saw it; name collisions like Metallica, ProtonMail, XRP and WebAuthn filtered out). "filings": U.S. SEC EDGAR full-text search for a company or term (form, filer, date, link) — use ONLY when the user asks for filings or regulatory records; results are worded as filed, no opinion, private individuals shown as [individual filer]. "xmd_reserves": what backs Metal Dollar — the official reserves page in its own words with its dated snapshot, plus the live XPR Network treasury (XMD supply and each reserve token\'s balance); numbers only, never a verdict. Read-only.',
+				'Sources outside the chain, one view at a time. "news": outside press, newest first, with outlet, title, link and date — mode "direct" = stories naming Metallicus, XPR Network, Metal Pay, Metal Dollar (XMD), Metal Blockchain, WebAuth or LOAN Protocol (name collisions like Metallica, ProtonMail, XRP and WebAuthn filtered out); mode "related" = stories on topics Metallicus is tied to (US stablecoin law, credit unions and stablecoins, FedNow and instant payments, the coins backing XMD, AI-agent payments, Bitcoin/Dogecoin bridges and more, from the guide topic map), each labelled with why it relates — context, not a claim that Metallicus is involved; default "both". Social media (X) is not covered: no free API. "filings": U.S. SEC EDGAR full-text search for a company or term (form, filer, date, link) — use ONLY when the user asks for filings or regulatory records; results are worded as filed, no opinion, private individuals shown as [individual filer]. "xmd_reserves": what backs Metal Dollar — the official reserves page in its own words with its dated snapshot, plus the live XPR Network treasury (XMD supply and each reserve token\'s balance); numbers only, never a verdict. Read-only.',
 			inputSchema: z.object({
 				view: z.enum(OUTSIDE_VIEWS),
 				query: z.string().min(2).max(200).optional().describe('news: your own search words (default: the ecosystem names); filings: company name or term, e.g. "Metallicus" (required)'),
 				days: z.number().int().min(1).max(365).optional().describe('news: days back (default 30, max 365; GDELT covers only the last 90)'),
+				mode: z.enum(NEWS_MODES).optional().describe('news: "direct" = stories naming the ecosystem; "related" = stories on topics Metallicus is tied to (stablecoin law, credit unions, FedNow…); default "both"'),
+				topic: z.string().min(2).max(80).optional().describe('news, related mode: read only topics matching this word, e.g. "FedNow" or "stablecoin"'),
 				forms: z.string().max(60).optional().describe('filings: comma-separated form types, e.g. "D,8-K"'),
 				from: z.string().max(10).optional().describe('filings: filed on or after YYYY-MM-DD'),
 				to: z.string().max(10).optional().describe('filings: filed on or before YYYY-MM-DD'),
@@ -576,7 +726,7 @@ export function registerResearchTools(register: Register, ctx?: ExecutionContext
 			}),
 			annotations: { title: 'Outside sources', ...RO },
 		},
-		async (a: { view: (typeof OUTSIDE_VIEWS)[number]; query?: string; days?: number; forms?: string; from?: string; to?: string; limit?: number }) => {
+		async (a: { view: (typeof OUTSIDE_VIEWS)[number]; query?: string; days?: number; forms?: string; from?: string; to?: string; limit?: number; mode?: (typeof NEWS_MODES)[number]; topic?: string }) => {
 			if (a.view === 'news') return newsView(a, ctx);
 			if (a.view === 'filings') return filingsView(a, ctx);
 			return xmdReservesView(ctx);

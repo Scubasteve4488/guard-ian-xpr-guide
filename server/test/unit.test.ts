@@ -21,7 +21,7 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
-import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, BING_TERMS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, BING_TERMS, parseTopicTable, pickTopics, relatedItems, setGuideRef, MAX_TOPIC_QUERIES, BUILTIN_TOPICS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
 import { MERGES, HIDDEN_TOOLS, ALIAS_NAMES, translateOld } from '../src/merge.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
@@ -1568,9 +1568,9 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
 		return new Response('nf', { status: 404 });
 	});
-	const r1 = await tools.outside_sources({ view: 'news' });
-	const r1b = await tools.outside_sources({ view: 'news' });
-	t('news: GDELT ok → answered by GDELT, unrelated story dropped, no fallback read', !r1.isError && /"answeredBy": \[\s*"GDELT"\s*\]/.test(r1.content[0].text) && /Bank pilots XPR Network payments/.test(r1.content[0].text) && !/Metal Musicians/.test(r1.content[0].text) && gnCalls === 0);
+	const r1 = await tools.outside_sources({ view: 'news', mode: 'direct' });
+	const r1b = await tools.outside_sources({ view: 'news', mode: 'direct' });
+	t('news: GDELT ok → answered by GDELT, unrelated story dropped, no fallback read', !r1.isError && /"answeredBy": \[\s*"GDELT \(direct\)"\s*\]/.test(r1.content[0].text) && /Bank pilots XPR Network payments/.test(r1.content[0].text) && !/Metal Musicians/.test(r1.content[0].text) && gnCalls === 0);
 	t('news: a second ask uses the shared hourly copy (GDELT asked once)', gdeltCalls === 1 && /shared recent copy/.test(r1b.content[0].text));
 
 	// GDELT 429 (twice: call + one retry) → Google News RSS answers
@@ -1582,9 +1582,9 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
 		return new Response('nf', { status: 404 });
 	});
-	const r2 = await tools.outside_sources({ view: 'news', query: undefined });
+	const r2 = await tools.outside_sources({ view: 'news', mode: 'direct' });
 	const t2 = r2.content[0].text;
-	t('news: GDELT 429 → retried once, then Google News RSS used; feed named, publish date given, link via Google News said', !r2.isError && gdeltCalls === 2 && gnCalls === 1 && /"answeredBy": \[\s*"Google News RSS"\s*\]/.test(t2) && /"published": "2026-10-22T14:00:00.000Z"/.test(t2) && /"viaGoogleNews": true/.test(t2) && /GDELT: .*429/.test(t2) && !/Metallica tour/.test(t2));
+	t('news: GDELT 429 → retried once, then Google News RSS used; feed named, publish date given, link via Google News said', !r2.isError && gdeltCalls === 2 && gnCalls === 1 && /"answeredBy": \[\s*"Google News RSS \(direct\)"\s*\]/.test(t2) && /"published": "2026-10-22T14:00:00.000Z"/.test(t2) && /"viaGoogleNews": true/.test(t2) && /GDELT: .*429/.test(t2) && !/Metallica tour/.test(t2));
 
 	// GDELT and every fallback down, nothing cached → the plain error
 	__resetNewsCache();
@@ -1609,10 +1609,65 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		if (url.startsWith('https://www.bing.com/news/')) { bingUrls.push(url); return new Response(BING, { status: 200 }); }
 		return new Response('down', { status: 500 });
 	});
-	const r4 = await tools.outside_sources({ view: 'news', days: 14 });
+	const r4 = await tools.outside_sources({ view: 'news', days: 14, mode: 'direct' });
 	const t4 = r4.content[0].text;
-	t('news: Google News skipped when its robots.txt disallows; Bing News RSS answers', !r4.isError && gnCalls === 0 && /"answeredBy": \[\s*"Bing News RSS"\s*\]/.test(t4) && /robots\.txt does not allow/.test(t4));
+	t('news: Google News skipped when its robots.txt disallows; Bing News RSS answers', !r4.isError && gnCalls === 0 && /"answeredBy": \[\s*"Bing News RSS \(direct\)"\s*\]/.test(t4) && /robots\.txt does not allow/.test(t4));
 	t('news: Bing asked once per name, real article link given, entity decoded, old story outside the window dropped', bingUrls.length === BING_TERMS.length && /"url": "https:\/\/www\.newswire\.com\/view\/content\/metallicus-fednow"/.test(t4) && /FedNow® Service/.test(t4) && !/acquires fintech operator/.test(t4) && /"count": 1/.test(t4));
+}
+
+// ── 1.26.0: news "related" mode — topics Metallicus is tied to, from SOURCES.md §8 ──────────────────────────────────
+{
+	const SRC = readFileSync(new URL('../../SOURCES.md', import.meta.url), 'utf8');
+	const topics = parseTopicTable(SRC);
+	t('topic map: SOURCES.md §8 parses into 16 topics, each with terms, why and a guide source', topics.length === 16 && topics.every((x) => x.terms.length >= 1 && x.why.length > 20 && /ECOSYSTEM §/.test(x.source)) && topics[0].topic === 'US stablecoin law and rules' && topics[0].terms[0] === 'GENIUS Act');
+	t('topic map: a page without the section gives none (built-in copy used)', parseTopicTable('# x\n| a | b | c | d |').length === 0 && BUILTIN_TOPICS.length >= 6);
+	const H = 3600_000;
+	const p0 = pickTopics(topics, undefined, 0), p1 = pickTopics(topics, undefined, H);
+	t('topics: at most 6 read per call, rotating every hour so all are covered', p0.length === MAX_TOPIC_QUERIES && p1.length === MAX_TOPIC_QUERIES && p0[0].topic !== p1[0].topic && new Set([...p0, ...p1, ...pickTopics(topics, undefined, 2 * H)].map((x) => x.topic)).size === 16);
+	t('topics: "topic" picks matching rows only', pickTopics(topics, 'FedNow').map((x) => x.topic).join() === 'FedNow and instant payments');
+	const fed = topics.find((x) => x.topic.startsWith('FedNow'))!;
+	const now = Date.parse('2026-10-23T12:00:00Z');
+	const items: any[] = [
+		{ outlet: 'American Banker', title: 'Banks report FedNow volume jump in third quarter', url: 'https://www.americanbanker.com/fednow-q3', published: '2026-10-20T10:00:00.000Z', feed: 'Bing News RSS', summary: 'Instant payments grew.' },
+		{ outlet: 'Paper', title: 'Fed weighs rate cut', url: 'https://paper.example/rates', published: '2026-10-20T10:00:00.000Z', feed: 'Bing News RSS', summary: 'Nothing about payments rails here.' },
+		{ outlet: 'Old', title: 'FedNow launches', url: 'https://old.example/fednow', published: '2023-07-20T10:00:00.000Z', feed: 'Bing News RSS' },
+		{ outlet: 'Music', title: 'Metallica real-time payments to fans', url: 'https://music.example/m', published: '2026-10-21T10:00:00.000Z', feed: 'Bing News RSS' },
+	];
+	const ri = relatedItems(items, fed, 30, now);
+	t('related: kept only when title/summary has a topic term, inside the window, not a name collision; labelled with topic and why', ri.kept.length === 1 && ri.dropped === 3 && ri.kept[0].relation === 'related topic — does not name Metallicus' && ri.kept[0].topic === 'FedNow and instant payments' && /FedNow Request for Payment/.test(ri.kept[0].whyRelated!) && /ECOSYSTEM §1/.test(ri.kept[0].guideSource!));
+
+	// end to end, mode both: topic map read from the guide, direct items first, related labelled, Bing calls capped
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerResearchTools((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	setGuideRef({ repo: 'o/r', branch: 'main' });
+	__resetNewsCache();
+	const recent = new Date(Date.now() - 86400_000).toUTCString();
+	const rss = (title: string, link: string, desc = '') => `<rss version="2.0"><channel><item><title>${title}</title><link>${link}</link><description>${desc}</description><pubDate>${recent}</pubDate><News:Source>Example Wire</News:Source></item></channel></rss>`;
+	let bingRelated = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url === 'https://raw.githubusercontent.com/o/r/main/SOURCES.md') return new Response(SRC, { status: 200 });
+		if (url.startsWith('https://api.gdeltproject.org/')) return new Response(JSON.stringify({ articles: [{ url: 'https://paper.example/xpr', title: 'Bank pilots XPR Network payments', seendate: '20261022T120000Z', domain: 'paper.example' }] }), { status: 200 });
+		if (url.startsWith('https://www.bing.com/news/')) {
+			bingRelated++;
+			const q = decodeURIComponent(new URL(url).searchParams.get('q') ?? '');
+			return new Response(rss(`New ${q} developments this week`, `https://wire.example/${encodeURIComponent(q)}`, `Story about ${q}.`), { status: 200 });
+		}
+		return new Response('nf', { status: 404 });
+	});
+	const rb = await tools.outside_sources({ view: 'news', topic: 'stablecoin' });
+	const tb = rb.content[0].text;
+	const jb = JSON.parse(tb.slice(0, tb.indexOf('\nSource:')));
+	t('news both: direct article first, related items labelled with topic/why/guide source, topic map from SOURCES.md', !rb.isError && jb.mode === 'both' && jb.articles[0].title === 'Bank pilots XPR Network payments' && jb.articles[0].relation === 'names the ecosystem' && jb.related.length >= 2 && jb.related.every((x: any) => x.relation.startsWith('related topic') && x.whyRelated && x.guideSource) && /SOURCES\.md §8/.test(jb.topicMap) && jb.relatedTopicsRead.every((x: string) => /stablecoin/i.test(x)));
+	t('news both: the note says related items are context and a link to Metallicus is a reading; X not covered', /context/.test(tb) && /your reading/.test(tb) && /never say Metallicus is involved/.test(tb) && /Social media \(X etc\.\) is not covered/.test(tb));
+	__resetNewsCache();
+	bingRelated = 0;
+	const rr = await tools.outside_sources({ view: 'news', mode: 'related' });
+	const jr = JSON.parse(rr.content[0].text.slice(0, rr.content[0].text.indexOf('\nSource:')));
+	t('news related: one call sends at most 6 topic searches, no direct read', !rr.isError && bingRelated <= MAX_TOPIC_QUERIES && jr.relatedTopicsRead.length === MAX_TOPIC_QUERIES && jr.articles === undefined && jr.related.length >= 1);
+	const rr2 = await tools.outside_sources({ view: 'news', mode: 'related' });
+	t('news related: asked again within the hour, nothing is re-fetched', bingRelated <= MAX_TOPIC_QUERIES && !rr2.isError && /shared recent copy/.test(rr2.content[0].text));
+	setGuideRef(undefined);
 }
 
 console.log(`${pass} passed, ${failN} failed`);
