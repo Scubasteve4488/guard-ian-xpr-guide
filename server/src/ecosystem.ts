@@ -6,7 +6,7 @@
 // DogecoinVM: metaldoge.com robots.txt disallows /api/ and /rpc, so it is NOT read; only its Metal P-Chain validator.
 
 import { politeFetch, getJson, UpstreamError } from './net.ts';
-import { makeKeep, maskData, producerNames } from './history.ts';
+import { makeKeep, maskData, producerNames, PRIVATE } from './history.ts';
 
 const SIMPLEDEX = 'https://indexer.protonnz.com';
 const METALX = 'https://dex.api.mainnet.metalx.com/dex/v1';
@@ -99,7 +99,21 @@ export async function agentsDirectory(a: { view: 'stats' | 'list' | 'agent' | 's
 	collect(r.json?.agents);
 	if (a.view === 'agent') collect(r.json?.agent ?? r.json);
 	const keep = await keepFor(a.account ? [a.account] : [], ctx, agentNames);
-	return { data: maskData(r.json, keep), source: r.source, readAt: r.readAt };
+	if (a.view === 'jobs' || a.view === 'open_jobs') return { data: maskData(r.json, keep), source: r.source, readAt: r.readAt };
+	// 1.22.2 (REA lab report 2026-10-23): inside "agents" every field was treated as personal, so the generic mask both
+	// hid the agent's own public text ("https", short names) AND let an owner through when that owner also runs a
+	// registered agent (it is in `keep`). Agent rows are public registry entries: show what the agent published, and
+	// always hide the people around it (owner, pending owner, deposit payer) unless it is the agent's own account.
+	const PEOPLE = ['owner', 'pending_owner', 'deposit_payer'];
+	const row = (g: any) => {
+		if (!g || typeof g !== 'object' || Array.isArray(g)) return maskData(g, keep);
+		const o: any = { ...g };
+		for (const k of PEOPLE) if (typeof o[k] === 'string' && o[k] && o[k] !== g.account) o[k] = PRIVATE;
+		return o;
+	};
+	const j = r.json;
+	const data = Array.isArray(j?.agents) ? { ...j, agents: j.agents.map(row) } : a.view === 'agent' && j && !Array.isArray(j) ? (j.agent ? { ...j, agent: row(j.agent) } : row(j)) : maskData(j, keep);
+	return { data, source: r.source, readAt: r.readAt };
 }
 
 // ── 4. AtomicAssets / AtomicMarket for XPR NFTs. Doc: dev skill nfts-atomicassets.md:80-218 (240/min live).

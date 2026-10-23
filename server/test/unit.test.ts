@@ -361,6 +361,20 @@ const po = await fetchSource('https://simpledex.fun/long.txt', undefined, lks, {
 t('offset reads a later part', po.start === 40000 && po.text.startsWith(longDoc.slice(40000, 40020)));
 const pn = await fetchSource('https://simpledex.fun/long.txt', undefined, lks, { find: 'nowhere-xyz' });
 t('find with no match says so', (pn.matches ?? []).length === 0 && pn.start === 0);
+// 1.22.2 (REA lab report 2026-10-23): agent rows hide owner / pending owner / deposit payer even when that owner also runs
+// a registered agent, and no longer blank the agent's own public text ("https", short names).
+{
+	stub((url) => url.includes('/api/agents') ? new Response(JSON.stringify({ agents: [
+		{ account: 'botone', owner: 'bottwo', pending_owner: null, deposit_payer: 'bottwo', name: 'Bot', protocol: 'https', description: 'hi' },
+		{ account: 'bottwo', owner: 'alice', deposit_payer: 'bottwo', name: 'ab', protocol: 'https' },
+	] }), { status: 200 }) : new Response(JSON.stringify({ rows: [], more: false }), { status: 200 }));
+	const { agentsDirectory } = await import('../src/ecosystem.ts');
+	const ad = (await agentsDirectory({ view: 'list' })).data as any;
+	t('agents: owner that is also an agent is hidden', ad.agents[0].owner === '[private account]' && ad.agents[0].deposit_payer === '[private account]');
+	t('agents: own account as payer stays', ad.agents[1].deposit_payer === 'bottwo' && ad.agents[1].owner === '[private account]');
+	t('agents: public fields not blanked', ad.agents[0].protocol === 'https' && ad.agents[1].name === 'ab' && ad.agents[0].account === 'botone');
+}
+
 
 globalThis.fetch = realFetch;
 
