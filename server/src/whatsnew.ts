@@ -399,7 +399,21 @@ export function registerWhatsNewTool(register: Register, ctx?: ExecutionContext)
 			const items: NewItem[] = [];
 			const sources: string[] = [];
 			const notRead: string[] = [];
-			const results = await Promise.all(want.map((l) => readLane(l, since, ctx).then((r) => ({ l, r }), (e) => ({ l, e }))));
+			// 1.23.0 (builder 2026-10-23, "2. Yes" to the freshness fixes): a lane that failed, or came back with a "Not read"
+			// part, is read once more before it is reported, so "nothing new" less often means "couldn't look".
+			const misses = (r: { items: NewItem[] }) => r.items.filter((i) => i.title === 'Not read').length;
+			const readOnceMore = async (l: Lane) => {
+				let first: Awaited<ReturnType<typeof readLane>>;
+				try {
+					first = await readLane(l, since, ctx);
+				} catch {
+					return readLane(l, since, ctx);
+				}
+				if (!misses(first)) return first;
+				const again = await readLane(l, since, ctx).catch(() => first);
+				return misses(again) <= misses(first) ? again : first;
+			};
+			const results = await Promise.all(want.map((l) => readOnceMore(l).then((r) => ({ l, r }), (e) => ({ l, e }))));
 			for (const x of results) {
 				if ('e' in x) {
 					notRead.push(`${x.l}: ${x.e instanceof UpstreamError ? x.e.message : 'could not be read'}`);
