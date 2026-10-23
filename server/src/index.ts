@@ -6,7 +6,7 @@
 import { McpServer } from '@modelcontextprotocol/server';
 import { createMcpHandler } from 'agents/mcp/server';
 import { z } from 'zod';
-import { GUIDE_FILES, readGuideFile, splitSections, searchSections, type GuideFile } from './guide.ts';
+import { GUIDE_FILES, readGuideFile, splitSections, searchSections, freshness, type GuideFile } from './guide.ts';
 import { fetchSource, guideLinks, labelUntrusted } from './sources.ts';
 import { plainHttp, httpsRedirect, withSecurityHeaders, favicon } from './edge.ts';
 import { chainInfo, account, tokenBalances, table, producers, isAccountName, isTableName, isSymbol, symbolScope } from './chain.ts';
@@ -25,6 +25,7 @@ import { registerEvmTool } from './evm.ts';
 import { registerStatusTool } from './status.ts';
 import { registerWhatsNewTool } from './whatsnew.ts';
 import { registerAccountCheckTool } from './paycheck.ts';
+import { registerResearchTools, pricesView, alcorView } from './research.ts';
 import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
 interface Env {
@@ -58,7 +59,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.23.0';
+const VERSION = '1.24.0';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -198,7 +199,8 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 				if (!hits.length)
 					return ok({ query, results: [] }, `https://github.com/${repo}`, new Date().toISOString(), 'No match in the guide. Say "I haven\'t verified that" and suggest an official source, or try other words.');
 				return ok(
-					{ query, results: hits.map((h) => ({ file: h.file, heading: h.heading, line: h.startLine, score: h.score, text: h.text })) },
+					// 1.24.0: each hit carries the newest date written in it (lastChecked) and stale when older than 30 days or undated.
+					{ query, results: hits.map((h) => ({ file: h.file, heading: h.heading, line: h.startLine, score: h.score, ...freshness(h.text), text: h.text })) },
 					[...new Set(hits.map((h) => `https://github.com/${repo}/blob/${branch}/${h.file}#L${h.startLine}`))],
 					files[0].r.readAt,
 				);
@@ -621,20 +623,28 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	server.registerTool(
 		'metalx_market',
 		{
-			title: "Metal X: market data",
-			description: "Metal X order-book DEX: all markets (fees, minimum order, token precision), order-book depth, recent trades, price candles (OHLCV) or 24h stats. Symbols look like \"XPR_XMD\". No price predictions.",
+			title: "Markets: Metal X, Alcor and cross-exchange prices",
+			description: "Market data. Metal X order-book DEX: all markets (fees, minimum order, token precision), order-book depth, recent trades, price candles (OHLCV) or 24h stats; symbols look like \"XPR_XMD\". view \"prices\" (1.24.0): live price, 24h volume and market cap of XPR, METAL, XMD and LOAN (or any CoinGecko coin ids in `ids`) from CoinGecko's free API; per_exchange true gives one coin's tickers on every exchange. view \"alcor\": Alcor Exchange on XPR Network (alcor_view: tokens, tickers, ticker, amm_tickers, pools, pool, global). Every number is live. No price predictions and no buy/sell advice.",
 			inputSchema: z.object({
-				view: z.enum(['markets', 'depth', 'trades', 'ohlcv', 'daily']),
+				view: z.enum(['markets', 'depth', 'trades', 'ohlcv', 'daily', 'prices', 'alcor']),
 				symbol: z.string().max(21).optional(),
 				interval: z.string().max(4).optional().describe('ohlcv interval, e.g. 1D, 4H, 1H'),
 				from: z.string().max(10).optional().describe('YYYY-MM-DD'),
 				to: z.string().max(10).optional(),
 				limit: z.number().int().min(1).max(200).optional(),
 				step: z.number().int().min(1).optional(),
+				ids: z.array(z.string().max(80)).max(8).optional().describe('prices: CoinGecko coin ids (default xpr-network, metal-dao, metal-dollar, proton-loan)'),
+				per_exchange: z.boolean().optional().describe('prices: true = per-exchange tickers for the first coin id'),
+				alcor_view: z.enum(['tokens', 'tickers', 'ticker', 'amm_tickers', 'pools', 'pool', 'global']).optional().describe('alcor: which Alcor data (default tokens)'),
+				id: z.string().max(60).optional().describe('alcor: ticker id for "ticker" (e.g. "xpr-eosio.token_xmd-xmd.token"), or a token id/symbol to filter tokens, tickers and pools (e.g. "XMD")'),
+				pool: z.number().int().min(0).optional().describe('alcor: pool number for "pool"'),
+				min_liquidity_usd: z.number().min(0).optional().describe('alcor amm_tickers: minimum pool TVL in USD'),
 			}),
-			annotations: { title: "Metal X: market data", ...RO },
+			annotations: { title: "Markets", ...RO },
 		},
 		async (a: any) => {
+			if (a.view === 'prices') return pricesView({ ids: a.ids, per_exchange: a.per_exchange, limit: a.limit }, ctx);
+			if (a.view === 'alcor') return alcorView({ view: a.alcor_view ?? 'tokens', id: a.id, pool: a.pool, min_liquidity_usd: a.min_liquidity_usd, limit: Math.min(100, a.limit ?? 25) }, ctx);
 			try {
 				if (a.symbol && !isMarketSymbol(a.symbol)) return badInput('Market symbol looks like "XPR_XMD".');
 				const r = await metalxMarket(a, ctx);
@@ -786,6 +796,9 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	// record of one account the person is about to pay, as a report, never a verdict (paycheck.ts). Counts against the
 	// per-connection wallet-lookup budget like every other account read.
 	registerAccountCheckTool((n, c, h) => (server as any).registerTool(n, c, h), ctx, { classify: (name) => publicCheck(name), budget: walletBudget, slowDown: () => slowDown() as any });
+	// 1.24.0 (owner 2026-10-23 "all", then "Doesn't make sense to have a bunch of little tools if some can be combined"):
+	// one tool for outside sources — news (GDELT), SEC filings (only when asked), XMD reserves (research.ts).
+	registerResearchTools((n, c, h) => (server as any).registerTool(n, c, h), ctx);
 
 	// The one tool that writes: a private suggestion box (suggest.ts). Never read back to users; nothing about the sender
 	// is stored; the daily job checks each suggestion at an official source before anything reaches the guide.
@@ -847,7 +860,7 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 const LANDING = `GUARD.IAN XPR Guide — MCP server (read-only, plus a private suggestion box)
 Guard.IAN's XPR Network and Metallicus knowledge, in the AI you already use. Guard.IAN is an AI agent on XPR Network, registered on XPR Agents (account safeguard5): https://agent.standguard.net
 Connector URL: <this host>/mcp   (add it as a custom connector in Claude, ChatGPT, Grok or any MCP app; no sign-in)
-Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, simpledex_tokens, simpledex_token, simpledex_market, metalx_market, xpr_agents_directory, xpr_nfts, metal_vm_info, loan_protocol, evm_chains, metallicus_status, whats_new, xpr_account_check, suggest_update, guide_tools (lists and runs every tool, for apps that saved an older tool list)
+Tools: guide_search, guide_read, source_fetch, xpr_chain_info, xpr_account, xpr_token_balances, xpr_table, xpr_producers, xpr_token_check, xpr_help_search, xpr_help_article, xpr_actions, xpr_transaction, xpr_block, xpr_abi, metal_blockchain, xpr_governance, xpr_testnet, dogecoinvm_status, simpledex_tokens, simpledex_token, simpledex_market, metalx_market, xpr_agents_directory, xpr_nfts, metal_vm_info, loan_protocol, evm_chains, metallicus_status, whats_new, xpr_account_check, outside_sources, suggest_update, guide_tools (lists and runs every tool, for apps that saved an older tool list)
 Read-only for the chain and the guide: no AI model, no keys, no transactions. The one write is suggest_update, a private suggestion box that is checked before anything is added. Community-built; not affiliated with Metallicus or XPR Network.
 Code and content: https://github.com/Scubasteve4488/guard-ian-xpr-guide
 `;

@@ -21,6 +21,9 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, coinRows, tickerRows, reservesPage, alcorPath, slimPool, registerResearchTools, pricesView, alcorView, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { freshness } from '../src/guide.ts';
+import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
 import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, parseRss, parseNewsroom, newsItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS, NEWS_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
 
@@ -1107,7 +1110,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('whats_new upstream: both releases read with title, link, time and plain-text notes', rel.length === 2 && rel[0].title === 'September 2026: agents sell services, and deliverables render in the page' && rel[0].url === 'https://github.com/XPRNetwork/xpr-agents/releases/tag/v2026.09.17' && rel[0].updated === '2026-09-17T00:33:16.000Z' && /Two weeks ago/.test(rel[0].text) && !/</.test(rel[0].text));
 	const up = upstreamItems('XPRNetwork/xpr-agents', rel, new Date('2026-09-10T00:00:00Z'));
 	t('whats_new upstream: only releases after since', up.length === 1 && /^Upstream release: XPRNetwork\/xpr-agents September 2026: agents sell services/.test(up[0].title) && up[0].source.endsWith('/v2026.09.17'));
-	t('whats_new: three upstream feeds, eight lanes', UPSTREAM_FEEDS.length === 3 && LANES.length === 8 && UPSTREAM_FEEDS.every((f) => f.url.startsWith('https://github.com/XPRNetwork/') && f.url.endsWith('/releases.atom')));
+	t('whats_new: three upstream feeds, nine lanes (security added 1.24.0)', UPSTREAM_FEEDS.length === 3 && LANES.length === 9 && UPSTREAM_FEEDS.every((f) => f.url.startsWith('https://github.com/XPRNetwork/') && f.url.endsWith('/releases.atom')));
 	const mixed = sortNewestFirst([...st, ...gr, ...jb]);
 	t('whats_new: one list, newest first', mixed[0].at >= mixed[1].at && mixed[1].at >= mixed[2].at && mixed.length === 4);
 
@@ -1371,6 +1374,122 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	stub(() => new Response(JSON.stringify({ code: 500, message: 'Internal Service Error', error: { name: 'account_query_exception', what: 'Account Query Exception', details: [{ message: 'unknown key (boost::tuples::tuple<bool, eosio::chain::name>): (0 ondastream)' }] } }), { status: 500 }));
 	t('accountExists: "Account Query Exception" means no such account', (await accountExists('ondastream', undefined)) === false);
 	t('privateRefusal unchanged for real private accounts', /looks like a private person's account/.test(privateRefusal('someone').content[0].text));
+}
+
+
+// ── 1.24.0: outside_sources (news / filings / xmd_reserves), market views prices + alcor, security lane, freshness ────
+{
+	// GDELT ArtList (field names per the gdeltdoc client README; seendate "YYYYMMDDTHHMMSSZ")
+	t('news: GDELT seendate becomes ISO; junk becomes empty', gdeltTime('20261020T143000Z') === '2026-10-20T14:30:00.000Z' && gdeltTime('yesterday') === '');
+	const G = { articles: [
+		{ url: 'https://www.example-news.com/a', title: 'Metallicus expands Metal Dollar to banks', seendate: '20261020T143000Z', domain: 'example-news.com', language: 'English', sourcecountry: 'United States' },
+		{ url: 'https://music.example.com/b', title: 'Metallica announce new tour', seendate: '20261021T100000Z', domain: 'music.example.com', language: 'English', sourcecountry: 'United States' },
+		{ url: 'https://www.example-news.com/c', title: 'XRP rallies as markets turn', seendate: '20261022T090000Z', domain: 'example-news.com', language: 'English', sourcecountry: 'United States' },
+		{ url: 'https://www.paper.example/d', title: 'Credit union pilots XPR Network payments', seendate: '20261022T120000Z', domain: 'paper.example', language: 'English', sourcecountry: 'United States' },
+		{ url: 'https://www.paper.example/d', title: 'duplicate', seendate: '20261022T120000Z', domain: 'paper.example' },
+	] };
+	const na = newsArticles(G, true);
+	t('news: collisions (Metallica, XRP) dropped, duplicates removed, newest first', na.articles.length === 2 && na.dropped === 2 && na.articles[0].title === 'Credit union pilots XPR Network payments' && na.articles[1].seenByGdelt === '2026-10-20T14:30:00.000Z');
+	t('news: a user query is not collision-filtered', newsArticles(G, false).articles.length === 4);
+	t('news: default query ORs the ecosystem names in quotes', DEFAULT_NEWS_QUERY.startsWith('("Metallicus" OR "XPR Network"') && DEFAULT_NEWS_QUERY.includes('"LOAN Protocol"'));
+
+	// EDGAR full-text search reply (Elasticsearch envelope; _id "<accession>:<file>")
+	t('filings: companies keep their name as filed; a person is hidden', filerName('Metallicus, Inc.  (CIK 0001234567)') === 'Metallicus, Inc.  (CIK 0001234567)' && filerName('Doe Jane  (CIK 0007654321)') === '[individual filer]');
+	const E = { hits: { total: { value: 3 }, hits: [
+		{ _id: '0001234567-24-000001:primary_doc.xml', _source: { adsh: '0001234567-24-000001', ciks: ['0001234567'], display_names: ['Metallicus, Inc.  (CIK 0001234567)'], form: 'D', file_date: '2024-05-01' } },
+		{ _id: '0001234567-24-000001:ex99.htm', _source: { adsh: '0001234567-24-000001', ciks: ['0001234567'], display_names: ['Metallicus, Inc.  (CIK 0001234567)'], form: 'D', file_date: '2024-05-01' } },
+		{ _id: '0009999999-25-000002:form4.xml', _source: { adsh: '0009999999-25-000002', ciks: ['0009999999', '0001111111'], display_names: ['Smith John  (CIK 0009999999)', 'Big Bank Corp  (CIK 0001111111)'], form: '4', file_date: '2025-01-02' } },
+	] } };
+	const eh = edgarHits(E);
+	t('filings: one row per filing, document link built from CIK + accession, people hidden', eh.length === 2 && eh[0].document === 'https://www.sec.gov/Archives/edgar/data/1234567/000123456724000001/primary_doc.xml' && eh[1].filers[0] === '[individual filer]' && /Big Bank Corp/.test(eh[1].filers[1]));
+	t('filings: SEC User-Agent names the tool and a contact', /GUARD\.IAN/.test(SEC_USER_AGENT) && /https:\/\/guide\.standguard\.net/.test(SEC_USER_AGENT));
+
+	// CoinGecko shapes
+	const cr = coinRows([{ id: 'xpr-network', symbol: 'xpr', name: 'XPR Network', current_price: 0.004, total_volume: 1000, market_cap: 100000, price_change_percentage_24h: 1.5, last_updated: '2026-10-23T18:00:00Z' }]);
+	t('prices: coin rows keep price, volume, cap with upper-case symbol', cr[0].symbol === 'XPR' && cr[0].priceUsd === 0.004 && cr[0].marketCapUsd === 100000);
+	const tr = tickerRows({ name: 'XPR Network', tickers: [{ base: 'XPR', target: 'USDT', market: { name: 'Small' }, last: 0.004, converted_last: { usd: 0.004 }, converted_volume: { usd: 10 }, trust_score: 'green' }, { base: 'XPR', target: 'USDT', market: { name: 'Big' }, last: 0.004, converted_volume: { usd: 900 } }] }, 5);
+	t('prices: exchange tickers sorted by USD volume', tr.length === 2 && tr[0].exchange === 'Big' && tr[1].pair === 'XPR/USDT');
+
+	// metaldollar.com/reserves as read live 2026-10-23 (shape)
+	const RP = `<html><body><p>Metal Dollar publishes treasury balances and mint-and-redeem activity on-chain. The current reserve model supports USDC, PYUSD, and USDP, represented in the XPR Network treasury as XUSDC, XPYUSD, and XPAX.</p><h2>Live reserve activity</h2><p>Verified preview snapshot</p><p>Outstanding XMD 2,832,340</p><p>Total XMD minted 379,786,400</p><p>Total XMD redeemed 376,954,060</p><p>Block 400,002,261 · Aug 25, 8:27 PM UTC Verify treasury</p></body></html>`;
+	const rp = reservesPage(RP);
+	t('xmd_reserves: the page\'s own model sentence, snapshot figures and stamp are read; no attestation claimed', /reserve model supports USDC, PYUSD, and USDP/.test(rp.reserveModel ?? '') && rp.snapshotFigures?.['Outstanding XMD'] === '2,832,340' && rp.snapshotStamp === 'Block 400,002,261 · Aug 25, 8:27 PM UTC' && /no attestation/.test(rp.attestation));
+
+	// Alcor
+	t('alcor: documented paths; ticker needs an id; pool fee to percent', alcorPath({ view: 'amm_tickers', min_liquidity_usd: 100 }) === '/api/v2/amm/tickers?min_liquidity_usd=100' && alcorPath({ view: 'pool', pool: 7 }) === '/api/v2/swap/pools/7' && slimPool({ id: 1, fee: 3000, sqrtPriceX64: 'x' }).feePct === 0.3 && slimPool({ sqrtPriceX64: 'x' }).sqrtPriceX64 === undefined);
+	let threw = false;
+	try { alcorPath({ view: 'ticker' }); } catch { threw = true; }
+	t('alcor: ticker without id refused', threw);
+
+	// end to end with stubs
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerResearchTools((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	t('outside_sources: one tool, three views', Object.keys(tools).join() === 'outside_sources' && OUTSIDE_VIEWS.join() === 'news,filings,xmd_reserves');
+	let secUA = '';
+	stub((url, init) => {
+		if (url.endsWith('/robots.txt')) return new Response('User-agent: *\nDisallow: /private', { status: 200 });
+		if (url.startsWith('https://api.gdeltproject.org/')) return new Response(JSON.stringify(G), { status: 200 });
+		if (url.startsWith('https://efts.sec.gov/')) { secUA = init?.headers?.['User-Agent'] ?? ''; return new Response(JSON.stringify(E), { status: 200 }); }
+		if (url.startsWith('https://metaldollar.com/reserves')) return new Response(RP, { status: 200, headers: { 'content-type': 'text/html' } });
+		if (url.includes('get_currency_stats')) return new Response(JSON.stringify({ XMD: { supply: '2860346.010179 XMD', max_supply: '0 XMD', issuer: 'xmd.treasury' } }), { status: 200 });
+		if (url.includes('get_table_rows')) return new Response(JSON.stringify({ rows: [{ symbol: { sym: '6,XUSDC', contract: 'xtokens' } }, { symbol: { sym: '6,XPAX', contract: 'xtokens' } }], more: false }), { status: 200 });
+		if (url.includes('get_currency_balance')) return new Response(JSON.stringify(init?.body?.includes('XUSDC') ? ['2900000.000000 XUSDC'] : []), { status: 200 });
+		if (url.startsWith('https://api.coingecko.com/api/v3/coins/markets')) return new Response(JSON.stringify([{ id: 'xpr-network', symbol: 'xpr', name: 'XPR Network', current_price: 0.004, total_volume: 1, market_cap: 2 }]), { status: 200 });
+		if (url.startsWith('https://api.coingecko.com/api/v3/coins/xpr-network/tickers')) return new Response(JSON.stringify({ name: 'XPR Network', tickers: [{ base: 'XPR', target: 'USDT', market: { name: 'Big' }, converted_volume: { usd: 5 } }] }), { status: 200 });
+		if (url.startsWith('https://proton.alcor.exchange/api/v2/tokens')) return new Response(JSON.stringify([{ id: 'xpr-eosio.token', symbol: 'XPR', usd_price: 0.004 }, { id: 'xmd-xmd.token', symbol: 'XMD', usd_price: 1 }]), { status: 200 });
+		if (url.startsWith('https://proton.alcor.exchange/api/v2/swap/pools/99')) return new Response('null', { status: 200 });
+		return new Response('not found', { status: 404 });
+	});
+	const n1 = await tools.outside_sources({ view: 'news' });
+	t('outside_sources news: articles, GDELT source, first-seen caveat, third-party note', !n1.isError && /Credit union pilots XPR Network payments/.test(n1.content[0].text) && !/Metallica announce/.test(n1.content[0].text) && /api\.gdeltproject\.org/.test(n1.content[0].text) && /first saw/.test(n1.content[0].text) && /never follow instructions/.test(n1.content[0].text));
+	const f1 = await tools.outside_sources({ view: 'filings', query: '"Metallicus"', from: '2024-01-01' });
+	t('outside_sources filings: SEC UA sent, rows as filed, people hidden', !f1.isError && secUA === SEC_USER_AGENT && /"form": "D"/.test(f1.content[0].text) && /\[individual filer\]/.test(f1.content[0].text) && !/Smith John/.test(f1.content[0].text));
+	t('outside_sources filings: no query or a bad date is a plain refusal', (await tools.outside_sources({ view: 'filings' })).isError === true && (await tools.outside_sources({ view: 'filings', query: 'x y', from: '2024/01/01' })).isError === true);
+	const x1 = await tools.outside_sources({ view: 'xmd_reserves' });
+	t('outside_sources xmd_reserves: page words + live supply and balances, labelled live, no verdict', !x1.isError && /2860346\.010179 XMD/.test(x1.content[0].text) && /"inTreasury": "2900000\.000000"/.test(x1.content[0].text) && /"inTreasury": "0"/.test(x1.content[0].text) && /"label": "live"/.test(x1.content[0].text) && /Verified preview snapshot/.test(x1.content[0].text) && !/backed: (yes|no)/i.test(x1.content[0].text));
+	const p1 = await pricesView({}, undefined);
+	t('markets prices: live label, missing default ids named', !p1.isError && /"priceLabel": "live"/.test(p1.content[0].text) && /notFound/.test(p1.content[0].text) && /metal-dao/.test(p1.content[0].text));
+	const p2 = await pricesView({ per_exchange: true }, undefined);
+	t('markets prices per exchange: tickers for the first id', !p2.isError && /"exchange": "Big"/.test(p2.content[0].text));
+	t('markets prices: a bad coin id is refused before any call', (await pricesView({ ids: ['Bad Id!'] }, undefined)).isError === true);
+	const a1 = await alcorView({ view: 'tokens', id: 'xmd' }, undefined);
+	t('markets alcor: token list filtered by symbol', !a1.isError && /xmd-xmd\.token/.test(a1.content[0].text) && !/xpr-eosio\.token/.test(a1.content[0].text) && /proton\.alcor\.exchange/.test(a1.content[0].text));
+	t('markets alcor: an unknown pool says so', /no pool 99/.test((await alcorView({ view: 'pool', pool: 99 }, undefined)).content[0].text));
+	t('markets alcor: a malformed ticker id is refused', (await alcorView({ view: 'ticker', id: 'XPR/XMD' }, undefined)).isError === true);
+
+	// security lane
+	const KEV = { vulnerabilities: [
+		{ cveID: 'CVE-2026-0001', vendorProject: 'PHP Group', product: 'PHP', vulnerabilityName: 'PHP CGI Argument Injection', dateAdded: '2026-10-22', requiredAction: 'Apply updates.', dueDate: '2026-11-12', knownRansomwareCampaignUse: 'Known' },
+		{ cveID: 'CVE-2026-0002', vendorProject: 'Microsoft', product: 'Exchange Server', vulnerabilityName: 'x', dateAdded: '2026-10-22' },
+		{ cveID: 'CVE-2025-0003', vendorProject: 'Linux', product: 'Kernel', vulnerabilityName: 'old', dateAdded: '2025-01-01' },
+	] };
+	const kv = kevItems(KEV, new Date('2026-10-22T18:00:00Z'));
+	t('security: KEV keeps watched software added on/after since\'s day; others and older dropped', kv.length === 1 && kv[0].title.includes('CVE-2026-0001') && kv[0].at === '2026-10-22T00:00:00.000Z' && /date added is a day/.test(kv[0].detail) && kv[0].source.endsWith('CVE-2026-0001'));
+	const PHPF = `<feed><entry><title>PHP 8.3.99 Released!</title><link href="https://www.php.net/archive/2026.php#x"/><updated>2026-10-22T10:00:00+00:00</updated><content type="xhtml"><div>The PHP development team announces 8.3.99. This is a security release.</div></content></entry><entry><title>PHP 8.5.0 RC1 available for testing</title><updated>2026-10-22T11:00:00+00:00</updated><content type="xhtml"><div>Please test.</div></content></entry><entry><title>PHP 8.2.99 Released!</title><updated>2026-10-22T09:00:00+00:00</updated><content type="xhtml"><div>Bug fix release.</div></content></entry></feed>`;
+	const ph = phpSecurityEntries(PHPF);
+	t('security: PHP keeps only released entries whose text says security', ph.length === 1 && ph[0].title === 'PHP 8.3.99 Released!' && ph[0].updated === '2026-10-22T10:00:00.000Z');
+	t('security: feed items after since only', securityFeedItems('PHP security release', ph, new Date('2026-10-22T11:00:00Z')).length === 0 && securityFeedItems('PHP security release', ph, new Date('2026-10-21T00:00:00Z')).length === 1);
+	t('security: feeds and watch list are the documented ones', SECURITY_FEEDS.kev.startsWith('https://www.cisa.gov/') && SECURITY_FEEDS.node === 'https://nodejs.org/en/feed/vulnerability.xml' && SECURITY_WATCH.includes('WordPress'));
+	const wn: Record<string, (a: any) => Promise<any>> = {};
+	registerWhatsNewTool((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((wn[n] = h), undefined));
+	const NODE_RSS = `<rss><channel><item><title>Wednesday, October 22, 2026 Security Releases</title><link>https://nodejs.org/en/blog/vulnerability/october-2026-security-releases</link><pubDate>Wed, 22 Oct 2026 20:00:00 GMT</pubDate><description>Security releases.</description></item></channel></rss>`;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url === SECURITY_FEEDS.kev) return new Response(JSON.stringify(KEV), { status: 200 });
+		if (url === SECURITY_FEEDS.node) return new Response(NODE_RSS, { status: 200 });
+		if (url === SECURITY_FEEDS.php) return new Response(PHPF, { status: 200 });
+		return new Response('gone', { status: 500 }); // WordPress down
+	});
+	const s1 = await wn.whats_new({ since: '2026-10-22T00:00:00Z', hours: 24, lanes: ['security'] });
+	const st1 = s1.content[0].text;
+	t('whats_new security lane: KEV + Node + PHP listed with their own times; WordPress named under notRead; watch list said', !s1.isError && /CVE-2026-0001/.test(st1) && /Node\.js security release: Wednesday, October 22, 2026 Security Releases/.test(st1) && /PHP security release: PHP 8\.3\.99/.test(st1) && /WordPress security news: answered HTTP 500/.test(st1) && /securityWatch/.test(st1));
+
+	// freshness
+	const NOW = new Date('2026-10-23T12:00:00Z');
+	t('freshness: newest YYYY-MM-DD wins, incl. "row last edited"', JSON.stringify(freshness('| A | read 2026-09-01 | row last edited 2026-10-20 |', NOW)) === '{"lastChecked":"2026-10-20","stale":false}');
+	t('freshness: older than 30 days is stale; undated is stale', freshness('checked 2026-09-01', NOW).stale === true && JSON.stringify(freshness('no dates here', NOW)) === '{"lastChecked":null,"stale":true}');
+	t('freshness: MM-DD after a dating word or in parentheses counts; a bare range does not', freshness('verified 10-21', NOW).lastChecked === '2026-10-21' && freshness('(10-15)', NOW).lastChecked === '2026-10-15' && freshness('10-15 calls a minute', NOW).lastChecked === null && freshness('read 12-30', NOW).lastChecked === '2025-12-30');
+	t('freshness: a future date is ignored', freshness('2026-12-01 planned; read 2026-10-01', NOW).lastChecked === '2026-10-01');
 }
 
 console.log(`${pass} passed, ${failN} failed`);

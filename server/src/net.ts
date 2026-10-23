@@ -32,7 +32,7 @@ export const HYPERION_ENDPOINTS = [
 const MAX_ATTEMPTS = 3;
 // Security review M3: never buffer an unbounded body. Stop reading at 1 MB and cancel the rest.
 const MAX_BODY_BYTES = 1_000_000;
-async function readCapped(res: Response): Promise<{ text: string; tooLarge: boolean }> {
+async function readCapped(res: Response, cap = MAX_BODY_BYTES): Promise<{ text: string; tooLarge: boolean }> {
 	if (!res.body) return { text: '', tooLarge: false };
 	const reader = res.body.getReader();
 	const dec = new TextDecoder();
@@ -42,8 +42,8 @@ async function readCapped(res: Response): Promise<{ text: string; tooLarge: bool
 		const { done, value } = await reader.read();
 		if (done) return { text: text + dec.decode(), tooLarge: false };
 		n += value.byteLength;
-		if (n > MAX_BODY_BYTES) {
-			const keep = value.byteLength - (n - MAX_BODY_BYTES);
+		if (n > cap) {
+			const keep = value.byteLength - (n - cap);
 			text += dec.decode(value.subarray(0, Math.max(0, keep)));
 			await reader.cancel().catch(() => {});
 			return { text, tooLarge: true };
@@ -221,7 +221,7 @@ export async function politeFetch(
 	pool: string[],
 	path: string,
 	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
-	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean; pdf?: (bytes: Uint8Array) => Promise<string> } = {},
+	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean; pdf?: (bytes: Uint8Array) => Promise<string>; maxBytes?: number } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
 	const key = cacheKey(pool.join('|') + path, init.body);
@@ -301,7 +301,8 @@ export async function politeFetch(
 			await cachePut(key, out, Math.max(ttl, PDF_TTL_SEC), opts.ctx);
 			return out;
 		}
-		const { text, tooLarge } = await readCapped(res);
+		// maxBytes (1.24.0): one named feed may be larger than 1 MB (CISA's KEV catalogue); capped at 6 MB, never unbounded.
+		const { text, tooLarge } = await readCapped(res, Math.min(opts.maxBytes ?? MAX_BODY_BYTES, 6_000_000));
 		const out: FetchResult = { status: res.status, text, source: url, cached: false, readAt: new Date().toISOString(), contentType: res.headers.get('content-type') || undefined, ...(tooLarge ? { tooLarge } : {}) };
 		if (res.ok && ttl > 0 && !tooLarge) await cachePut(key, out, ttl, opts.ctx);
 		return out;
