@@ -1527,7 +1527,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
 	}
 	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
-	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.5, 23 tools/.test(g.result.content.at(-1).text));
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server \d+\.\d+\.\d+, 23 tools/.test(g.result.content.at(-1).text));
 	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
 	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
 	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });

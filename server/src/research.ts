@@ -445,7 +445,8 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 	const data: any = { query: q, days: d, answeredBy: answered, count: merged.length, articles: merged };
 	if (dropped) data.filteredOut = `${dropped} item(s) left out: they did not name the ecosystem in title or link, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
 	if (notRead.length) data.notRead = notRead;
-	if (!merged.length) data.verdict = userQuery ? `No news item from ${answered.join(' / ')} matched in the last ${d} days.` : `No news item from ${answered.join(' / ')} names the ecosystem in its title or link in the last ${d} days${d < 365 ? ' (try days 365 for older coverage)' : ''}.`;
+	// 1.25.6 (builder 2026-10-23: "Just say nothing new last 30 days"): an empty window is said plainly, nothing more.
+	if (!merged.length) data.verdict = `Nothing new in the last ${d} days.`;
 	else await newsPut(lastKey, { ...data, readAt, sources }, LAST_GOOD_TTL, ctx);
 	return ok(
 		data,
