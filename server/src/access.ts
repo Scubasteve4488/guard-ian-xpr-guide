@@ -110,7 +110,8 @@ export async function accountExists(name: string, net: Network | undefined, ctx?
 		await rpc('/v1/chain/get_account', { account_name: name }, 300, ctx, undefined, rpcPool(net));
 		return true;
 	} catch (e: any) {
-		return !/unknown key|does not exist|not found|\b500\b/i.test(String(e?.message ?? e));
+		// 1.22.4: nodeos reports a missing account as "Account Query Exception" (seen live 2026-10-23, ondastream on mainnet).
+		return !/unknown key|does not exist|not found|account query exception|\b500\b/i.test(String(e?.message ?? e));
 	}
 }
 

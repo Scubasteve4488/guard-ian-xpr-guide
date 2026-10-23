@@ -13,7 +13,7 @@ import { maskText, maskResult, exemptionsFrom, containsPrivateKey, parsePrivateL
 import { cleanSuggestion, storeSuggestion, looksLikeRecoveryPhrase, type D1Like } from '../src/suggest.ts';
 import { registerMoreTools, fromNano, signedDoge, compactValidators, proposalStatus, TESTNET_CHAIN_ID } from '../src/more.ts';
 import { DatabaseSync } from 'node:sqlite';
-import { u64ToName, tableAccountRefs, accessGate, isPublicAccount, missingAccount, privateRefusal } from '../src/access.ts';
+import { u64ToName, tableAccountRefs, accessGate, isPublicAccount, missingAccount, privateRefusal, accountExists } from '../src/access.ts';
 import { plainHttp, httpsRedirect, withSecurityHeaders, favicon, SECURITY_HEADERS } from '../src/edge.ts';
 import { ToolCatalog, CATALOG_TOOL, catalogInput, footerText, normalizeToolName } from '../src/catalog.ts';
 import { z } from 'zod';
@@ -1368,6 +1368,8 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const mt = missingAccount('ondastream', 'testnet').content[0].text;
 	t('missingAccount: says no such account on mainnet and points to the testnet', /No account named "ondastream" exists on XPR Network mainnet/.test(m) && /xpr_testnet/.test(m) && !/private person/.test(m));
 	t('missingAccount: testnet wording points back to mainnet', /exists on the XPR testnet/.test(mt) && /mainnet/.test(mt));
+	stub(() => new Response(JSON.stringify({ code: 500, message: 'Internal Service Error', error: { name: 'account_query_exception', what: 'Account Query Exception', details: [{ message: 'unknown key (boost::tuples::tuple<bool, eosio::chain::name>): (0 ondastream)' }] } }), { status: 500 }));
+	t('accountExists: "Account Query Exception" means no such account', (await accountExists('ondastream', undefined)) === false);
 	t('privateRefusal unchanged for real private accounts', /looks like a private person's account/.test(privateRefusal('someone').content[0].text));
 }
 
