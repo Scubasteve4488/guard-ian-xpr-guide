@@ -1636,6 +1636,8 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const ri = relatedItems(items, fed, 30, now);
 	t('related: kept only when title/summary has a topic term, inside the window, not a name collision; labelled with topic and why', ri.kept.length === 1 && ri.dropped === 3 && ri.kept[0].relation === 'related topic — does not name Metallicus' && ri.kept[0].topic === 'FedNow and instant payments' && /FedNow Request for Payment/.test(ri.kept[0].whyRelated!) && /ECOSYSTEM §1/.test(ri.kept[0].guideSource!));
 
+	const cu = topics.find((x) => x.topic === 'Credit unions and stablecoins')!;
+	t('related: term words match in any order and as word starts (plurals), not inside other words', relatedItems([{ outlet: 'CU Today', title: 'Credit unions eye stablecoins as rules land', url: 'https://cutoday.example/a', published: '2026-10-20T00:00:00.000Z', feed: 'Bing News RSS' }, { outlet: 'X', title: 'Reunion of creditors', url: 'https://x.example/b', published: '2026-10-20T00:00:00.000Z', feed: 'Bing News RSS' }] as any, cu, 30, now).kept.length === 1);
 	t('related: topics take turns so one busy topic cannot fill the list', interleaveByTopic([{ topic: 'A', n: 1 }, { topic: 'A', n: 2 }, { topic: 'A', n: 3 }, { topic: 'B', n: 4 }] as any[]).map((x: any) => x.n).join() === '1,4,2,3');
 	// end to end, mode both: topic map read from the guide, direct items first, related labelled, Bing calls capped
 	const tools: Record<string, (a: any) => Promise<any>> = {};

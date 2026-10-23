@@ -455,7 +455,13 @@ export function pickTopics(all: NewsTopic[], want?: string, now = Date.now()): N
 	return Array.from({ length: MAX_TOPIC_QUERIES }, (_, i) => all[(offset + i) % all.length]);
 }
 const RELATED_COLLISION = /metallica\b|proton ?(?:mail|vpn|drive|pass)|webauthn/i;
-const termRe = (t: string) => new RegExp(`(^|[^a-z0-9])${t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '[\\s-]+')}($|[^a-z0-9])`, 'i');
+// 1.26.2: a term matches when every one of its words starts a word in the text, in any order ("credit union stablecoin"
+// matches "Credit unions eye stablecoins"); live, exact phrases missed the credit-union stories.
+const termRe = (t: string) => {
+	const words = t.toLowerCase().split(/[\s-]+/).filter(Boolean).map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+	const res = words.map((w) => new RegExp(`(^|[^a-z0-9])${w}`, 'i'));
+	return { test: (text: string) => res.every((r) => r.test(text)) };
+};
 /** Keep a related item when its title or summary contains one of the topic's terms; label it. */
 export function relatedItems(items: NewsItem[], t: NewsTopic, days: number, now = Date.now()) {
 	const res = t.terms.map(termRe);
