@@ -95,12 +95,14 @@ export function kevItems(json: any, since: Date): NewItem[] {
 /** php.net Atom: only release entries whose own text says "security". */
 export function phpSecurityEntries(xml: string): Array<{ title: string; url: string; updated: string; text: string }> {
 	const out: Array<{ title: string; url: string; updated: string; text: string }> = [];
-	for (const e of xml.match(/<entry>[\s\S]*?<\/entry>/g) ?? []) {
+	// php.net writes <entry xmlns="…" xml:base="…"> (live 2026-10-23), so the tag may carry attributes.
+	for (const e of xml.match(/<entry\b[\s\S]*?<\/entry>/g) ?? []) {
 		const pick = (tag: string) => (e.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`)) ?? [])[1]?.trim() ?? '';
 		const title = htmlToText(decodeEntities(pick('title'))).replace(/\s+/g, ' ').trim();
 		const body = htmlToText(decodeEntities(pick('content') || pick('summary'))).replace(/\s+/g, ' ').trim();
-		if (!/released/i.test(title) || !/security/i.test(body)) continue;
-		const url = (e.match(/<link[^>]*href="([^"]+)"/) ?? [])[1] ?? '';
+		// A release post whose text says "security", or a post titled as a security advisory/release.
+		if (!((/released/i.test(title) && /security/i.test(body)) || /security (advisory|release)/i.test(title))) continue;
+		const url = (e.match(/<link[^>]*rel="alternate"[^>]*href="([^"]+)"/) ?? e.match(/<link[^>]*href="([^"]+)"/) ?? [])[1] ?? '';
 		const i = body.search(/security/i);
 		out.push({ title, url, updated: toIso(pick('updated') || pick('published')), text: body.slice(Math.max(0, i - 80), i + 220) });
 	}
