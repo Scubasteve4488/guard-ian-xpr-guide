@@ -99,7 +99,7 @@ export function excerpt(text: string, terms: string[], maxChars = 2500): string 
 	const lines = text.split('\n');
 	const keep = lines.filter((l, i) => i === 0 || terms.some((t) => l.toLowerCase().includes(t)));
 	let out = keep.join('\n');
-	if (out.length > maxChars) out = out.slice(0, maxChars) + '\n…(trimmed; read the whole file with guide_read)';
+	if (out.length > maxChars) out = out.slice(0, maxChars) + '\n…(trimmed; read the whole file with guide view read)';
 	return out.trim();
 }
 

@@ -23,6 +23,7 @@ import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampT
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
 import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
+import { MERGES, HIDDEN_TOOLS, ALIAS_NAMES, translateOld } from '../src/merge.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
 import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, parseRss, parseNewsroom, newsItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS, NEWS_FEEDS } from '../src/whatsnew.ts';
 const STATE_LINES_TEST = new Set(['Operational', 'Degraded Performance', 'Partial Outage', 'Major Outage', 'Under Maintenance']);
@@ -1477,6 +1478,67 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('freshness: older than 30 days is stale; undated is stale', freshness('checked 2026-09-01', NOW).stale === true && JSON.stringify(freshness('no dates here', NOW)) === '{"lastChecked":null,"stale":true}');
 	t('freshness: MM-DD after a dating word or in parentheses counts; a bare range does not', freshness('verified 10-21', NOW).lastChecked === '2026-10-21' && freshness('(10-15)', NOW).lastChecked === '2026-10-15' && freshness('10-15 calls a minute', NOW).lastChecked === null && freshness('read 12-30', NOW).lastChecked === '2025-12-30');
 	t('freshness: a future date is ignored', freshness('2026-12-01 planned; read 2026-10-01', NOW).lastChecked === '2026-10-01');
+}
+
+// ── 1.25.0: 23 tools, every old name a hidden alias (merge.ts), end to end through the Worker's own /mcp handler ──────
+{
+	t('merge: translateOld maps old names + old args to merged name + view', JSON.stringify(translateOld('guide_search', { query: 'x' })) === '{"name":"guide","args":{"query":"x","view":"search"}}' && JSON.stringify(translateOld('simpledex_token', { view: 'holders', id: 5 })) === '{"name":"simpledex","args":{"id":5,"view":"holders"}}' && translateOld('simpledex_token', { symbol: 'IAN' })?.args.view === 'info' && translateOld('simpledex_market', {})?.args.view === 'stats' && JSON.stringify(translateOld('metal_vm_info', { chain: 'ltcvm' })) === '{"name":"metal_blockchain","args":{"view":"ltcvm"}}' && translateOld('metalx_market', { view: 'depth', symbol: 'XPR_XMD' })?.name === 'markets' && translateOld('xpr_account', { account: 'eosio' }) === null && translateOld('whats_new', {}) === null);
+	t('merge: 20 old tools hidden, 18 of them aliases (xpr_account and metal_blockchain keep their names); 34 - 20 + 9 = 23', HIDDEN_TOOLS.size === 20 && ALIAS_NAMES.length === 18 && MERGES.length === 9);
+
+	const app: any = (await import('../src/index.ts')).default;
+	const lim = { limit: async () => ({ success: true }) };
+	const env: any = { GUIDE_REPO: 'o/r', GUIDE_BRANCH: 'main', RATE_LIMITER: lim, CHAIN_LIMITER: lim, HOST_LIMITER: lim, WALLET_LIMITER: lim, SUGGEST_LIMITER: lim, BROWSER_LIMITER: lim };
+	const wctx: any = { waitUntil() {}, passThroughOnException() {} };
+	let rpcId = 0;
+	const mcp = async (method: string, params: any = {}) => {
+		const r = await app.fetch(new Request('https://guide.test/mcp', { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json, text/event-stream', 'mcp-protocol-version': '2025-06-18' }, body: JSON.stringify({ jsonrpc: '2.0', id: ++rpcId, method, params }) }), env, wctx);
+		const txt = await r.text();
+		const line = txt.split('\n').find((l: string) => l.startsWith('data: '));
+		return JSON.parse(line ? line.slice(6) : txt);
+	};
+	const GUIDE_MD = '# Guide\n\n## Vibrr\nVibrr is a social hub. *(row last edited 2026-10-18)*\n';
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url.startsWith('https://raw.githubusercontent.com/o/r/main/')) return new Response(GUIDE_MD, { status: 200 });
+		if (url.includes('indexer.protonnz.com/api/tokens')) return new Response(JSON.stringify({ tokens: [{ tokenId: 1, symbol: 'IAN', creator: 'someperson' }] }), { status: 200 });
+		if (url.includes('help.xprnetwork.org/api/v2/help_center')) return new Response(JSON.stringify({ results: [{ id: 4409647374487, title: 'What is a memo?', html_url: 'https://help.xprnetwork.org/hc/en-us/articles/4409647374487', updated_at: '2026-01-02T00:00:00Z', snippet: 'memo' }], count: 1 }), { status: 200 });
+		if (url.includes('get_producer_schedule')) return new Response(JSON.stringify({ active: { version: 9, producers: [{ producer_name: 'protonnz' }] } }), { status: 200 });
+		if (url.includes('get_info')) return new Response(JSON.stringify({ head_block_num: 5, last_irreversible_block_num: 4, chain_id: 'abc', server_version_string: 'v5' }), { status: 200 });
+		return new Response('not found', { status: 404 });
+	});
+	const list = await mcp('tools/list');
+	const names: string[] = list.result.tools.map((x: any) => x.name);
+	const EXPECT = ['guide', 'source_fetch', 'xpr_network', 'xpr_account', 'xpr_contract', 'xpr_tx', 'xpr_token_check', 'xpr_account_check', 'xpr_help', 'xpr_governance', 'xpr_agents_directory', 'xpr_nfts', 'xpr_testnet', 'simpledex', 'markets', 'metal_blockchain', 'loan_protocol', 'evm_chains', 'metallicus_status', 'whats_new', 'outside_sources', 'suggest_update', 'guide_tools'];
+	t('tools/list: exactly the 23 tools, no old alias listed', names.length === 23 && EXPECT.every((n) => names.includes(n)) && ALIAS_NAMES.every((n) => !names.includes(n)));
+	const strip = (r: any) => String(r?.result?.content?.[0]?.text ?? JSON.stringify(r)).replace(/Read at: .*/g, '');
+	const pairs: Array<[string, any, string, any]> = [
+		['guide_search', { query: 'Vibrr' }, 'guide', { query: 'Vibrr' }],
+		['guide_read', { file: 'RULES.md' }, 'guide', { view: 'read', file: 'RULES.md' }],
+		['simpledex_tokens', { limit: 5 }, 'simpledex', { limit: 5 }],
+		['xpr_help_search', { query: 'memo' }, 'xpr_help', { query: 'memo' }],
+		['xpr_producers', {}, 'xpr_network', { view: 'producers' }],
+		['xpr_chain_info', {}, 'xpr_network', {}],
+	];
+	for (const [oldName, oldArgs, newName, newArgs] of pairs) {
+		const a = await mcp('tools/call', { name: oldName, arguments: oldArgs });
+		const b = await mcp('tools/call', { name: newName, arguments: newArgs });
+		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
+	}
+	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.0, 23 tools/.test(g.result.content.at(-1).text));
+	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
+	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
+	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });
+	t('merged: arguments are checked against the old tool\'s own schema', bad.result?.isError === true && /did not fit|Invalid/.test(JSON.stringify(bad)));
+	const cat = await mcp('tools/call', { name: 'guide_tools', arguments: { action: 'list' } });
+	const catNames = JSON.parse(cat.result.content[0].text).tools.map((x: any) => x.name);
+	t('guide_tools list: the same 23 (22 plus itself counted in the footer)', catNames.length === 22 && !catNames.includes('guide_search') && catNames.includes('guide'));
+	const desc = await mcp('tools/call', { name: 'guide_tools', arguments: { action: 'describe', name: 'simpledex_tokens' } });
+	t('guide_tools describe: an old name is described, with a note naming its merged tool', /Older name, still works/.test(desc.result.content[0].text) && /part of \\"simpledex/.test(desc.result.content[0].text));
+	const viaCat = await mcp('tools/call', { name: 'guide_tools', arguments: { action: 'call', name: 'xpr_help_search', arguments: { query: 'memo' } } });
+	t('guide_tools call: an old name runs', !viaCat.result.isError && /What is a memo\?/.test(viaCat.result.content[0].text));
+	const merged = list.result.tools.find((x: any) => x.name === 'simpledex');
+	t('merged schema: view enum lists every part, old fields offered', JSON.stringify(merged.inputSchema.properties.view.enum) === '["list","info","holders","trades","stats","pools","graduations"]' && 'poolId' in merged.inputSchema.properties && 'symbol' in merged.inputSchema.properties);
 }
 
 console.log(`${pass} passed, ${failN} failed`);

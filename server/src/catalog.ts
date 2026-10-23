@@ -49,12 +49,26 @@ export function footerText(version: string, toolCount: number, catalogOffered = 
 
 export class ToolCatalog {
 	private tools = new Map<string, { config: ToolConfig; run: Run }>();
+	// 1.25.0: old tool names that now live inside a merged tool (merge.ts). Not listed; describe and call still accept them.
+	private hidden = new Map<string, { config: ToolConfig; run: Run }>();
+	private aliasOf = new Map<string, string>();
 	/** True once guide_tools itself is registered (the off switch can leave it out). */
 	offered = false;
 
 	add(name: string, config: unknown, run: Run) {
 		if (name === CATALOG_TOOL) this.offered = true;
 		else this.tools.set(name, { config: (config ?? {}) as ToolConfig, run });
+	}
+
+	addHidden(name: string, config: unknown, run: Run) {
+		this.hidden.set(name, { config: (config ?? {}) as ToolConfig, run });
+	}
+	getHidden(name: string) {
+		return this.hidden.get(name);
+	}
+	/** Record which merged tool an old name now belongs to, for describe. */
+	setAlias(oldName: string, merged: string) {
+		this.aliasOf.set(oldName, merged);
 	}
 
 	/** Every tool offered, counting guide_tools itself when it is on. */
@@ -82,7 +96,7 @@ export class ToolCatalog {
 	private find(name: string) {
 		const n = normalizeToolName(name);
 		if (n === CATALOG_TOOL) return { error: err(`${CATALOG_TOOL} cannot run itself. Give the name of another tool.`) };
-		const t = this.tools.get(n);
+		const t = this.tools.get(n) ?? this.hidden.get(n);
 		if (!t) return { error: err(`No tool named "${n}" here. Tools: ${this.names().join(', ')}.`) };
 		return { name: n, t };
 	}
@@ -96,7 +110,8 @@ export class ToolCatalog {
 		} catch {
 			inputs = 'inputs could not be described; call it with the fields its description names';
 		}
-		return okText({ name: f.name, title: f.t.config.title, description: f.t.config.description, inputs, annotations: f.t.config.annotations });
+		const merged = this.tools.has(f.name) ? undefined : this.aliasOf.get(f.name);
+		return okText({ name: f.name, ...(merged ? { note: `Older name, still works with these inputs. It is now part of "${merged}".` } : {}), title: f.t.config.title, description: f.t.config.description, inputs, annotations: f.t.config.annotations });
 	}
 
 	async call(name: string, args: unknown, extra: unknown): Promise<Result> {

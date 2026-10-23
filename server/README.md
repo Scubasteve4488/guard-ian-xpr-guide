@@ -12,6 +12,8 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 
 ## Tools
 
+**Since 1.25.0 (2026-10-23): 23 tools.** Related tools were merged into one tool with a `view`; every older name below still works when called directly or through `guide_tools`, it is just no longer listed. `guide` = `guide_search` (view `search`, default) + `guide_read` (`read`) · `xpr_network` = `xpr_chain_info` (`status`) + `xpr_producers` (`producers`) · `xpr_account` = `xpr_account` (`info`) + `xpr_token_balances` (`balances`) + `xpr_actions` (`history`) · `xpr_contract` = `xpr_abi` (`abi`) + `xpr_table` (`table`) · `xpr_tx` = `xpr_transaction` (`transaction`) + `xpr_block` (`block`) · `simpledex` = `simpledex_tokens` (`list`) + `simpledex_token` (`info` / `holders` / `trades`) + `simpledex_market` (`stats` / `pools` / `graduations`) · `markets` = `metalx_market` (same views, plus `alcor`) · `metal_blockchain` = `metal_blockchain` (`status` / `validators` / `chains` / `staking`) + `metal_vm_info` (`btcvm` / `ltcvm`) + `dogecoinvm_status` (`dogecoinvm`) · `xpr_help` = `xpr_help_search` (`search`) + `xpr_help_article` (`article`). The table below still describes each part under its older name.
+
 | Tool | What it does |
 |---|---|
 | `guide_search` | Keyword search across the whole guide: ecosystem directory, source catalog, rules, KSTO, index. Since 1.24.0 each hit carries `lastChecked` (newest date written in it) and `stale: true` when older than 30 days or undated |

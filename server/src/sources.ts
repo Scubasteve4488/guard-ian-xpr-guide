@@ -164,7 +164,7 @@ export function dataApiRefusal(url: URL): string | null {
 	if (AGGREGATE_ENDPOINTS.has(last) && !badKey) return null;
 	return (
 		`that is a data-API call (${url.pathname}) that can list or profile wallets, and page reading only covers totals, prices and markets. ` +
-		'Use the dedicated tool instead (xpr_account, xpr_token_balances, xpr_actions, xpr_table, simpledex_token, metalx_market, xpr_agents_directory, xpr_nfts): ' +
+		'Use the dedicated tool instead (xpr_account, xpr_contract, simpledex, markets, xpr_agents_directory, xpr_nfts): ' +
 		"they apply the public-account check and hide private people's wallet names"
 	);
 }
