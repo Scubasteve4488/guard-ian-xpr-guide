@@ -25,7 +25,7 @@ import { registerEvmTool } from './evm.ts';
 import { registerStatusTool } from './status.ts';
 import { registerWhatsNewTool } from './whatsnew.ts';
 import { registerAccountCheckTool } from './paycheck.ts';
-import { registerResearchTools, alcorView } from './research.ts';
+import { registerResearchTools, alcorView, setNewsLimiter } from './research.ts';
 import { HIDDEN_TOOLS, MERGES, MERGED, registerMerged, installAliases } from './merge.ts';
 import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
@@ -46,6 +46,7 @@ interface Env {
 	AI?: AiLike; // Workers AI binding (wrangler.jsonc "ai"): used ONLY for toMarkdown on PDFs in source_fetch
 	BROWSER?: BrowserLike; // Browser Run binding (wrangler.jsonc "browser"): used ONLY by source_fetch for pages that build in the browser
 	BROWSER_LIMITER?: Limiter; // shared: one browser page every 10 s (Workers Free Quick Actions limit)
+	NEWS_LIMITER?: Limiter; // shared: GDELT at most 2 calls a minute per location (1.25.2)
 }
 
 // Cloudflare Browser Run Quick Actions from a Worker binding (developers.cloudflare.com/browser-run/quick-actions/
@@ -60,7 +61,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.25.1';
+const VERSION = '1.25.2';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -907,6 +908,7 @@ async function route(request: Request, env: Env, ctx: ExecutionContext): Promise
 	// Never get banned: shared per-target budgets (net.ts). Without the bindings, refuse rather than serve unmetered.
 	if (!env.CHAIN_LIMITER || !env.HOST_LIMITER) return new Response('Server misconfigured: upstream rate limits missing.', { status: 503 });
 	setUpstreamLimiters(env.CHAIN_LIMITER, env.HOST_LIMITER);
+	setNewsLimiter(env.NEWS_LIMITER);
 	const handler = createMcpHandler(() => createServer(env, ctx, ip));
 	return handler(request, env, ctx);
 }

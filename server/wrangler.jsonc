@@ -59,6 +59,12 @@
 			"namespace_id": "4493",
 			"simple": { "limit": 1, "period": 10 },
 		},
+		{
+			// 1.25.2: GDELT throttles Cloudflare's shared addresses; one call plus its one retry a minute, per location.
+			"name": "NEWS_LIMITER",
+			"namespace_id": "4494",
+			"simple": { "limit": 2, "period": 60 },
+		},
 	],
 	// 1.15.0: Cloudflare Browser Run, used only by source_fetch for pages that build themselves in the browser.
 	// Workers Free: 10 browser-minutes a day, then 429 until the next UTC day; never billed (browser-run/limits/).

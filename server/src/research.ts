@@ -31,7 +31,7 @@
 // documented endpoint and reshapes its documented fields.
 
 import { z } from 'zod';
-import { politeFetch, rpc, UpstreamError } from './net.ts';
+import { politeFetch, rpc, UpstreamError, __clearHostCooling } from './net.ts';
 import { robotsAllows } from './robots.ts';
 import { getJson } from './more.ts';
 import { currencyStats, table } from './chain.ts';
@@ -199,32 +199,222 @@ export function slimPool(p: any) {
 }
 
 // ── handlers (exported: market views run from metalx_market in index.ts; the rest from outside_sources) ──────────────
-export async function newsView({ query, days, limit }: { query?: string; days?: number; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
-	days = days ?? 30;
-	limit = Math.min(75, limit ?? 25);
-	const q = query?.trim() || DEFAULT_NEWS_QUERY;
-	const now = new Date();
-	const start = new Date(now.getTime() - Math.min(90, Math.max(1, days ?? 30)) * 86400_000);
-	const url = `${GDELT}?query=${encodeURIComponent(q)}&mode=ArtList&format=json&maxrecords=${query?.trim() ? Math.min(250, (limit ?? 25) * 3) : 250}&sort=DateDesc&startdatetime=${gdeltStamp(start)}&enddatetime=${gdeltStamp(now)}`;
+// ── news, made reliable (1.25.2, owner 13:43 MT "Make it work reliably") ─────────────────────────────────────────────
+// GDELT throttles Cloudflare's shared addresses (live 2026-10-23: HTTP 429 on most calls). So:
+//  - one shared answer per query and hour: the GDELT URL's window is rounded to the hour and its parsed answer is kept
+//    60 minutes (Workers Cache API + this isolate's memory), so repeated asks do not reach GDELT at all;
+//  - NEWS_LIMITER (wrangler.jsonc): at most 2 GDELT calls a minute per Cloudflare location (one call + its one retry);
+//  - on 429 one retry after the 5 seconds GDELT asks for; on failure, or when GDELT has nothing that names the
+//    ecosystem, the fallback feeds are read in order: Google News RSS, then Bing News RSS. Each is read only after its
+//    robots.txt allows the path (checked live, every hour, by robots.ts); a feed whose robots.txt says no is skipped.
+//  - the last good answer is kept 24 hours and shown, clearly dated, when every feed fails at once.
+export const NEWS_FALLBACKS = [
+	{ name: 'Google News RSS', url: (q: string, days: number) => `https://news.google.com/rss/search?q=${encodeURIComponent(`${q} when:${days}d`)}&hl=en-US&gl=US&ceid=US:en` },
+	{ name: 'Bing News RSS', url: (q: string) => `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss` },
+] as const;
+let newsLimiter: { limit(o: { key: string }): Promise<{ success: boolean }> } | undefined;
+export function setNewsLimiter(l?: typeof newsLimiter) {
+	newsLimiter = l;
+}
+const NEWS_TTL = 3600;
+const LAST_GOOD_TTL = 86400;
+const newsMem = new Map<string, { until: number; value: any }>();
+const newsKey = (k: string) => new Request(`https://news-cache.invalid/${encodeURIComponent(k)}`);
+async function newsGet(k: string): Promise<any | null> {
+	const m = newsMem.get(k);
+	if (m && m.until > Date.now()) return m.value;
 	try {
-		const r = await getText(url, 900, ctx, undefined, 20_000);
-		const body = r.text.trim();
-		let json: any = {};
-		if (body) {
+		const hit = await (globalThis as any).caches?.default?.match(newsKey(k));
+		return hit ? await hit.json() : null;
+	} catch {
+		return null;
+	}
+}
+async function newsPut(k: string, value: any, ttl: number, ctx?: ExecutionContext) {
+	if (newsMem.size > 200) newsMem.delete(newsMem.keys().next().value as string);
+	newsMem.set(k, { until: Date.now() + ttl * 1000, value });
+	try {
+		const c = (globalThis as any).caches?.default;
+		if (!c) return;
+		const p = c.put(newsKey(k), new Response(JSON.stringify(value), { headers: { 'content-type': 'application/json', 'cache-control': `max-age=${ttl}` } }));
+		if (ctx) ctx.waitUntil(p);
+		else await p;
+	} catch {
+		/* best effort */
+	}
+}
+/** Tests only. */
+export function __resetNewsCache() {
+	newsMem.clear();
+}
+const sleepMs = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+type NewsItem = { outlet: string; title: string; url: string; published?: string; seenByGdelt?: string; feed: string; viaGoogleNews?: boolean };
+
+/** RSS 2.0 news items (Google News / Bing News): title, link, pubDate, <source> outlet. */
+export function parseNewsRss(xml: string, feed: string): NewsItem[] {
+	const dec = (v: string) => v.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+	const out: NewsItem[] = [];
+	for (const it of xml.match(/<item\b[\s\S]*?<\/item>/g) ?? []) {
+		const pick = (tag: string) => dec((it.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`)) ?? [])[1] ?? '');
+		let title = pick('title');
+		const url = pick('link');
+		if (!title || !/^https?:\/\//.test(url)) continue;
+		let outlet = pick('source') || pick('News:Source');
+		const srcUrl = (it.match(/<source[^>]*url="([^"]+)"/) ?? [])[1];
+		if (!outlet && srcUrl) outlet = new URL(srcUrl).hostname;
+		// Google News appends " - Outlet" to every title.
+		if (outlet && title.endsWith(` - ${outlet}`)) title = title.slice(0, -(outlet.length + 3)).trim();
+		const d = new Date(pick('pubDate'));
+		const google = /(^|\.)news\.google\.com$/.test(new URL(url).hostname);
+		if (!outlet) outlet = google ? 'unknown outlet' : new URL(url).hostname;
+		out.push({ outlet, title, url, ...(Number.isNaN(d.getTime()) ? {} : { published: d.toISOString() }), feed, ...(google ? { viaGoogleNews: true } : {}) });
+	}
+	return out;
+}
+
+/** Keep items that name the ecosystem (title, or link words for direct links); drop name collisions; de-duplicate. */
+export function relevantNews(items: NewsItem[], usedDefault: boolean) {
+	const kept: NewsItem[] = [];
+	const seenUrl = new Set<string>();
+	const seenTitle = new Set<string>();
+	let dropped = 0;
+	for (const n of items) {
+		const linkWords = n.viaGoogleNews ? '' : decodeURIComponent(n.url).replace(/[-_/]+/g, ' ');
+		if (usedDefault && (!ECO_WORDS.test(`${n.title} ${linkWords}`) || (COLLISION.test(`${n.title} ${n.url}`) && !ECO_WORDS.test(n.title)))) {
+			dropped++;
+			continue;
+		}
+		const tkey = n.title.toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+		if (seenUrl.has(n.url) || seenTitle.has(tkey)) continue;
+		seenUrl.add(n.url);
+		seenTitle.add(tkey);
+		kept.push(n);
+	}
+	const when = (n: NewsItem) => n.published ?? n.seenByGdelt ?? '';
+	kept.sort((x, y) => (when(x) < when(y) ? 1 : when(x) > when(y) ? -1 : 0));
+	return { items: kept, dropped };
+}
+
+async function readGdelt(q: string, days: number, userQuery: boolean, ctx?: ExecutionContext): Promise<{ items: NewItemLike[]; source: string; cached: boolean }> {
+	const hour = 3600_000;
+	const end = new Date(Math.floor(Date.now() / hour) * hour);
+	const start = new Date(end.getTime() - days * 86400_000);
+	const url = `${GDELT}?query=${encodeURIComponent(q)}&mode=ArtList&format=json&maxrecords=250&sort=DateDesc&startdatetime=${gdeltStamp(start)}&enddatetime=${gdeltStamp(end)}`;
+	const hit = await newsGet(`gdelt|${url}`);
+	if (hit) return { items: hit, source: url, cached: true };
+	const allowed = async () => {
+		if (!newsLimiter) return true;
+		try {
+			return (await newsLimiter.limit({ key: 'gdelt' })).success;
+		} catch {
+			return false;
+		}
+	};
+	if (!(await allowed())) throw new UpstreamError('GDELT was already asked in the last minute from here (this server asks it at most twice a minute), so it was not asked again');
+	const once = async () => {
+		const u = new URL(url);
+		if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
+		return politeFetch([url], '', { method: 'GET' }, { ttlSec: 0, ctx, startAt: 0, timeoutMs: 20_000 });
+	};
+	let r;
+	try {
+		r = await once();
+	} catch (e) {
+		if (!(e instanceof UpstreamError && / 429/.test(e.message))) throw e;
+		r = null;
+	}
+	if (!r || r.status === 429) {
+		// One retry after the 5 seconds GDELT asks for, counted against the same per-minute budget.
+		await sleepMs(5500);
+		if (!(await allowed())) throw new UpstreamError('GDELT answered 429 (too many requests) and the retry budget for this minute is used');
+		__clearHostCooling(new URL(url).host);
+		r = await once();
+	}
+	if (r.status !== 200) throw new UpstreamError(`GDELT answered HTTP ${r.status}`);
+	const body = r.text.trim();
+	let json: any = {};
+	if (body) {
+		try {
+			json = JSON.parse(body);
+		} catch {
+			throw new UpstreamError(`GDELT did not return a list: "${body.slice(0, 120)}"`);
+		}
+	}
+	const items: NewItemLike[] = newsArticles(json, false).articles.map((a) => ({ outlet: a.outlet, title: a.title, url: a.url, seenByGdelt: a.seenByGdelt, feed: 'GDELT' }));
+	await newsPut(`gdelt|${url}`, items, NEWS_TTL, ctx);
+	return { items, source: url, cached: false };
+}
+type NewItemLike = NewsItem;
+
+async function readFallback(f: (typeof NEWS_FALLBACKS)[number], q: string, days: number, ctx?: ExecutionContext): Promise<{ items: NewsItem[]; source: string; cached: boolean }> {
+	const url = f.url(q, days);
+	const hit = await newsGet(`rss|${url}`);
+	if (hit) return { items: hit, source: url, cached: true };
+	const u = new URL(url);
+	if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
+	const r = await politeFetch([url], '', { method: 'GET', headers: { Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5' } }, { ttlSec: 0, ctx, startAt: 0, timeoutMs: 12_000 });
+	if (r.status !== 200) throw new UpstreamError(`answered HTTP ${r.status}`);
+	if (!/<rss\b|<channel\b/i.test(r.text)) throw new UpstreamError('did not answer with an RSS feed');
+	const items = parseNewsRss(r.text, f.name);
+	await newsPut(`rss|${url}`, items, 1800, ctx);
+	return { items, source: url, cached: false };
+}
+
+export async function newsView({ query, days, limit }: { query?: string; days?: number; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
+	const d = Math.min(90, Math.max(1, days ?? 30));
+	const lim = Math.min(75, limit ?? 25);
+	const userQuery = !!query?.trim();
+	const q = query?.trim() || DEFAULT_NEWS_QUERY;
+	const readAt = new Date().toISOString();
+	const answered: string[] = [];
+	const sources: string[] = [];
+	const notRead: string[] = [];
+	let all: NewsItem[] = [];
+	let dropped = 0;
+	const take = (name: string, r: { items: NewsItem[]; source: string; cached: boolean }) => {
+		const rel = relevantNews(r.items, !userQuery);
+		dropped += rel.dropped;
+		all = all.concat(rel.items);
+		answered.push(r.cached ? `${name} (shared copy, refreshed at most hourly)` : name);
+		sources.push(r.source);
+		return rel.items.length;
+	};
+	let gdeltCount = 0;
+	try {
+		gdeltCount = take('GDELT', await readGdelt(q, d, userQuery, ctx));
+	} catch (e) {
+		notRead.push(`GDELT: ${e instanceof UpstreamError ? e.message : 'could not be read'}`);
+	}
+	if (!gdeltCount) {
+		for (const f of NEWS_FALLBACKS) {
 			try {
-				json = JSON.parse(body);
-			} catch {
-				throw new UpstreamError(`GDELT did not return a list: "${body.slice(0, 160)}"`);
+				take(f.name, await readFallback(f, q, d, ctx));
+				break;
+			} catch (e) {
+				notRead.push(`${f.name}: ${e instanceof UpstreamError ? e.message : 'could not be read'}`);
 			}
 		}
-		const { articles, dropped } = newsArticles(json, !query?.trim());
-		const data: any = { query: q, from: start.toISOString(), to: now.toISOString(), count: Math.min(articles.length, limit ?? 25), articles: articles.slice(0, limit ?? 25) };
-		if (dropped) data.filteredOut = `${dropped} article(s) left out: the title and link did not name the ecosystem, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
-		if (!articles.length) data.verdict = 'No article in the GDELT news index for this window names the ecosystem in its title or link.';
-		return ok(data, url, r.readAt, `The time shown is when GDELT first saw each article, not the outlet's own publish date (GDELT does not give that); open the link for the article's date. GDELT covers web news in many languages but not every outlet, and no social media. ${DATA_NOTE}`);
-	} catch (e) {
-		return fail(e, 'GDELT allows about one request every 5 seconds; wait a little and try again.');
 	}
+	const lastKey = `last|${q}|${d}`;
+	if (!answered.length) {
+		const last = await newsGet(lastKey);
+		if (last)
+			return ok({ ...last, staleCopy: `Every news feed failed just now, so this is the last good answer, from ${last.readAt}.`, notRead }, last.sources ?? [], readAt, `Not live: a copy from ${last.readAt}. ${DATA_NOTE}`);
+		return fail(new UpstreamError(`news feeds unavailable right now, try later (${notRead.join('; ')})`), 'This is a temporary limit of the free news feeds.');
+	}
+	const merged = relevantNews(all, false).items.slice(0, lim);
+	const data: any = { query: q, days: d, answeredBy: answered, count: merged.length, articles: merged };
+	if (dropped) data.filteredOut = `${dropped} item(s) left out: they did not name the ecosystem in title or link, or named something else with a similar name (Metallica, ProtonMail/VPN, XRP, WebAuthn)`;
+	if (notRead.length) data.notRead = notRead;
+	if (!merged.length) data.verdict = `No news item from ${answered.join(' / ')} names the ecosystem in its title or link for the last ${d} days.`;
+	else await newsPut(lastKey, { ...data, readAt, sources }, LAST_GOOD_TTL, ctx);
+	return ok(
+		data,
+		sources,
+		readAt,
+		`Dates: "published" is the item's own date from its feed (RSS pubDate); "seenByGdelt" is when GDELT first saw it (GDELT gives no publish date). Links marked viaGoogleNews go through Google News to the outlet. Coverage is web news, not social media. ${DATA_NOTE}`,
+	);
 }
 
 export async function filingsView({ query, forms, from, to, limit }: { query?: string; forms?: string; from?: string; to?: string; limit?: number }, ctx?: ExecutionContext): Promise<Result> {

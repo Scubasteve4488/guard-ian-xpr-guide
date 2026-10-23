@@ -21,7 +21,7 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
-import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
 import { MERGES, HIDDEN_TOOLS, ALIAS_NAMES, translateOld } from '../src/merge.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
@@ -1527,7 +1527,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
 	}
 	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
-	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.1, 23 tools/.test(g.result.content.at(-1).text));
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.2, 23 tools/.test(g.result.content.at(-1).text));
 	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
 	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
 	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });
@@ -1541,6 +1541,67 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('guide_tools call: an old name runs', !viaCat.result.isError && /What is a memo\?/.test(viaCat.result.content[0].text));
 	const merged = list.result.tools.find((x: any) => x.name === 'simpledex');
 	t('merged schema: view enum lists every part, old fields offered', JSON.stringify(merged.inputSchema.properties.view.enum) === '["list","info","holders","trades","stats","pools","graduations"]' && 'poolId' in merged.inputSchema.properties && 'symbol' in merged.inputSchema.properties);
+}
+
+// ── 1.25.2: news made reliable — hourly shared GDELT copy, Google News / Bing RSS fallback, last good copy ─────────────
+{
+	const tools: Record<string, (a: any) => Promise<any>> = {};
+	registerResearchTools((n: string, _c: unknown, h: (a: any) => Promise<any>) => ((tools[n] = h), undefined));
+	const GOOD = { articles: [{ url: 'https://www.paper.example/xpr', title: 'Bank pilots XPR Network payments', seendate: '20261022T120000Z', domain: 'paper.example' }, { url: 'https://loud.example/x', title: 'Metal Musicians Pay Tribute', seendate: '20261022T110000Z', domain: 'loud.example' }] };
+	const GN = `<?xml version="1.0"?><rss version="2.0"><channel><title>Google News</title>
+<item><title>Metallicus launches Metal Dollar pilot with credit union - Example Times</title><link>https://news.google.com/rss/articles/CBMiabc?oc=5</link><pubDate>Wed, 22 Oct 2026 14:00:00 GMT</pubDate><source url="https://www.exampletimes.com">Example Times</source></item>
+<item><title>Metallica tour dates announced - Music Weekly</title><link>https://news.google.com/rss/articles/CBMixyz?oc=5</link><pubDate>Tue, 21 Oct 2026 10:00:00 GMT</pubDate><source url="https://musicweekly.example">Music Weekly</source></item>
+</channel></rss>`;
+	const gn = parseNewsRss(GN, 'Google News RSS');
+	t('news rss: Google News items read with outlet, title without " - Outlet", pubDate, and marked viaGoogleNews', gn.length === 2 && gn[0].outlet === 'Example Times' && gn[0].title === 'Metallicus launches Metal Dollar pilot with credit union' && gn[0].published === '2026-10-22T14:00:00.000Z' && gn[0].viaGoogleNews === true);
+	t('news rss: relevance + collision filter applies to RSS items', relevantNews(gn, true).items.length === 1 && relevantNews(gn, true).dropped === 1);
+	t('news: fallback order is Google News RSS, then Bing News RSS', NEWS_FALLBACKS.map((f) => f.name).join() === 'Google News RSS,Bing News RSS' && NEWS_FALLBACKS[0].url('"XPR Network"', 30).startsWith('https://news.google.com/rss/search?q=') && /format=rss/.test(NEWS_FALLBACKS[1].url('x', 1)));
+
+	// GDELT ok → answered by GDELT, no fallback call; asked again → the shared copy, no second GDELT call
+	__resetNewsCache();
+	let gdeltCalls = 0, gnCalls = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url.startsWith('https://api.gdeltproject.org/')) { gdeltCalls++; return new Response(JSON.stringify(GOOD), { status: 200 }); }
+		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
+		return new Response('nf', { status: 404 });
+	});
+	const r1 = await tools.outside_sources({ view: 'news' });
+	const r1b = await tools.outside_sources({ view: 'news' });
+	t('news: GDELT ok → answered by GDELT, unrelated story dropped, no fallback read', !r1.isError && /"answeredBy": \[\s*"GDELT"\s*\]/.test(r1.content[0].text) && /Bank pilots XPR Network payments/.test(r1.content[0].text) && !/Metal Musicians/.test(r1.content[0].text) && gnCalls === 0);
+	t('news: a second ask uses the shared hourly copy (GDELT asked once)', gdeltCalls === 1 && /shared copy/.test(r1b.content[0].text));
+
+	// GDELT 429 (twice: call + one retry) → Google News RSS answers
+	__resetNewsCache();
+	gdeltCalls = 0; gnCalls = 0;
+	stub((url) => {
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url.startsWith('https://api.gdeltproject.org/')) { gdeltCalls++; return new Response('Please limit requests to one every 5 seconds', { status: 429 }); }
+		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
+		return new Response('nf', { status: 404 });
+	});
+	const r2 = await tools.outside_sources({ view: 'news', query: undefined });
+	const t2 = r2.content[0].text;
+	t('news: GDELT 429 → retried once, then Google News RSS used; feed named, publish date given, link via Google News said', !r2.isError && gdeltCalls === 2 && gnCalls === 1 && /"answeredBy": \[\s*"Google News RSS"\s*\]/.test(t2) && /"published": "2026-10-22T14:00:00.000Z"/.test(t2) && /"viaGoogleNews": true/.test(t2) && /GDELT: .*429/.test(t2) && !/Metallica tour/.test(t2));
+
+	// GDELT and every fallback down, nothing cached → the plain error
+	__resetNewsCache();
+	stub((url) => (url.endsWith('/robots.txt') ? new Response('', { status: 404 }) : new Response('down', { status: 500 })));
+	const r3 = await tools.outside_sources({ view: 'news', days: 7 });
+	t('news: every feed down and no earlier copy → "news feeds unavailable right now, try later"', r3.isError === true && /news feeds unavailable right now, try later/.test(r3.content[0].text) && /Google News RSS: answered HTTP 500/.test(r3.content[0].text) && /Bing News RSS/.test(r3.content[0].text));
+
+	// a fallback whose robots.txt says no is skipped, not read
+	__resetNewsCache();
+	gnCalls = 0;
+	stub((url) => {
+		if (url === 'https://news.google.com/robots.txt') return new Response('User-agent: *\nDisallow: /rss', { status: 200 });
+		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
+		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
+		if (url.startsWith('https://www.bing.com/news/')) return new Response(GN.replace(/news\.google\.com\/rss\/articles/g, 'www.exampletimes.com/story'), { status: 200 });
+		return new Response('down', { status: 500 });
+	});
+	const r4 = await tools.outside_sources({ view: 'news', days: 14 });
+	t('news: Google News skipped when its robots.txt disallows; Bing News RSS answers', !r4.isError && gnCalls === 0 && /"answeredBy": \[\s*"Bing News RSS"\s*\]/.test(r4.content[0].text) && /robots\.txt does not allow/.test(r4.content[0].text));
 }
 
 console.log(`${pass} passed, ${failN} failed`);

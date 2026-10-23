@@ -173,6 +173,10 @@ function memPut(k: string, value: FetchResult, ttlSec: number) {
 	if (mem.size >= MEM_MAX) mem.delete(mem.keys().next().value as string);
 	mem.set(k, { until: Date.now() + ttlSec * 1000, value });
 }
+/** Lets one deliberate retry go out after its own wait (research.ts news, 1.25.2). */
+export function __clearHostCooling(host: string) {
+	coolUntil.delete(host);
+}
 /** Tests only: forget cooldowns and the memory cache. */
 export function __resetNetState() {
 	coolUntil.clear();
