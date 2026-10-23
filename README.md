@@ -10,7 +10,7 @@ AI apps don't know the XPR / Metallicus ecosystem deeply, and they guess. This g
 - **Read-only.** No wallet, no keys, it signs nothing. The one exception is a private suggestion box (`suggest_update`): your AI can send a fact the guide is missing, with your OK. Nothing about you is stored, no one else can read it, and it is added only after it is checked at an official source.
 - **No AI model inside.** Your own Claude, ChatGPT or Grok writes the answer.
 
-> **Not public yet (2026-10-16).** The builder is testing the guide and hasn't released it to the public; it may open later. The connector addresses below work, but they aren't being shared or listed anywhere yet. *(Superseded the same night: for about an hour the server answered only at a private address; it was reopened so the builder can test from his phone.)*
+> **Open to use (2026-10-22).** Anyone can connect with the addresses below; people outside the builder already use it. It is not listed in any app directory yet. *(History: on 2026-10-16 this note said "Not public yet" while the builder tested it.)*
 
 ## Connect it
 
@@ -22,7 +22,7 @@ https://gitmcp.io/Scubasteve4488/guard-ian-xpr-guide
 
 Served by [GitMCP](https://github.com/idosal/git-mcp), a free, open-source service that turns a GitHub repo into a connector.
 
-**Recommended: GUARD.IAN's own server (live since 2026-10-15; not public yet, see the note above).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live tools: the XPR chain (accounts, tokens, contract tables, transactions, blocks, producers, governance, testnet), **"is this the real token?"**, SimpleDEX, Metal X, **LOAN Protocol** (rates, APY, TVL), NFTs, XPR Agents, Metal Blockchain with BTCVM/LTCVM/DogecoinVM, and **Metal L2, Ethereum and BNB Chain**. Pages that build themselves in the browser are read in a real browser. Code: [`server/`](server/).
+**Recommended: GUARD.IAN's own server (live since 2026-10-15).** It reads this guide straight from its latest version on GitHub (a change reaches everyone within about 10 minutes: GitHub and the server each cache files for up to 5) and adds read-only live tools: the XPR chain (accounts, tokens, contract tables, transactions, blocks, producers, governance, testnet), **"is this the real token?"**, SimpleDEX, Metal X, **LOAN Protocol** (rates, APY, TVL), NFTs, XPR Agents, Metal Blockchain with BTCVM/LTCVM/DogecoinVM, and **Metal L2, Ethereum and BNB Chain**. Pages that build themselves in the browser are read in a real browser. Code: [`server/`](server/).
 
 ```
 https://guide.standguard.net/mcp
