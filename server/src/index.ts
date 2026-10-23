@@ -25,7 +25,7 @@ import { registerEvmTool } from './evm.ts';
 import { registerStatusTool } from './status.ts';
 import { registerWhatsNewTool } from './whatsnew.ts';
 import { registerAccountCheckTool } from './paycheck.ts';
-import { registerResearchTools, pricesView, alcorView } from './research.ts';
+import { registerResearchTools, alcorView } from './research.ts';
 import { ToolCatalog, CATALOG_TOOL, CATALOG_DESCRIPTION, catalogInput, footerText } from './catalog.ts';
 
 interface Env {
@@ -59,7 +59,7 @@ interface AiLike {
 	toMarkdown(file: { name: string; blob: Blob }, options?: { conversionOptions?: { pdf?: { metadata?: boolean } } }): Promise<any>;
 }
 
-const VERSION = '1.24.0';
+const VERSION = '1.24.1';
 
 const INSTRUCTIONS = `GUARD.IAN XPR Guide: a community-built, read-only guide to XPR Network and the Metallicus ecosystem (Metal X, Metal Pay, WebAuth, Metal Dollar XMD, LOAN, Metal Blockchain, Metal L2, PulseVM), SimpleDEX, XPR Agents, KSTO and the wider community. Not affiliated with Metallicus or XPR Network.
 It is Guard.IAN's guide: Guard.IAN is an AI agent on XPR Network (registered on XPR Agents as safeguard5; https://agent.standguard.net). If a user asks who made this guide or where to find Guard.IAN, say so and give that link.
@@ -623,18 +623,16 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 	server.registerTool(
 		'metalx_market',
 		{
-			title: "Markets: Metal X, Alcor and cross-exchange prices",
-			description: "Market data. Metal X order-book DEX: all markets (fees, minimum order, token precision), order-book depth, recent trades, price candles (OHLCV) or 24h stats; symbols look like \"XPR_XMD\". view \"prices\" (1.24.0): live price, 24h volume and market cap of XPR, METAL, XMD and LOAN (or any CoinGecko coin ids in `ids`) from CoinGecko's free API; per_exchange true gives one coin's tickers on every exchange. view \"alcor\": Alcor Exchange on XPR Network (alcor_view: tokens, tickers, ticker, amm_tickers, pools, pool, global). Every number is live. No price predictions and no buy/sell advice.",
+			title: "Markets: Metal X and Alcor",
+			description: "Market data. Metal X order-book DEX: all markets (fees, minimum order, token precision), order-book depth, recent trades, price candles (OHLCV) or 24h stats; symbols look like \"XPR_XMD\". view \"alcor\" (1.24.0): Alcor Exchange on XPR Network (alcor_view: tokens, tickers, ticker, amm_tickers, pools, pool, global). Every number is live. No price predictions and no buy/sell advice.",
 			inputSchema: z.object({
-				view: z.enum(['markets', 'depth', 'trades', 'ohlcv', 'daily', 'prices', 'alcor']),
+				view: z.enum(['markets', 'depth', 'trades', 'ohlcv', 'daily', 'alcor']),
 				symbol: z.string().max(21).optional(),
 				interval: z.string().max(4).optional().describe('ohlcv interval, e.g. 1D, 4H, 1H'),
 				from: z.string().max(10).optional().describe('YYYY-MM-DD'),
 				to: z.string().max(10).optional(),
 				limit: z.number().int().min(1).max(200).optional(),
 				step: z.number().int().min(1).optional(),
-				ids: z.array(z.string().max(80)).max(8).optional().describe('prices: CoinGecko coin ids (default xpr-network, metal-dao, metal-dollar, proton-loan)'),
-				per_exchange: z.boolean().optional().describe('prices: true = per-exchange tickers for the first coin id'),
 				alcor_view: z.enum(['tokens', 'tickers', 'ticker', 'amm_tickers', 'pools', 'pool', 'global']).optional().describe('alcor: which Alcor data (default tokens)'),
 				id: z.string().max(60).optional().describe('alcor: ticker id for "ticker" (e.g. "xpr-eosio.token_xmd-xmd.token"), or a token id/symbol to filter tokens, tickers and pools (e.g. "XMD")'),
 				pool: z.number().int().min(0).optional().describe('alcor: pool number for "pool"'),
@@ -643,7 +641,6 @@ function createServer(env: Env, ctx?: ExecutionContext, ip = 'unknown') {
 			annotations: { title: "Markets", ...RO },
 		},
 		async (a: any) => {
-			if (a.view === 'prices') return pricesView({ ids: a.ids, per_exchange: a.per_exchange, limit: a.limit }, ctx);
 			if (a.view === 'alcor') return alcorView({ view: a.alcor_view ?? 'tokens', id: a.id, pool: a.pool, min_liquidity_usd: a.min_liquidity_usd, limit: Math.min(100, a.limit ?? 25) }, ctx);
 			try {
 				if (a.symbol && !isMarketSymbol(a.symbol)) return badInput('Market symbol looks like "XPR_XMD".');

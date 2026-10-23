@@ -221,7 +221,7 @@ export async function politeFetch(
 	pool: string[],
 	path: string,
 	init: { method?: 'GET' | 'POST'; body?: string; headers?: Record<string, string> } = {},
-	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean; pdf?: (bytes: Uint8Array) => Promise<string>; maxBytes?: number } = {},
+	opts: { ttlSec?: number; ctx?: ExecutionContext; startAt?: number; returnRedirects?: boolean; noBanOn403?: boolean; pdf?: (bytes: Uint8Array) => Promise<string>; maxBytes?: number; timeoutMs?: number } = {},
 ): Promise<FetchResult> {
 	const ttl = opts.ttlSec ?? 0;
 	const key = cacheKey(pool.join('|') + path, init.body);
@@ -255,7 +255,7 @@ export async function politeFetch(
 					...(init.headers ?? {}),
 				},
 				redirect: 'manual',
-				signal: AbortSignal.timeout(TIMEOUT_MS),
+				signal: AbortSignal.timeout(Math.min(opts.timeoutMs ?? TIMEOUT_MS, 25_000)), // timeoutMs (1.24.1): GDELT often needs >8 s
 			});
 		} catch (e: any) {
 			lastErr = `${new URL(url).host}: ${e?.name === 'TimeoutError' ? 'timed out' : 'network error'}`;

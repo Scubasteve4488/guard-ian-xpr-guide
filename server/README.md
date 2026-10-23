@@ -34,7 +34,7 @@ A free remote MCP server: the live version of the GUARD.IAN XPR Guide connector.
 | `xpr_testnet` | XPR Network TESTNET: chain status (checks the testnet chain id), one account, one table, and the SimpleDEX testnet indexer (stats, tokens, newest, pools, graduations) |
 | `dogecoinvm_status` | DogecoinVM: its published alpha limits and warnings (official repo), whether its chain is registered on Metal, and the DOGE in the bridge's multisig on the Dogecoin chain (BlockCypher). Its /api and /rpc pages are not read: its robots.txt disallows them |
 | `simpledex_tokens` / `simpledex_token` / `simpledex_market` | SimpleDEX indexer (Proton NZ): launches, one token (info, holders, trades), totals, pools, graduations |
-| `metalx_market` | Markets: Metal X API (markets, order-book depth, recent trades, candles, 24h stats); since 1.24.0 also view `prices` (CoinGecko free API: XPR, METAL, XMD, LOAN or any coin id; `per_exchange` for each exchange's ticker) and view `alcor` (Alcor Exchange on XPR Network: tokens, tickers, AMM tickers, pools, totals). Live numbers, no predictions |
+| `metalx_market` | Markets: Metal X API (markets, order-book depth, recent trades, candles, 24h stats); since 1.24.0 also view `alcor` (Alcor Exchange on XPR Network: tokens, tickers, AMM tickers, pools, totals). Live numbers, no predictions |
 | `xpr_agents_directory` | XPR Agents indexer: stats, agents, search, jobs |
 | `xpr_nfts` | AtomicAssets API: collections, templates, assets, listings |
 | `metal_vm_info` | BTCVM / LTCVM public wallet info |

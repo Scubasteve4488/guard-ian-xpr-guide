@@ -451,7 +451,7 @@ async function readLane(lane: Lane, since: Date, ctx?: ExecutionContext): Promis
 				read('CISA KEV', SECURITY_FEEDS.kev, KEV_MAX_BYTES),
 				read('Node.js vulnerability feed', SECURITY_FEEDS.node),
 				read('WordPress security news', SECURITY_FEEDS.wordpress),
-				read('PHP news feed', SECURITY_FEEDS.php),
+				read('PHP news feed', SECURITY_FEEDS.php, 4_000_000), // php.net's Atom carries whole posts (>1 MB, live 2026-10-23)
 			]);
 			if (kev !== null) {
 				try {

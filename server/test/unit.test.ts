@@ -21,7 +21,7 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
-import { gdeltTime, newsArticles, filerName, edgarHits, coinRows, tickerRows, reservesPage, alcorPath, slimPool, registerResearchTools, pricesView, alcorView, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
 import { toIso, sinceFrom, statusItems, launchItems, graduationItems, proposalItems, agentItems, jobItems, parseReleaseFeed, upstreamItems, parseRss, parseNewsroom, newsItems, sortNewestFirst, registerWhatsNewTool, LANES, UPSTREAM_FEEDS, NEWS_FEEDS } from '../src/whatsnew.ts';
@@ -1404,12 +1404,6 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('filings: one row per filing, document link built from CIK + accession, people hidden', eh.length === 2 && eh[0].document === 'https://www.sec.gov/Archives/edgar/data/1234567/000123456724000001/primary_doc.xml' && eh[1].filers[0] === '[individual filer]' && /Big Bank Corp/.test(eh[1].filers[1]));
 	t('filings: SEC User-Agent names the tool and a contact', /GUARD\.IAN/.test(SEC_USER_AGENT) && /https:\/\/guide\.standguard\.net/.test(SEC_USER_AGENT));
 
-	// CoinGecko shapes
-	const cr = coinRows([{ id: 'xpr-network', symbol: 'xpr', name: 'XPR Network', current_price: 0.004, total_volume: 1000, market_cap: 100000, price_change_percentage_24h: 1.5, last_updated: '2026-10-23T18:00:00Z' }]);
-	t('prices: coin rows keep price, volume, cap with upper-case symbol', cr[0].symbol === 'XPR' && cr[0].priceUsd === 0.004 && cr[0].marketCapUsd === 100000);
-	const tr = tickerRows({ name: 'XPR Network', tickers: [{ base: 'XPR', target: 'USDT', market: { name: 'Small' }, last: 0.004, converted_last: { usd: 0.004 }, converted_volume: { usd: 10 }, trust_score: 'green' }, { base: 'XPR', target: 'USDT', market: { name: 'Big' }, last: 0.004, converted_volume: { usd: 900 } }] }, 5);
-	t('prices: exchange tickers sorted by USD volume', tr.length === 2 && tr[0].exchange === 'Big' && tr[1].pair === 'XPR/USDT');
-
 	// metaldollar.com/reserves as read live 2026-10-23 (shape)
 	const RP = `<html><body><p>Metal Dollar publishes treasury balances and mint-and-redeem activity on-chain. The current reserve model supports USDC, PYUSD, and USDP, represented in the XPR Network treasury as XUSDC, XPYUSD, and XPAX.</p><h2>Live reserve activity</h2><p>Verified preview snapshot</p><p>Outstanding XMD 2,832,340</p><p>Total XMD minted 379,786,400</p><p>Total XMD redeemed 376,954,060</p><p>Block 400,002,261 · Aug 25, 8:27 PM UTC Verify treasury</p></body></html>`;
 	const rp = reservesPage(RP);
@@ -1434,8 +1428,6 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		if (url.includes('get_currency_stats')) return new Response(JSON.stringify({ XMD: { supply: '2860346.010179 XMD', max_supply: '0 XMD', issuer: 'xmd.treasury' } }), { status: 200 });
 		if (url.includes('get_table_rows')) return new Response(JSON.stringify({ rows: [{ symbol: { sym: '6,XUSDC', contract: 'xtokens' } }, { symbol: { sym: '6,XPAX', contract: 'xtokens' } }], more: false }), { status: 200 });
 		if (url.includes('get_currency_balance')) return new Response(JSON.stringify(init?.body?.includes('XUSDC') ? ['2900000.000000 XUSDC'] : []), { status: 200 });
-		if (url.startsWith('https://api.coingecko.com/api/v3/coins/markets')) return new Response(JSON.stringify([{ id: 'xpr-network', symbol: 'xpr', name: 'XPR Network', current_price: 0.004, total_volume: 1, market_cap: 2 }]), { status: 200 });
-		if (url.startsWith('https://api.coingecko.com/api/v3/coins/xpr-network/tickers')) return new Response(JSON.stringify({ name: 'XPR Network', tickers: [{ base: 'XPR', target: 'USDT', market: { name: 'Big' }, converted_volume: { usd: 5 } }] }), { status: 200 });
 		if (url.startsWith('https://proton.alcor.exchange/api/v2/tokens')) return new Response(JSON.stringify([{ id: 'xpr-eosio.token', symbol: 'XPR', usd_price: 0.004 }, { id: 'xmd-xmd.token', symbol: 'XMD', usd_price: 1 }]), { status: 200 });
 		if (url.startsWith('https://proton.alcor.exchange/api/v2/swap/pools/99')) return new Response('null', { status: 200 });
 		return new Response('not found', { status: 404 });
@@ -1447,11 +1439,6 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	t('outside_sources filings: no query or a bad date is a plain refusal', (await tools.outside_sources({ view: 'filings' })).isError === true && (await tools.outside_sources({ view: 'filings', query: 'x y', from: '2024/01/01' })).isError === true);
 	const x1 = await tools.outside_sources({ view: 'xmd_reserves' });
 	t('outside_sources xmd_reserves: page words + live supply and balances, labelled live, no verdict', !x1.isError && /2860346\.010179 XMD/.test(x1.content[0].text) && /"inTreasury": "2900000\.000000"/.test(x1.content[0].text) && /"inTreasury": "0"/.test(x1.content[0].text) && /"label": "live"/.test(x1.content[0].text) && /Verified preview snapshot/.test(x1.content[0].text) && !/backed: (yes|no)/i.test(x1.content[0].text));
-	const p1 = await pricesView({}, undefined);
-	t('markets prices: live label, missing default ids named', !p1.isError && /"priceLabel": "live"/.test(p1.content[0].text) && /notFound/.test(p1.content[0].text) && /metal-dao/.test(p1.content[0].text));
-	const p2 = await pricesView({ per_exchange: true }, undefined);
-	t('markets prices per exchange: tickers for the first id', !p2.isError && /"exchange": "Big"/.test(p2.content[0].text));
-	t('markets prices: a bad coin id is refused before any call', (await pricesView({ ids: ['Bad Id!'] }, undefined)).isError === true);
 	const a1 = await alcorView({ view: 'tokens', id: 'xmd' }, undefined);
 	t('markets alcor: token list filtered by symbol', !a1.isError && /xmd-xmd\.token/.test(a1.content[0].text) && !/xpr-eosio\.token/.test(a1.content[0].text) && /proton\.alcor\.exchange/.test(a1.content[0].text));
 	t('markets alcor: an unknown pool says so', /no pool 99/.test((await alcorView({ view: 'pool', pool: 99 }, undefined)).content[0].text));

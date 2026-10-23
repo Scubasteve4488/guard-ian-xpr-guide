@@ -14,10 +14,8 @@
 //                    from; Elasticsearch reply hits.hits[]._id "<accession>:<file>", _source ciks/display_names/form/
 //                    file_date/adsh). SEC asks for a User-Agent naming the tool and a contact (sec.gov "Accessing EDGAR
 //                    Data"; about 10 requests per second). Only when the user asks for filings (owner's standing rule).
-//   market_prices  — CoinGecko keyless public API, https://api.coingecko.com/api/v3 (docs.coingecko.com/docs/
-//                    keyless-public-api, read 2026-10-23: "~10–30 calls/min (dynamic, varies by server load)", shared
-//                    per IP; "not suitable for production workloads, scheduled polling"). Cached 5 minutes.
-//                    Coin ids from the guide's own CoinGecko links: xpr-network, metal-dao, metal-dollar, proton-loan.
+//   (CoinGecko prices were built and removed the same day, 1.24.1: api.coingecko.com's robots.txt disallows
+//    automated reading of /api/v3, measured live 2026-10-23 18:44 UTC, and this server obeys robots.txt.)
 //   xmd_reserves   — metaldollar.com/reserves in its own words (read 2026-10-23: no attestation report is published
 //                    there; its "Verified preview snapshot" carries its own block and date), plus the live XPR Network
 //                    treasury the page itself points to: XMD supply from xmd.token and the balances of every token
@@ -57,10 +55,10 @@ function fail(e: unknown, hint: string): Result {
 const bad = (msg: string): Result => ({ isError: true, content: [{ type: 'text', text: msg }] });
 
 /** GET text from a full URL after robots.txt allows it. Extra headers (SEC's User-Agent) are passed through. */
-async function getText(url: string, ttlSec: number, ctx?: ExecutionContext, headers?: Record<string, string>) {
+async function getText(url: string, ttlSec: number, ctx?: ExecutionContext, headers?: Record<string, string>, timeoutMs?: number) {
 	const u = new URL(url);
 	if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
-	const r = await politeFetch([url], '', { method: 'GET', headers }, { ttlSec, ctx, startAt: 0 });
+	const r = await politeFetch([url], '', { method: 'GET', headers }, { ttlSec, ctx, startAt: 0, timeoutMs });
 	if (r.status === 429) throw new UpstreamError(`${u.host} is rate-limiting (HTTP 429)`);
 	if (r.status !== 200) throw new UpstreamError(`${u.host} answered HTTP ${r.status}`);
 	if (r.tooLarge) throw new UpstreamError(`${u.host} sent more than 1 MB, so the answer was not used`);
@@ -137,41 +135,6 @@ export function edgarHits(json: any) {
 	return [...byFiling.values()];
 }
 
-// ── 5. market_prices (CoinGecko) ────────────────────────────────────────────────────────────────────────────────────
-export const COINGECKO = 'https://api.coingecko.com/api/v3';
-export const DEFAULT_COINS = ['xpr-network', 'metal-dao', 'metal-dollar', 'proton-loan'];
-const isCoinId = (s: string) => /^[a-z0-9][a-z0-9-]{0,79}$/.test(s);
-
-export function coinRows(json: any) {
-	return (Array.isArray(json) ? json : []).map((c: any) => ({
-		id: c?.id,
-		symbol: typeof c?.symbol === 'string' ? c.symbol.toUpperCase() : null,
-		name: c?.name ?? null,
-		priceUsd: c?.current_price ?? null,
-		volume24hUsd: c?.total_volume ?? null,
-		marketCapUsd: c?.market_cap ?? null,
-		change24hPct: c?.price_change_percentage_24h ?? null,
-		lastUpdated: c?.last_updated ?? null,
-	}));
-}
-export function tickerRows(json: any, limit = 25) {
-	const t = Array.isArray(json?.tickers) ? json.tickers : [];
-	return t
-		.map((x: any) => ({
-			exchange: x?.market?.name ?? null,
-			pair: `${x?.base ?? '?'}/${x?.target ?? '?'}`,
-			last: x?.last ?? null,
-			lastUsd: x?.converted_last?.usd ?? null,
-			volume24hUsd: x?.converted_volume?.usd ?? null,
-			trustScore: x?.trust_score ?? null,
-			lastTraded: x?.last_traded_at ?? null,
-			stale: x?.is_stale === true,
-			tradeUrl: typeof x?.trade_url === 'string' ? x.trade_url : null,
-		}))
-		.sort((a: any, b: any) => (Number(b.volume24hUsd) || 0) - (Number(a.volume24hUsd) || 0))
-		.slice(0, limit);
-}
-
 // ── 6. xmd_reserves ─────────────────────────────────────────────────────────────────────────────────────────────────
 export const XMD_PAGE = 'https://metaldollar.com/reserves';
 /** The reserves page's own words: the reserve-model sentence and the dated snapshot, as rendered text. */
@@ -242,7 +205,7 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 	const start = new Date(now.getTime() - Math.min(90, Math.max(1, days ?? 30)) * 86400_000);
 	const url = `${GDELT}?query=${encodeURIComponent(q)}&mode=ArtList&format=json&maxrecords=${Math.min(250, (limit ?? 25) * 3)}&sort=DateDesc&startdatetime=${gdeltStamp(start)}&enddatetime=${gdeltStamp(now)}`;
 	try {
-		const r = await getText(url, 900, ctx);
+		const r = await getText(url, 900, ctx, undefined, 20_000);
 		const body = r.text.trim();
 		let json: any = {};
 		if (body) {
@@ -291,29 +254,6 @@ export async function filingsView({ query, forms, from, to, limit }: { query?: s
 		return ok(data, [url, `https://efts.sec.gov/LATEST/search-index?q=${encodeURIComponent(query)}`], r.readAt, `Worded as filed: form, filer and date come from EDGAR. Read the document itself before saying what a filing means. ${DATA_NOTE}`);
 	} catch (e) {
 		return fail(e, 'EDGAR may be busy; try again in a minute, or search at https://efts.sec.gov/LATEST/search-index.');
-	}
-}
-
-export async function pricesView({ ids, per_exchange, limit }: { ids?: string[]; per_exchange?: boolean; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
-	const view = per_exchange ? 'tickers' : 'overview';
-	limit = Math.min(50, limit ?? 25);
-	const list = ids?.length ? [...new Set(ids.map((s) => s.trim().toLowerCase()))] : DEFAULT_COINS;
-	if (!list.every(isCoinId)) return bad('CoinGecko coin ids look like "xpr-network" (lower case, letters, digits and dashes).');
-	try {
-		if (view === 'tickers') {
-			const id = list[0];
-			const r = await getJson(COINGECKO, `/coins/${id}/tickers?include_exchange_logo=false&order=volume_desc`, 300, ctx);
-			const rows = tickerRows(r.json, limit ?? 25);
-			return ok({ coin: id, name: r.json?.name ?? null, exchanges: rows, priceLabel: 'live' }, r.source, r.readAt, `Live from CoinGecko. Prices in each pair's target currency (last) and in USD (lastUsd). No prediction or advice. ${DATA_NOTE}`);
-		}
-		const r = await getJson(COINGECKO, `/coins/markets?vs_currency=usd&ids=${list.join(',')}&price_change_percentage=24h`, 300, ctx);
-		const rows = coinRows(r.json);
-		const missing = list.filter((id) => !rows.some((x) => x.id === id));
-		const data: any = { priceLabel: 'live', coins: rows };
-		if (missing.length) data.notFound = missing;
-		return ok(data, r.source, r.readAt, 'Live from CoinGecko (USD). No prediction or advice. CoinGecko\'s free tier is shared and may refuse when busy.');
-	} catch (e) {
-		return fail(e, 'CoinGecko\'s free tier allows roughly 10–30 calls a minute shared by many users; try again shortly.');
 	}
 }
 
