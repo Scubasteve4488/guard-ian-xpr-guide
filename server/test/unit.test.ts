@@ -21,7 +21,7 @@ import { extSym, pct, marketSummary, apySummary, tvlSummary, positionsSummary, r
 import { decodeString, units, hexToBig, isAddress, balanceOfData, registerEvmTool, KNOWN_TOKENS } from '../src/evm.ts';
 import { parseAtom, parseComponents, parseBanner, parseHomeIncidents, pageStampToIso, registerStatusTool, STATUS_PAGES } from '../src/status.ts';
 import { checkSite, kycClaims, identitySummary, ageDays, parseAmount, buildReport, registerAccountCheckTool, OFFICIAL_SITES } from '../src/paycheck.ts';
-import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
+import { gdeltTime, newsArticles, filerName, edgarHits, reservesPage, alcorPath, slimPool, registerResearchTools, alcorView, parseNewsRss, relevantNews, __resetNewsCache, NEWS_FALLBACKS, BING_TERMS, DEFAULT_NEWS_QUERY, SEC_USER_AGENT, OUTSIDE_VIEWS } from '../src/research.ts';
 import { freshness } from '../src/guide.ts';
 import { MERGES, HIDDEN_TOOLS, ALIAS_NAMES, translateOld } from '../src/merge.ts';
 import { kevItems, phpSecurityEntries, securityFeedItems, SECURITY_FEEDS, SECURITY_WATCH } from '../src/whatsnew.ts';
@@ -1527,7 +1527,7 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 		t(`alias: old ${oldName} called directly gives the same answer as ${newName}`, !a.error && !a.result?.isError && strip(a) === strip(b) && strip(a).length > 40);
 	}
 	const g = await mcp('tools/call', { name: 'guide_search', arguments: { query: 'Vibrr' } });
-	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.2, 23 tools/.test(g.result.content.at(-1).text));
+	t('alias: old guide_search result keeps its shape (results with lastChecked) and the 23-tool footer', /"lastChecked": "2026-10-18"/.test(g.result.content[0].text) && /server 1\.25\.3, 23 tools/.test(g.result.content.at(-1).text));
 	const sd = await mcp('tools/call', { name: 'simpledex_tokens', arguments: {} });
 	t('alias: privacy still applies through an old name', /\[private account\]/.test(sd.result.content[0].text) && !/someperson/.test(sd.result.content[0].text));
 	const bad = await mcp('tools/call', { name: 'guide', arguments: { view: 'read', file: 'NOPE.md' } });
@@ -1590,18 +1590,27 @@ t('locked: /mcp, /, wrong or partial secrets are 404', ['/mcp', '/', '/mcp/abc',
 	const r3 = await tools.outside_sources({ view: 'news', days: 7 });
 	t('news: every feed down and no earlier copy → "news feeds unavailable right now, try later"', r3.isError === true && /news feeds unavailable right now, try later/.test(r3.content[0].text) && /Google News RSS: answered HTTP 500/.test(r3.content[0].text) && /Bing News RSS/.test(r3.content[0].text));
 
-	// a fallback whose robots.txt says no is skipped, not read
+	// a fallback whose robots.txt says no is skipped, not read; Bing is asked one name at a time, its click-counter links
+	// are unwrapped, numeric entities decoded, and stories older than the window dropped (live shapes 2026-10-23)
+	const recent = new Date(Date.now() - 2 * 86400_000).toUTCString();
+	const BING = `<?xml version="1.0" encoding="utf-8" ?><rss version="2.0"><channel><title>Bing</title>
+<item><title>Metallicus Supports the FedNow&amp;#174; Service</title><link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;aid=&amp;tid=1&amp;url=https%3a%2f%2fwww.newswire.com%2fview%2fcontent%2fmetallicus-fednow&amp;c=1&amp;mkt=en-us</link><description>x</description><pubDate>${recent}</pubDate><News:Source>newswire</News:Source></item>
+<item><title>Metallicus acquires fintech operator</title><link>http://www.bing.com/news/apiclick.aspx?ref=FexRss&amp;url=https%3a%2f%2fcointelegraph.com%2fnews%2fold&amp;c=2</link><pubDate>Fri, 20 Dec 2024 10:53:00 GMT</pubDate><News:Source>Cointelegraph</News:Source></item>
+</channel></rss>`;
+	const bingUrls: string[] = [];
 	__resetNewsCache();
 	gnCalls = 0;
 	stub((url) => {
 		if (url === 'https://news.google.com/robots.txt') return new Response('User-agent: *\nDisallow: /rss', { status: 200 });
 		if (url.endsWith('/robots.txt')) return new Response('', { status: 404 });
 		if (url.startsWith('https://news.google.com/rss/')) { gnCalls++; return new Response(GN, { status: 200 }); }
-		if (url.startsWith('https://www.bing.com/news/')) return new Response(GN.replace(/news\.google\.com\/rss\/articles/g, 'www.exampletimes.com/story'), { status: 200 });
+		if (url.startsWith('https://www.bing.com/news/')) { bingUrls.push(url); return new Response(BING, { status: 200 }); }
 		return new Response('down', { status: 500 });
 	});
 	const r4 = await tools.outside_sources({ view: 'news', days: 14 });
-	t('news: Google News skipped when its robots.txt disallows; Bing News RSS answers', !r4.isError && gnCalls === 0 && /"answeredBy": \[\s*"Bing News RSS"\s*\]/.test(r4.content[0].text) && /robots\.txt does not allow/.test(r4.content[0].text));
+	const t4 = r4.content[0].text;
+	t('news: Google News skipped when its robots.txt disallows; Bing News RSS answers', !r4.isError && gnCalls === 0 && /"answeredBy": \[\s*"Bing News RSS"\s*\]/.test(t4) && /robots\.txt does not allow/.test(t4));
+	t('news: Bing asked once per name, real article link given, entity decoded, old story outside the window dropped', bingUrls.length === BING_TERMS.length && /"url": "https:\/\/www\.newswire\.com\/view\/content\/metallicus-fednow"/.test(t4) && /FedNow® Service/.test(t4) && !/acquires fintech operator/.test(t4) && /"count": 1/.test(t4));
 }
 
 console.log(`${pass} passed, ${failN} failed`);

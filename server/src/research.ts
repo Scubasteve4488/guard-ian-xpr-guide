@@ -212,6 +212,9 @@ export const NEWS_FALLBACKS = [
 	{ name: 'Google News RSS', url: (q: string, days: number) => `https://news.google.com/rss/search?q=${encodeURIComponent(`${q} when:${days}d`)}&hl=en-US&gl=US&ceid=US:en` },
 	{ name: 'Bing News RSS', url: (q: string) => `https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss` },
 ] as const;
+// Bing does not understand the default ("a" OR "b" …) query (live 2026-10-23: 0 relevant of 29), so for the default
+// question it is asked one name at a time, the four names most press uses. Each answer is cached 30 minutes.
+export const BING_TERMS = ['Metallicus', '"XPR Network"', '"Metal Pay"', '"Metal Blockchain"'];
 let newsLimiter: { limit(o: { key: string }): Promise<{ success: boolean }> } | undefined;
 export function setNewsLimiter(l?: typeof newsLimiter) {
 	newsLimiter = l;
@@ -253,12 +256,19 @@ type NewsItem = { outlet: string; title: string; url: string; published?: string
 
 /** RSS 2.0 news items (Google News / Bing News): title, link, pubDate, <source> outlet. */
 export function parseNewsRss(xml: string, feed: string): NewsItem[] {
-	const dec = (v: string) => v.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&').replace(/\s+/g, ' ').trim();
+	const dec = (v: string) => v.replace(/^<!\[CDATA\[([\s\S]*?)\]\]>$/, '$1').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'").replace(/&amp;/g, '&').replace(/&#(\d+);/g, (_m, n) => String.fromCodePoint(Number(n))).replace(/\s+/g, ' ').trim();
 	const out: NewsItem[] = [];
 	for (const it of xml.match(/<item\b[\s\S]*?<\/item>/g) ?? []) {
 		const pick = (tag: string) => dec((it.match(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)<\\/${tag}>`)) ?? [])[1] ?? '');
 		let title = pick('title');
-		const url = pick('link');
+		let url = pick('link');
+		// Bing wraps each link in its click counter (bing.com/news/apiclick.aspx?…&url=<the article>): give the article itself.
+		try {
+			const u = new URL(url);
+			if (/(^|\.)bing\.com$/.test(u.hostname) && /apiclick/i.test(u.pathname) && /^https?:\/\//.test(u.searchParams.get('url') ?? '')) url = u.searchParams.get('url')!;
+		} catch {
+			/* keep as given */
+		}
 		if (!title || !/^https?:\/\//.test(url)) continue;
 		let outlet = pick('source') || pick('News:Source');
 		const srcUrl = (it.match(/<source[^>]*url="([^"]+)"/) ?? [])[1];
@@ -347,18 +357,37 @@ async function readGdelt(q: string, days: number, userQuery: boolean, ctx?: Exec
 }
 type NewItemLike = NewsItem;
 
-async function readFallback(f: (typeof NEWS_FALLBACKS)[number], q: string, days: number, ctx?: ExecutionContext): Promise<{ items: NewsItem[]; source: string; cached: boolean }> {
-	const url = f.url(q, days);
-	const hit = await newsGet(`rss|${url}`);
-	if (hit) return { items: hit, source: url, cached: true };
-	const u = new URL(url);
-	if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
-	const r = await politeFetch([url], '', { method: 'GET', headers: { Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5' } }, { ttlSec: 0, ctx, startAt: 0, timeoutMs: 12_000 });
-	if (r.status !== 200) throw new UpstreamError(`answered HTTP ${r.status}`);
-	if (!/<rss\b|<channel\b/i.test(r.text)) throw new UpstreamError('did not answer with an RSS feed');
-	const items = parseNewsRss(r.text, f.name);
-	await newsPut(`rss|${url}`, items, 1800, ctx);
-	return { items, source: url, cached: false };
+async function readFallback(f: (typeof NEWS_FALLBACKS)[number], q: string, days: number, userQuery: boolean, ctx?: ExecutionContext): Promise<{ items: NewsItem[]; source: string; cached: boolean }> {
+	const queries = f.name === 'Bing News RSS' && !userQuery ? BING_TERMS : [q];
+	const items: NewsItem[] = [];
+	const used: string[] = [];
+	let cachedAll = true;
+	let lastErr: unknown = null;
+	for (const one of queries) {
+		const url = f.url(one, days);
+		try {
+			let got = await newsGet(`rss|${url}`);
+			if (!got) {
+				cachedAll = false;
+				const u = new URL(url);
+				if (!(await robotsAllows(u, ctx))) throw new UpstreamError(`${u.host}'s robots.txt does not allow automated reading of ${u.pathname}`);
+				const r = await politeFetch([url], '', { method: 'GET', headers: { Accept: 'application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.5' } }, { ttlSec: 0, ctx, startAt: 0, timeoutMs: 12_000 });
+				if (r.status !== 200) throw new UpstreamError(`answered HTTP ${r.status}`);
+				if (!/<rss\b|<channel\b/i.test(r.text)) throw new UpstreamError('did not answer with an RSS feed');
+				got = parseNewsRss(r.text, f.name);
+				await newsPut(`rss|${url}`, got, 1800, ctx);
+			}
+			items.push(...got);
+			used.push(url);
+		} catch (e) {
+			lastErr = e;
+			if (e instanceof UpstreamError && /robots\.txt/.test(e.message)) break;
+		}
+	}
+	if (!used.length) throw lastErr instanceof UpstreamError ? lastErr : new UpstreamError('could not be read');
+	// Feeds without a date window (Bing) can return old stories: keep only the asked window when the item has a date.
+	const from = Date.now() - days * 86400_000;
+	return { items: items.filter((n) => !n.published || Date.parse(n.published) >= from), source: used.join(' ; '), cached: cachedAll };
 }
 
 export async function newsView({ query, days, limit }: { query?: string; days?: number; limit?: number }, ctx?: ExecutionContext): Promise<Result> {
@@ -389,7 +418,7 @@ export async function newsView({ query, days, limit }: { query?: string; days?: 
 	if (!gdeltCount) {
 		for (const f of NEWS_FALLBACKS) {
 			try {
-				take(f.name, await readFallback(f, q, d, ctx));
+				take(f.name, await readFallback(f, q, d, userQuery, ctx));
 				break;
 			} catch (e) {
 				notRead.push(`${f.name}: ${e instanceof UpstreamError ? e.message : 'could not be read'}`);
